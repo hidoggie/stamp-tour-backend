@@ -35,7 +35,7 @@ app.use(express.static(path.join(__dirname, 'static'))); // 'static' 폴더를 �
 // --- 3. 프론트엔드 페이지 라우팅 ---
 // 사용자가 루트 주소로 접속하면 map.html을 보여줌
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'static', 'map.html'));
+    res.sendFile(path.join(__dirname, 'static', 'joayong-map.html'));
 });
 
 // ✨ 3. WebSocket 서버 생성 및 관리자 클라이언트 목록 생성
@@ -208,4 +208,5 @@ app.post('/admin/update-prizes', authenticateToken, async (req, res) => {
 // --- 6. 서버 시작 ---
 server.listen(PORT, () => {
     console.log(`🎉 스탬프 투어 서버가 http://localhost:${PORT} 에서 실행 중입니다.`);
+
 });
