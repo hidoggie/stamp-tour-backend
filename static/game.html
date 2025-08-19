@@ -36,7 +36,7 @@
             const userId = localStorage.getItem('userId');
             if (!userId) {
                 alert("사용자 정보를 찾을 수 없어 메인 화면으로 돌아갑니다.");
-                window.location.href = 'map.html';
+                window.location.href = 'joayong-map.html';
                 return; // ID가 없으면 스크립트 실행을 즉시 중단합니다.
             }
             console.log(`사용자 ID 확인: ${userId}`);
@@ -132,4 +132,5 @@
         });
     </script>
 </body>
+
 </html>
