@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head><title>관리자 로그인</title></head>
+<body>
+    <h1>관리자 로그인</h1>
+    <input type="text" id="username" placeholder="아이디"><br>
+    <input type="password" id="password" placeholder="비밀번호"><br>
+    <button id="loginBtn">로그인</button>
+    <p id="error-message" style="color:red;"></p>
+    <script>
+        document.getElementById('loginBtn').onclick = () => {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            fetch('/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.token) {
+                    localStorage.setItem('adminToken', data.token); // 토큰 저장
+                    window.location.href = 'event_manager.html';
+                } else {
+                    document.getElementById('error-message').textContent = data.error;
+                }
+            });
+        };
+    </script>
+</body>
+</html>

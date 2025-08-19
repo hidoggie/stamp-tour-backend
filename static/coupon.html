@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <title>경품 교환권</title>
+    <style> /* ... CSS 스타일 ... */ </style>
+</head>
+<body>
+    <h1>🎉 축하합니다! 🎉</h1>
+    <h2 id="prize-name">경품 이름</h2>
+    <p>교환 코드: <b id="redeem-code" style="font-size: 1.5em; color: red;"></b></p>
+    <hr>
+    <div id="admin-section">
+        <h3>운영자 확인란</h3>
+        <input type="password" id="admin-code" placeholder="운영자 코드를 입력하세요">
+        <button id="redeem-btn">경품 지급 확인</button>
+        <p id="result-message"></p>
+    </div>
+
+   <script>
+    const prizeNameEl = document.getElementById('prize-name');
+    const redeemCodeEl = document.getElementById('redeem-code');
+    const adminCodeInput = document.getElementById('admin-code');
+    const redeemBtn = document.getElementById('redeem-btn');
+    const resultMessageEl = document.getElementById('result-message');
+    
+    // ✨ URL 파라미터에서 'code'와 'prize'를 가져와서 화면에 표시
+    const urlParams = new URLSearchParams(window.location.search);
+    const redeemCode = urlParams.get('code');
+    const prizeName = urlParams.get('prize');
+
+    redeemCodeEl.textContent = redeemCode;
+    prizeNameEl.textContent = prizeName;
+
+    redeemBtn.onclick = () => {
+        const adminCode = adminCodeInput.value;
+        if (!adminCode) {
+            alert("운영자 코드를 입력하세요.");
+            return;
+        }
+
+        // ✨ 서버에 'redeemCode'와 'adminCode'를 함께 전송
+        fetch('/api/redeem', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ redeemCode: redeemCode, adminCode: adminCode })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                resultMessageEl.style.color = 'red';
+                resultMessageEl.textContent = `오류: ${data.error}`;
+            } else {
+                resultMessageEl.style.color = 'green';
+                resultMessageEl.textContent = data.message;
+                document.getElementById('admin-section').innerHTML = "<h2>지급 완료되었습니다.</h2>";
+            }
+        });
+    };
+</script>
+</body>
+</html>

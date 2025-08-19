@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>이벤트 관리</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 20px; }
+        fieldset { margin-bottom: 20px; border-radius: 5px; border: 1px solid #ccc; }
+        table, th, td { border: 1px solid black; border-collapse: collapse; padding: 5px; }
+        #update-form { display: flex; align-items: center; gap: 10px; }
+        /* ✨ 2. 숫자 입력창의 상하 버튼(spinner) 숨기기 */
+        input[type=number]::-webkit-outer-spin-button,
+        input[type=number]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            appearance: none; /* 표준 속성 추가 */
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+            appearance: textfield;      /* 표준 속성 추가 */
+        }
+    </style>
+</head>
+<body>
+    <h1>이벤트 관리 대시보드</h1>
+    
+    <fieldset>
+        <legend><strong>누적 통계 (이벤트 전체 기간)</strong></legend>
+        <p><strong>총 참가자 수:</strong> <span id="cum-participants">0</span></p>
+        <p><strong>지급된 경품 총량:</strong> <span id="cum-total-given">0</span></p>
+        <ul id="cum-prize-list"></ul>
+    </fieldset>
+
+    <fieldset>
+        <legend><strong>일일 통계</strong></legend>
+        <label for="date-picker">날짜 선택:</label>
+        <input type="date" id="date-picker">
+        <p><strong>해당일 참가자 수:</strong> <span id="daily-participants">0</span></p>
+        <p><strong>해당일 지급 경품 총량:</strong> <span id="daily-total-given">0</span></p>
+        <ul id="daily-prize-list"></ul>
+    </fieldset>
+
+    <fieldset>
+        <legend><strong>현재 경품 재고 현황 및 관리</strong></legend>
+        <table id="prize-table">
+            <thead><tr><th>경품명</th><th>남은 수량</th><th>총 수량</th></tr></thead>
+            <tbody></tbody>
+        </table>
+        <h3 style="margin-top: 20px;">경품 수량 보충/수정</h3>
+        <div id="update-form">
+            <select id="prize-select"></select>
+            <input type="number" id="new-quantity" placeholder="새 수량">
+            <input type="password" id="admin-password" placeholder="관리자 비밀번호 확인">
+            <button id="updateBtn">수량 업데이트</button>
+        </div>
+        <p id="update-message"></p>
+    </fieldset>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- 2. 이 안으로 이전의 모든 JavaScript 코드를 옮깁니다. ---
+        const token = localStorage.getItem('adminToken');
+        if (!token) {
+            alert("로그인이 필요합니다.");
+            window.location.href = 'admin_login.html';
+            return;
+        }
+        
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
+
+        // 통계 표시 요소들
+        const cumParticipantsEl = document.getElementById('cum-participants');
+        const cumTotalGivenEl = document.getElementById('cum-total-given');
+        const cumPrizeListEl = document.getElementById('cum-prize-list');
+        const datePicker = document.getElementById('date-picker');
+        const dailyParticipantsEl = document.getElementById('daily-participants');
+        const dailyTotalGivenEl = document.getElementById('daily-total-given');
+        const dailyPrizeListEl = document.getElementById('daily-prize-list');
+        
+        // 재고 관리 요소들
+        const tableBody = document.getElementById('prize-table').querySelector('tbody');
+        const prizeSelect = document.getElementById('prize-select');
+        const updateBtn = document.getElementById('updateBtn');
+        const newQuantityInput = document.getElementById('new-quantity');
+        const adminPasswordInput = document.getElementById('admin-password');
+        const updateMessageEl = document.getElementById('update-message');
+        
+        async function loadStats(date) {
+            try {
+                const response = await fetch(`/admin/stats?date=${date}`, { headers });
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        alert("인증이 만료되었거나 유효하지 않습니다. 다시 로그인해주세요.");
+                        localStorage.removeItem('adminToken');
+                        window.location.href = 'admin_login.html';
+                    }
+                    throw new Error(`서버 응답 오류: ${response.status}`);
+                }
+                const stats = await response.json();
+
+                cumParticipantsEl.textContent = stats.cumulativeParticipants;
+                cumTotalGivenEl.textContent = stats.cumulativeTotalGiven;
+                cumPrizeListEl.innerHTML = stats.cumulativePrizesGiven.map(p => `<li>${p.prize_name}: ${p.count}개</li>`).join('') || "<li>지급된 경품이 없습니다.</li>";
+
+                dailyParticipantsEl.textContent = stats.dailyParticipants;
+                dailyTotalGivenEl.textContent = stats.dailyTotalGiven;
+                dailyPrizeListEl.innerHTML = stats.dailyPrizesGiven.map(p => `<li>${p.prize_name}: ${p.count}개</li>`).join('') || "<li>해당 날짜에 지급된 경품이 없습니다.</li>";
+
+                tableBody.innerHTML = '';
+                prizeSelect.innerHTML = '';
+                stats.currentInventory.forEach(prize => {
+                    tableBody.innerHTML += `<tr><td>${prize.name}</td><td>${prize.remaining_quantity}</td><td>${prize.total_quantity}</td></tr>`;
+                    prizeSelect.innerHTML += `<option value="${prize.name}">${prize.name}</option>`;
+                });
+            } catch (error) {
+                console.error("통계 데이터를 불러오는 데 실패했습니다:", error);
+                alert("통계 데이터를 불러오는 데 실패했습니다. 서버 로그를 확인해주세요.");
+            }
+        }
+
+        datePicker.onchange = () => {
+            loadStats(datePicker.value);
+        };
+
+        updateBtn.onclick = async () => {
+            const prizeName = prizeSelect.value;
+            const newQuantity = newQuantityInput.value;
+            const adminPassword = adminPasswordInput.value;
+
+            if (!newQuantity || !adminPassword) {
+                alert("새 수량과 관리자 비밀번호를 모두 입력해주세요.");
+                return;
+            }
+
+            // isNaN: "Is Not a Number" 숫자가 아닌지 확인
+            if (isNaN(newQuantity) || (newQuantity < 0)) {
+                alert("재고 수량에는 0보다 큰 수만 입력할 수 있습니다.");
+                newQuantityInput.value = '';
+                adminPasswordInput.value = '';                
+                return;
+            }
+
+            try {
+                const response = await fetch('/admin/update-prizes', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ prizeName, newQuantity, adminPassword })
+                });
+                const data = await response.json();
+                
+                updateMessageEl.textContent = data.message || data.error;
+                updateMessageEl.style.color = data.success ? 'green' : 'red';
+                
+                if (data.success) {
+                    loadStats(datePicker.value);
+                    newQuantityInput.value = '';
+                    adminPasswordInput.value = '';
+                }
+            } catch (error) {
+                updateMessageEl.textContent = '업데이트 중 오류가 발생했습니다.';
+                updateMessageEl.style.color = 'red';
+            }
+        };
+
+    // ✨ 1. 관리자용 웹소켓에 연결하는 함수
+    function connectAdminSocket() {
+        const socketURL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`;
+        const socket = new WebSocket(socketURL); // Express와 ws를 함께 쓸 땐 경로(/ws/admin) 없이 루트로 접속
+
+        socket.onopen = () => {
+            console.log("관리자 실시간 업데이트 소켓에 연결되었습니다.");
+        };
+
+        // ✨ 2. 서버로부터 메시지를 받으면 통계를 다시 로드
+        socket.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+            if (message.type === 'stats-updated') {
+                console.log("실시간 통계 업데이트 신호를 받았습니다. 데이터를 새로고침합니다.");
+                const currentDate = document.getElementById('date-picker').value;
+                loadStats(currentDate);
+
+                // (선택) 사용자에게 시각적인 피드백 제공
+                const header = document.querySelector('h1');
+                header.style.color = '#e43f5a';
+                setTimeout(() => { header.style.color = 'black'; }, 1000);
+            }
+        };
+
+        socket.onclose = () => {
+            console.log("실시간 업데이트 소켓 연결이 끊어졌습니다. 5초 후 재연결합니다.");
+            setTimeout(connectAdminSocket, 5000);
+        };
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    datePicker.value = today;
+    loadStats(today);
+    // ✨ 3. 통계 로드와 함께 웹소켓 연결 시작
+    connectAdminSocket();
+    });
+    </script>
+</body>
+</html>

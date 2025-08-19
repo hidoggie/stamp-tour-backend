@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>경품 룰렛 게임</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; text-align: center; background-color: #1a1a2e; color: white; padding-top: 50px; }
+        h1 { color: #e43f5a; }
+        p { font-size: 1.1em; }
+        .roulette-container { position: relative; width: 350px; height: 350px; margin: 20px auto; }
+        #canvas { display: block; }
+        .pointer { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #e43f5a; z-index: 10; }
+        #spin_button { font-size: 1.5em; padding: 15px 30px; border-radius: 10px; border: none; cursor: pointer; background-color: #0f3460; color: white; margin-top: 20px; transition: background-color 0.3s; }
+        #spin_button:disabled { background-color: #555; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <h1>✨ 경품 룰렛 ✨</h1>
+    <p>모든 스탬프를 모으신 것을 축하합니다!<br>SPIN 버튼을 눌러 경품을 획득하세요!</p>
+    <div class="roulette-container">
+        <div class="pointer"></div>
+        <canvas id="canvas" width="350" height="350"></canvas>
+    </div>
+    <button id="spin_button" disabled>룰렛 준비 중...</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/TweenMax.min.js"></script>
+    <script src="Winwheel.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const spinButton = document.getElementById('spin_button');
+            let theWheel;
+            let wheelSpinning = false;
+
+            // 1. 사용자 ID를 먼저 확인합니다.
+            const userId = localStorage.getItem('userId');
+            if (!userId) {
+                alert("사용자 정보를 찾을 수 없어 메인 화면으로 돌아갑니다.");
+                window.location.href = 'map.html';
+                return; // ID가 없으면 스크립트 실행을 즉시 중단합니다.
+            }
+            console.log(`사용자 ID 확인: ${userId}`);
+
+            // 2. 룰렛 게임의 모든 로직을 담는 메인 함수
+            async function initializeGame() {
+                try {
+                    // 3. 서버에 룰렛 참여 자격 확인
+                    console.log("서버에 참여 자격을 확인합니다...");
+                    const eligibilityResponse = await fetch(`/api/check-eligibility/${userId}`);
+                    const eligibility = await eligibilityResponse.json();
+
+                    if (!eligibility.eligible) {
+                        alert(eligibility.reason || "룰렛에 참여할 자격이 없습니다.");
+                        spinButton.textContent = "참여 완료";
+                        spinButton.disabled = true;
+                        return;
+                    }
+                    console.log("참여 자격 확인 완료.");
+
+                    // 4. 경품 정보를 가져와 룰렛 생성
+                    console.log("경품 정보를 가져옵니다...");
+                    const prizesResponse = await fetch('/api/prizes');
+                    const prizes = await prizesResponse.json();
+                    
+                    if (!prizes || prizes.length === 0) throw new Error("남아있는 경품이 없습니다.");
+                    
+                    const totalQuantity = prizes.reduce((sum, p) => sum + p.remaining_quantity, 0);
+                    if (totalQuantity === 0) throw new Error("모든 경품이 소진되었습니다.");
+
+                    const segments = prizes.map((p, index) => ({
+                        'fillStyle': index % 2 === 0 ? '#1f4068' : '#162447',
+                        'text': p.name,
+                        'size': (p.remaining_quantity / totalQuantity) * 360,
+                        'prizeId': p.id
+                    }));
+
+                    theWheel = new Winwheel({
+                        'canvasId': 'canvas', 'numSegments': segments.length, 'outerRadius': 170,
+                        'textFontSize': 16, 'textFillStyle': 'white', 'segments': segments,
+                        'textOrientation' : 'horizontal', 'textAlignment' : 'center',
+                        'animation': { 'type': 'spinToStop', 'duration': 8, 'spins': 10 },
+                    });
+                    
+                    theWheel.draw();
+                    spinButton.textContent = "SPIN!";
+                    spinButton.disabled = false;
+                    console.log("룰렛 그리기를 완료했습니다.");
+
+                } catch (error) {
+                    alert(error.message);
+                    spinButton.textContent = "오류 발생";
+                    console.error("초기화 오류:", error);
+                }
+            }
+
+            spinButton.onclick = async () => {
+                if (wheelSpinning) return;
+                spinButton.disabled = true;
+                wheelSpinning = true;
+
+                try {
+                    const response = await fetch('/api/spin', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: userId })
+                    });
+                    const result = await response.json();
+                    if (result.error) throw new Error(result.error);
+
+                    theWheel.animation.stopAngle = result.stopAt;
+                    theWheel.animation.callbackFinished = () => {
+                        alert(`축하합니다! '${result.prizeName}'에 당첨되었습니다!`);
+                        wheelSpinning = false;
+                        spinButton.textContent = "경품 수령 완료";
+                        document.querySelector('p').textContent = "부스에서 화면을 보여주고 경품을 수령하세요!";
+                    };
+                    theWheel.startAnimation();
+                } catch (error) {
+                    alert(`룰렛을 돌리는 중 오류가 발생했습니다: ${error.message}`);
+                    wheelSpinning = false;
+                    spinButton.disabled = false;
+                }
+            };
+
+            // 5. Winwheel 라이브러리가 준비되면 게임 초기화 시작
+            const checkLibrary = setInterval(() => {
+                if (typeof Winwheel !== 'undefined' && typeof TweenMax !== 'undefined') {
+                    clearInterval(checkLibrary);
+                    initializeGame();
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>
