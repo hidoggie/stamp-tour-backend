@@ -294,6 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 mapBtn.textContent = "🎁 QR코드 찍기";
                 mapBtn.onclick = () => { window.location.href = 'scanner.html'; };
                 photoBtn.classList.add('hidden');
+                resultContainer.classList.remove('hidden');
                 return;
             }
         } else {
@@ -347,4 +348,5 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 </body>
+
 </html>
