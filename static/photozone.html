@@ -90,7 +90,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // AR 모드가 활성화되면 자동으로 AR 버튼 클릭 (사용자 편의)
-        modelViewer.addEventListener('load', () => {
+        modelViewer.addEventListener('poster-dismissed', () => {
+            // 이 시점에는 AR 버튼이 확실히 존재합니다.
             document.querySelector('.slot').click();
         });
     }
@@ -175,4 +176,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 </body>
+
 </html>
