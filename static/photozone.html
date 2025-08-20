@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR 포토존</title>
+    <style>
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: sans-serif; }
+        #ar-container { width: 100%; height: 100%; }
+        model-viewer { width: 100%; height: 100%; --poster-color: transparent; }
+        
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; box-sizing: border-box; }
+        .top-bar { display: flex; justify-content: space-between; padding: 20px; }
+        .bottom-bar { display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .nav-button { padding: 10px 20px; font-size: 1.2em; border-radius: 5px; border: none; background-color: rgba(0,0,0,0.6); color: white; cursor: pointer; pointer-events: all; }
+        
+        #capture-btn {
+            width: 70px; height: 70px; border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 5px solid rgba(255, 255, 255, 0.9);
+            pointer-events: all; cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+        }
+        #capture-btn.recording .inner-circle {
+            width: 30px; height: 30px; border-radius: 5px;
+            background-color: red;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+</head>
+<body>
+
+<div id="ar-container">
+    <model-viewer
+        id="planet-viewer"
+        ar
+        ar-modes="webxr scene-viewer quick-look"
+        camera-controls
+        touch-action="pan-y"
+        ar-placement="floor"
+        shadow-intensity="1"
+        alt="AR model of a planet">
+    </model-viewer>
+</div>
+
+<div class="overlay">
+    <div class="top-bar">
+        <button id="map-btn" class="nav-button">🗺️ 지도로</button>
+        <button id="close-btn" class="nav-button">❌ 닫기</button>
+    </div>
+    <div class="bottom-bar">
+        <button id="capture-btn"><div class="inner-circle"></div></button>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- 3. 요소 및 상태 변수 ---
+    const modelViewer = document.getElementById('planet-viewer');
+    const captureBtn = document.getElementById('capture-btn');
+    const mapBtn = document.getElementById('map-btn');
+    const closeBtn = document.getElementById('close-btn');
+
+    let pressTimer;
+    let isRecording = false;
+    let mediaRecorder;
+    let recordedChunks = [];
+    
+    const planetData = {
+        sun: { name: '태양', model: './models/sun.glb', scale: '0.3 0.3 0.3' },
+        mercury: { name: '수성', model: './models/mercury.glb', scale: '0.3 0.3 0.3' },
+        venus: { name: '금성', model: './models/venus.glb', scale: '0.3 0.3 0.3' },
+        saturn: { name: '토성', model: './models/saturn.glb', scale: '0.3 0.3 0.3' },
+        mars: { name: '화성', model: './models/mars.glb', scale: '0.3 0.3 0.3' },
+        jupiter: { name: '목성', model: './models/jupiter.glb', scale: '0.3 0.3 0.3' },
+    };
+
+    // --- 4. 페이지 초기화 ---
+    function init() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const planetId = urlParams.get('planet') || 'sun'; // 기본값으로 'sun'
+        const currentPlanet = planetData[planetId];
+        
+        if (currentPlanet) {
+            modelViewer.src = currentPlanet.model;
+            modelViewer.setAttribute('scale', currentPlanet.scale);
+            modelViewer.alt = `${currentPlanet.name} 3D 모델`;
+        }
+        
+        // AR 모드가 활성화되면 자동으로 AR 버튼 클릭 (사용자 편의)
+        modelViewer.addEventListener('load', () => {
+            // 3D 모델 로드가 완료되면, AR 모드를 직접 활성화합니다.
+            modelViewer.activateAR();
+        });
+    }
+
+    // --- 5. 사진/동영상 촬영 로직 ---
+    async function takePicture() {
+        const blob = await modelViewer.toBlob({mimeType: 'image/png'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ar_photo_${Date.now()}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+    
+    async function startRecording() {
+        isRecording = true;
+        captureBtn.classList.add('recording');
+        
+        try {
+            const stream = await modelViewer.streamScene();
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) recordedChunks.push(event.data);
+            };
+            
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ar_video_${Date.now()}.webm`;
+                a.click();
+                URL.revokeObjectURL(url);
+                recordedChunks = [];
+            };
+            
+            mediaRecorder.start();
+        } catch (e) {
+            console.error("녹화 시작 오류:", e);
+            stopRecording();
+        }
+    }
+    
+    function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state === "recording") {
+            mediaRecorder.stop();
+        }
+        isRecording = false;
+        captureBtn.classList.remove('recording');
+    }
+    
+    // --- 6. 캡처 버튼 이벤트 (길게 누르기 / 짧게 누르기) ---
+    captureBtn.addEventListener('mousedown', (e) => {
+        pressTimer = setTimeout(() => {
+            // 길게 눌렀을 때: 녹화 시작
+            startRecording();
+        }, 500); // 0.5초 이상 누르면 녹화로 간주
+    });
+
+    captureBtn.addEventListener('mouseup', (e) => {
+        clearTimeout(pressTimer); // 타이머 취소
+        if (isRecording) {
+            // 녹화 중이었다면 중지
+            stopRecording();
+        } else {
+            // 짧게 눌렀다면 사진 촬영
+            takePicture();
+        }
+    });
+    
+    // 모바일 터치 이벤트 지원
+    captureBtn.addEventListener('touchstart', (e) => { e.preventDefault(); captureBtn.dispatchEvent(new MouseEvent('mousedown')); });
+    captureBtn.addEventListener('touchend', (e) => { e.preventDefault(); captureBtn.dispatchEvent(new MouseEvent('mouseup')); });
+
+    // --- 7. 네비게이션 버튼 ---
+    mapBtn.onclick = () => window.location.href = 'joayong-map.html';
+    closeBtn.onclick = () => window.close(); // 새 탭으로 열렸을 경우 닫기
+
+    init();
+});
+</script>
+</body>
+</html>
