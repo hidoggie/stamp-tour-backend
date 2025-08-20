@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스탬프 투어 - 행성 여행</title>
+    <style>
+        /* CSS는 이전과 동일하게 유지합니다. */
+        html, body, #map { height: 100%; margin: 0; padding: 0; font-family: sans-serif; }
+        #modal { display: none; position: fixed; z-index: 99999; left: 0; top: 0; width: 100%; height: 100%; align-items: center; justify-content: center; }
+        .modal-content { background-color: #edefe8; margin: auto; padding: 20px; border-radius: 10px; width: 80%; max-width: 400px; text-align: center; }
+        .modal-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+        .modal-buttons button { padding: 10px 20px; font-size: 1em; cursor: pointer; border-radius: 5px; border: none; color: white; }
+        .btn-stamp { background-color: #007bff; }
+        .btn-photo { background-color: #28a745; }
+        .gm-style-iw-c button {
+            display: none !important;
+        }
+        .gm-style-iw-d {
+            padding: 10px !important;
+        }
+
+        #map {
+          position: absolute;
+          width: 100%;
+          height: 92%;
+          top: 8%;
+          z-index: 9999;
+        }
+
+        .container {
+          width: 100%;
+          height: 95vh;
+          background-size: contain;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        #section {
+          display: none;
+        }
+        #info {
+          position: absolute;
+          top: 0;
+          width: 100%;
+          height: 8%;  
+          text-align: center;
+          background-color: #e8e8e8;
+        }
+
+        @import url("https://fonts.googleapis.com/css2?family=Edu+AU+VIC+WA+NT+Hand:wght@400..700&display=swap");
+
+        @font-face {
+            font-family: "Pretendard-Regular";
+            src: url("https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff")
+                format("woff");
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: "HSSanTokki20-Regular";
+            src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/2405@1.0/HSSanTokki20-Regular.woff2")
+                format("woff2");
+            font-weight: normal;
+            font-style: normal;
+        }
+
+
+        .font-Pretendard-Regular {
+            font-family: "Pretendard-Regular";
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+    <div id="info" class="font-Pretendard-Regular">
+     <section id="section">
+       <label id="text"> </label> 
+      </section>  
+      <h3 class="font-Pretendard-Regular" style="color:#9C6B5D;">조아용을 찾아라!
+    </div>
+      
+    <div id="map"></div>
+    
+    <div id="modal">
+        <div class="modal-content">
+            <h2 id="modal-title"></h2>
+            <p>스탬프 존에 도착했습니다! 무엇을 하시겠습니까?</p>
+            <div class="modal-buttons">
+                <button id="modal-stamp-btn" class="btn-stamp">스탬프 투어 참여</button>
+                <button id="modal-photo-btn" class="btn-photo">AR 포토존 가기</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let map; // 전역 변수로 map 객체 선언
+        let userMarker = null;
+        let activeModalId = null;
+        const eventCenterPoint = { lat: 37.465789, lng: 126.386757 }; // 이벤트 중심 좌표
+        const eventRadius = 300; // 이벤트 참여 가능 반경 (300미터)
+
+
+            const stampLocations = [
+                { title: '☀️ 태양', lat: 37.465467, lng: 126.387857, id: 'sun' },
+                { title: '💧 수성', lat: 37.465789, lng: 126.386757, id: 'mercury' },
+                { title: '✨ 금성', lat: 37.466490, lng: 126.388020, id: 'venus' },
+                { title: '🌍 토성', lat: 37.465762, lng: 126.385614, id: 'saturn' },
+                { title: '🔴 화성', lat: 37.467071, lng: 126.386995, id: 'mars' },
+                { title: '🪐 목성', lat: 37.466879, lng: 126.386567, id: 'jupiter' },
+            ];
+
+            const stampLocations1 = [
+                { title: '☀️ 태양', lat: 37.489121, lng: 126.955418, id: 'sun' },
+                { title: '💧 수성', lat: 37.4895,   lng: 126.9556, id: 'mercury' },
+                { title: '✨ 금성', lat: 37.4893,   lng: 126.9561, id: 'venus' },
+                { title: '🌍 토성', lat: 37.489, lng: 126.9662, id: 'saturn' },
+                { title: '🔴 화성', lat: 37.4891, lng: 126.9569, id: 'mars' },
+                { title: '🪐 목성', lat: 37.4892, lng: 126.9551, id: 'jupiter' },
+            ];
+
+
+        // 2. Google Maps API가 로드된 후 'initMap' 함수가 자동으로 호출됩니다.
+        function initMap() {
+                // ✨ 사용자 ID 확인 및 생성 로직 (가장 먼저 실행)
+            let userId = localStorage.getItem('userId');
+            if (!userId) {
+               // crypto.randomUUID()는 매우 안전하고 고유한 ID를 생성하는 최신 표준 방식입니다.
+                userId = crypto.randomUUID();
+                localStorage.setItem('userId', userId);
+                console.log(`새로운 사용자 ID가 생성되었습니다: ${userId}`);
+            } else {
+                console.log(`기존 사용자 ID를 사용합니다: ${userId}`);
+            }
+
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: eventCenterPoint,
+                zoom: 18,
+            });
+
+            // ✨ 1. forEach 루프가 시작되기 전에 collectedStamps 변수를 정의합니다.
+            const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};            
+
+            // 3. 스탬프 존 마커들을 지도에 표시
+            stampLocations.forEach(loc => {
+                let markerIconUrl = null; // 기본 마커 아이콘 사용
+            // ✨ 3. 현재 장소의 스탬프를 획득했는지 확인합니다.
+                if (collectedStamps[loc.id]) {
+                    // ✨ 4. 획득했다면, 다른 색상의 마커 아이콘 URL을 지정합니다.
+                    markerIconUrl = 'https://maps.google.com/mapfiles/ms/icons/green-dot.png';
+                }
+
+                const marker = new google.maps.Marker({
+                    position: { lat: loc.lat, lng: loc.lng },
+                    map: map,
+                    icon: markerIconUrl, 
+                });
+
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `<div>${loc.title}</div>`,
+                });
+                marker.addListener("mouseover", () => infoWindow.open(map, marker));
+                marker.addListener("mouseout", () => infoWindow.close());
+            });
+
+            // 지도 타일이 완전히 로드된 후에 위치 확인을 시작합니다.
+            google.maps.event.addListenerOnce(map, 'tilesloaded', () => {
+                console.log("지도 로딩 완료. 위치 스캔을 시작합니다.");
+                updateUserLocation();
+                setInterval(updateUserLocation, 5000);
+            });           
+        }
+
+       function updateUserLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const userPosition = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    };
+                    if (!map) return; // map이 아직 준비되지 않았으면 실행하지 않음
+
+                    const userLatLng = new google.maps.LatLng(userPosition.lat, userPosition.lng);
+                    const eventCenterLatLng = new google.maps.LatLng(eventCenterPoint.lat, eventCenterPoint.lng);
+                    const distance = google.maps.geometry.spherical.computeDistanceBetween(userLatLng, eventCenterLatLng);
+
+                    if (distance > eventRadius) {
+                        // ✨ 3. 거리가 300미터보다 멀 경우
+                        alert("이벤트 장소에서 벗어났습니다. 행사장으로 이동하여 다시 시도해주세요.");
+                        // 내 위치 마커가 있다면 숨깁니다.
+                        if (userMarker) {
+                            userMarker.setMap(null); 
+                        }
+                        return; // 스탬프 근접 확인 로직을 실행하지 않음
+                    }
+
+                    if (userMarker) {
+                        userMarker.setPosition(userPosition);
+                        if (userMarker.getMap() === null) {
+                        userMarker.setMap(map); // 숨겨져 있었다면 다시 표시
+                        }
+                    } else {
+                        userMarker = new google.maps.Marker({
+                            position: userPosition,
+                            map: map,
+                            title: "내 위치",
+                            icon: {
+                                url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                            }
+                        });
+                    }    
+   //                 map.setCenter(userPosition);
+                    checkProximity(userPosition);
+                }, () => { alert("위치 정보를 가져오는 데 실패했습니다."); });
+            }
+        }
+
+        function checkProximity(userLatLng) {
+
+            if(activeModalId) return; // 모달이 이미 떠있으면 추가 확인 안함
+
+            const proximityLimit = 20; // 20미터
+//            const from = new google.maps.LatLng(userPos.lat, userPos.lng);
+            
+            for (const loc of stampLocations) {
+                const to = new google.maps.LatLng(loc.lat, loc.lng);
+                // 'geometry' 라이브러리를 이용한 거리 계산
+//               const distance = google.maps.geometry.spherical.computeDistanceBetween(from, to);
+                const distance = google.maps.geometry.spherical.computeDistanceBetween(userLatLng, to);
+                if (distance <= proximityLimit) {
+                    const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};
+                    if (!collectedStamps[loc.id]) {
+                        showProximityModal(loc.title, loc.id);
+                        break;
+                    }
+                } 
+            }
+        }
+
+    //    let activeModalId = null;
+
+        function showProximityModal(title, id) {
+            if(activeModalId === id) return;
+            activeModalId = id;
+
+            const modal = document.getElementById('modal');
+            const modalTitle = document.getElementById('modal-title');
+
+            modalTitle.textContent = title;
+            modal.style.display = 'flex';
+
+            document.getElementById('modal-stamp-btn').onclick = () => { window.location.href = `stamptour.html?planet=${id}`; };
+            document.getElementById('modal-photo-btn').onclick = () => { window.location.href = `photozone.html?planet=${id}`; };
+       
+        }
+
+        window.onclick = (event) => {
+            const modal = document.getElementById('modal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+                activeModalId = null;
+            }
+        }
+
+    </script>
+    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDD1yVqHohmfS5DnULxMJhFtN325JLnvpo&libraries=geometry&callback=initMap"></script>
+</body>
+</html>
