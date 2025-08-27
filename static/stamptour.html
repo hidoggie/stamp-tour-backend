@@ -9,10 +9,10 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
 
     <title>AR 조야용을 찾아라</title>
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-    <!--script src="./js/aframe150.js"></script>
-    <script src="./js/aframe-ar.js"></script-->
+    <script src="./js/aframe150.js"></script>
+    <script src="./js/aframe-ar.js"></script>
+    <script src="./js/aframe-extras.min.js"></script>
+    
     <!--script src="./js/aframe-look-at.js"></script>
     <script src="./js/aframe-ar-nft-3.js"></script-->
     <!--script src="./js/aframe-extra-611.js"></script>
@@ -102,14 +102,15 @@
             vr-mode-ui="enabled: false"
             arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
             renderer="logarithmicDepthBuffer: true">
-            <a-camera gps-camera rotation-reader></a-camera>
+
             <a-entity
-                    look-at="[gps-camera]"
                     id="planet-model"
-                    position="0 30 0"
+                    position="0 -0.5 -3"
                     rotation="0 0 0"
-                    animation="property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear;">
+                    animation-mixer>
             </a-entity>
+            <a-entity camera position="0 0 0" look-controls="enabled: false"></a-entity>
+            <a-light type="ambient" intensity="2"></a-light>
         </a-scene>
 
         <div style="position: fixed; top: 85vh; text-align: center; width: 100%; color: white; z-index:10; background: rgba(0,0,0,0.5); padding: 10px;">
@@ -124,8 +125,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const planetModel = document.getElementById('planet-model');
 
     const planetPos = {
-        sun:     { name: '태양', lat: 37.489121, lng: 126.955418, model: './models/sun.glb', scale: '2 2 2' },
-        mercury: { name: '수성', lat: 37.4895, lng: 126.9556, model: './models/mercury.glb', scale: '2 2 2' },
+        sun:     { name: '태양', lat: 37.489121, lng: 126.955418, model: './models/sun.glb', scale: '1 1 1' }, 
+        mercury: { name: '수성', lat: 37.4895, lng: 126.9556, model: './models/mercury.glb', scale: '1 1 1' },
         venus:   { name: '금성', lat: 37.4893,   lng: 126.9561, model: './models/venus.glb', scale: '1 1 1' },
         saturn:  { name: '토성', lat: 37.488928, lng: 126.956250, model: './models/saturn.glb', scale: '1 1 1' },
         mars:   { name: '화성', lat: 37.4891, lng: 126.9569, model: './models/mars.glb', scale: '1 1 1' },
@@ -195,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 스탬프 카드 렌더링
 
         if (currentPos) {
-            planetModel.setAttribute('gps-entity-place', `latitude: ${currentPos.lat}; longitude: ${currentPos.lng};`);
+        //    planetModel.setAttribute('gps-entity-place', `latitude: ${currentPos.lat}; longitude: ${currentPos.lng};`);
             planetModel.setAttribute('gltf-model', `url(${currentPos.model})`);
             planetModel.setAttribute('scale', currentPos.scale);
         } else {
