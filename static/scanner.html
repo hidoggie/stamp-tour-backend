@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <title>QR 코드 스캐너</title>
+    <script src="./js/html5-qrcode.min.js" type="text/javascript"></script>
+    
+    <Style>
+    body {
+      margin: 0;
+      background-color: #000;
+      color: #fff;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      font-size: 1.8em;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    p {
+      font-size: 1em;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    #reader {
+      width: 100%;
+      max-width: 400px;
+      margin: 20px auto;
+    }
+
+    button, input[type="file"] {
+      background-color: #1e1e1e;
+      color: #fff;
+      border: 1px solid #444;
+      padding: 12px 20px;
+      margin: 10px;
+      border-radius: 8px;
+      font-size: 1em;
+      cursor: pointer;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.5em;
+      }
+
+      button {
+        font-size: 0.9em;
+      }
+    }
+    
+     .hidden { display: none; }
+
+    </Style>
+</head>
+<body>
+    <h1>📷 QR 코드 스캔</h1>
+    <p>카메라를 통해 QR 코드를 스캔하면 해당 페이지로 이동합니다.</p>
+
+    <div id="reader"></div>
+    <button id="start-button">카메라 스캔 시작</button>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+    const html5QrCode = new Html5Qrcode("reader");
+    const startButton = document.getElementById("start-button");
+    
+    startButton.addEventListener("click", () => {
+      // 버튼 숨기기
+      startButton.classList.add("hidden");
+
+      Html5Qrcode.getCameras().then(devices => {
+        if (devices && devices.length) {
+          const cameraId = devices[0].id;
+
+          html5QrCode.start(
+            cameraId,
+            {
+              fps: 10,
+              qrbox: { width: 250, height: 250 }
+            },
+            (decodedText) => {
+              console.log("스캔 성공:", decodedText);
+
+              if (/^https?:\/\//.test(decodedText)) {
+                window.location.href = decodedText;
+              } else {
+                alert("QR 코드 내용: " + decodedText);
+              }
+
+              html5QrCode.stop().then(() => {
+                document.getElementById("reader").innerHTML = "";
+                startButton.classList.remove("hidden"); // 스캔 종료 후 버튼 다시 표시
+              });
+            },
+            (errorMessage) => {
+              console.warn("스캔 실패:", errorMessage);
+            }
+          );
+        } else {
+          alert("카메라를 찾을 수 없습니다.");
+          startButton.classList.remove("hidden"); // 실패 시 버튼 다시 표시
+        }
+      }).catch(err => {
+        alert("카메라 접근 오류: " + err);
+        startButton.classList.remove("hidden");
+      });
+    });
+    });
+  </script>
+    <!--script>
+        const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+        scanner.render(
+        (decodedText) => {
+          alert("QR 코드 내용: " + decodedText);
+          scanner.clear();
+        },
+        (errorMessage) => {
+         console.warn("스캔 실패:", errorMessage);
+        }
+      );
+    </script-->
+</body>
+</html>
