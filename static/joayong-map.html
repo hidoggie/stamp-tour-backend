@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스탬프 투어 - 행성 여행</title>
+    <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=eb9mai2ikc&callback=initMap"></script>
+ 
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body, #map { 
+            height: 100%; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+            background-color: #111827;
+            color: #ffffff;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-x: hidden;
+
+        }
+        #modal, #status-modal { display: none; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 9999; width: 80vw; height: 40vh; max-width: 220px;}
+        .modal-content { width: 100%; position: absolute; background-color: #1f2937; margin: auto; padding: 15px; border-radius: 10px; text-align: center; grid-template-columns: 1fr; }
+        .modal-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 15px; width: 100%; }
+        .modal-buttons button { padding: 10px 20px; font-size: 1em; cursor: pointer; border-radius: 5px; border: none; color: white; margin-bottom: 15px; }
+        .btn-stamp { background-color: #007bff; width: 100%;}
+        .btn-photo { background-color: #28a745; width: 100%;}
+
+        .gm-style-iw-c button {
+            display: none !important;
+        }
+        .gm-style-iw-d {
+            padding: 10px !important;
+        }
+
+        #MapCover{
+          background-color: #1f2937;
+          border: 1px solid #4b5563;
+          width: 100%;
+          height: 70vh;
+          border-radius: 12px;
+          margin-bottom: 8px;
+          padding: 8px;
+        }
+
+       #map { 
+        border: 1px solid #4b5563;
+        overflow: hidden;
+        margin: 0; 
+        padding: 16px; 
+        border-radius: 12px;
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+        }
+     
+        .container {
+            height: 100vh;
+            position: relative;
+            max-width: 448px;
+            margin: 0 auto;
+            padding: 16px;
+            min-height: 100vh;
+        }
+
+        #info {
+            padding-top: 16px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        
+        @import url("https://fonts.googleapis.com/css2?family=Edu+AU+VIC+WA+NT+Hand:wght@400..700&display=swap");
+
+        @font-face {
+            font-family: "Pretendard-Regular";
+            src: url("https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff")
+                format("woff");
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: "HSSanTokki20-Regular";
+            src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/2405@1.0/HSSanTokki20-Regular.woff2")
+                format("woff2");
+            font-weight: normal;
+            font-style: normal;
+        }
+
+
+        .font-Pretendard-Regular {
+            font-family: "Pretendard-Regular";
+        }
+
+        li {
+            list-style-type: none;
+        }
+
+        .listyle {
+            list-style-position: inside;
+            text-indent: -10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+    <div id="info">
+      <h1 style="color:#ffffff; margin-bottom: 8px; font-size: 30px;">🥽 AR 행성 체험 </h1>
+      <span style="color: #e5e7eb; font-size: 18px;">증강현실로 행성을 만나보세요</span>
+    </div>
+    
+    <div id="MapCover">
+        <div id="map"></div>
+    </div>
+    
+    <div id="modal">
+        <div class="modal-content">
+            <h2 id="modal-title" style="margin-bottom: 16px; "></h2>
+            <span style="color: #fef3c7; font-weight: bold; font-size: 1.2em">행성에 도착했습니다!</span>
+            <div class="modal-buttons">
+                <ul style="color: #fef3c7; font-size: 16px; ">
+                  <li><button id="modal-stamp-btn" class="btn-stamp">행성 스탬프 수집</button></li>
+                  <li><button id="modal-photo-btn" class="btn-photo">AR 포토존  가기</button></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="status-modal">
+        <div class="modal-content">
+            <h2 id="status-modal-title" style="margin-bottom: 16px; "></h2>
+            <span id="status-modal-text"></span>
+            <div class="modal-buttons">
+                <ul style="color: #fef3c7; font-size: 16px; "></ul>
+                <li><button id="status-modal-btn" class="btn-stamp"></button></li>
+                <li><button id="status-modal-close-btn" class="btn-photo">닫기</button></li>
+            </div>
+        </div>
+    </div>
+
+    <div style="background-color: #854d0e; border-color: #ca8a04; padding: 16px; margin-bottom: 24px; border: 1px solid #4b5563; border-radius: 12px; backdrop-filter: blur(8px);">
+        <h3 style="color: #ffffff; margin-bottom: 8px; font-size: 18px; align-items: center; display: flex;">
+            <span style="color: #ffffff; font-size: 18px;">💡</span>
+            <span>Tip</span>
+        </h3>
+        <ul style="color: #fef3c7; font-size: 1em; ">
+            <li class="listyle">• 미션 시작 시 GPS와 카메라 권한을 허용해주세요</li>
+            <li class="listyle">• 배터리를 충분히 충전하고 시작하세요</li>
+            <li class="listyle">• 사람이 많은 곳에서 뛰거나 부딪히지 않도록 주의하세요</li>
+        </ul>
+    </div>
+</div>
+    <script>
+        let map; // 전역 변수로 map 객체 선언
+        let userMarker = null;
+        let activeModalId = null;
+        let proximityCheckInterval = null;
+        let hasShownOutOfBoundsAlert = false;
+
+        const mapElement = document.getElementById('map');
+        const eventCenterPoint = new naver.maps.LatLng(37.489122, 126.956116); // 이벤트 중심 좌표
+        const eventRadius = 500; // 이벤트 참여 가능 반경 (500미터)
+
+            const stampLocations1 = [
+                { title: '🌍 지구', lat: 37.465467, lng: 126.387857, id: 'earth' },
+                { title: '🔴 화성', lat: 37.465789, lng: 126.386757, id: 'mars' },
+                { title: '🪐 목성', lat: 37.466490, lng: 126.388020, id: 'jupiter' },
+                { title: '💫 토성', lat: 37.465762, lng: 126.385614, id: 'saturn' },
+                { title: '💎 천왕성', lat: 37.467071, lng: 126.386995, id: 'uranus' },
+                { title: '🌊 해왕성', lat: 37.466879, lng: 126.386567, id: 'neptune' },
+            ];
+
+            const stampLocations = [
+                { title: '🌍 지구', lat: 37.489121, lng: 126.955418, id: 'earth' },
+                { title: '🔴 화성', lat: 37.4895,   lng: 126.9556, id: 'mars' },
+                { title: '🪐 목성', lat: 37.4893,   lng: 126.9561, id: 'jupiter' },
+                { title: '💫 토성', lat: 37.488928, lng: 126.956250, id: 'saturn' },
+                { title: '💎 천왕성', lat: 37.4891, lng: 126.9569, id: 'uranus' },
+                { title: '🌊 해왕성', lat: 37.488615, lng: 126.956499, id: 'neptune' },
+            ];
+
+        const TOTAL_STAMPS = stampLocations.length;
+
+        const statusModal = document.getElementById('status-modal');
+        const statusModalText = document.getElementById('status-modal-text');
+        const statusModalBtn = document.getElementById('status-modal-btn');
+        const statusModalCloseBtn = document.getElementById('status-modal-close-btn');
+
+        // 2. Google Maps API가 로드된 후 'initMap' 함수가 자동으로 호출됩니다.
+        function initMap() {
+                // ✨ 사용자 ID 확인 및 생성 로직 (가장 먼저 실행)
+            let userId = localStorage.getItem('userId');
+            if (!userId) {
+               // crypto.randomUUID()는 매우 안전하고 고유한 ID를 생성하는 최신 표준 방식입니다.
+                userId = crypto.randomUUID();
+                localStorage.setItem('userId', userId);
+                console.log(`새로운 사용자 ID가 생성되었습니다: ${userId}`);
+
+                 // ✨ 새로 생성한 ID를 즉시 서버 DB에 등록
+                fetch('/api/register-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: userId })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log("서버에 사용자가 성공적으로 등록되었습니다.");
+                    }
+                });
+            } else {
+                console.log(`기존 사용자 ID를 사용합니다: ${userId}`);
+            }
+
+            map = new naver.maps.Map(mapElement, {
+                center: eventCenterPoint,
+                zoom: 18,
+            });
+
+            // 사용자의 최종 상태를 먼저 확인
+            checkUserStatusOnLoad();
+
+            // 스탬프 존 마커 표시
+            displayStampMarkers();
+
+        let isFirstLoad = true;
+        naver.maps.Event.addListener(map, 'idle', () => {
+          if (isFirstLoad) {
+            console.log("지도 로딩 완료. 위치 스캔을 시작합니다.");
+            updateUserLocation();
+            setInterval(updateUserLocation, 5000);
+        
+            isFirstLoad = false; // 플래그를 변경하여 다시는 실행되지 않도록 함
+          }
+        });   
+    }
+
+       function checkUserStatusOnLoad() {
+            const userId = localStorage.getItem('userId');
+            if (!userId) return; // 사용자 ID가 없으면 확인하지 않음
+
+            const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};
+
+            // 스탬프를 모두 모았을 경우에만 서버에 확인
+            if (Object.keys(collectedStamps).length >= TOTAL_STAMPS) {
+                fetch(`/api/check-eligibility/${userId}`)
+                    .then(res => res.json())
+                    .then(status => {
+                        if (status.reason === '이미 경품을 수령했습니다.') {
+                            // 경품까지 모두 수령한 경우
+                            showStatusModal(
+                                "참여 완료",
+                                "이벤트에 참여해주셔서 감사합니다! 경품을 이미 수령하셨습니다.",
+                                "확인"
+                            );
+                        } else if (status.eligible) {
+                            // 스탬프는 다 모았지만 아직 경품을 받지 않은 경우
+                            showStatusModal(
+                                "스탬프 완성!",
+                                "모든 스탬프를 모았습니다. 경품을 받으러 가시겠습니까?",
+                                "🎁 QR코드 찍기",
+                                () => { window.location.href = 'scanner.html'; }
+                            );
+                        }
+                    });
+            }
+        }
+
+        // ✨ 3. 마커를 생성하는 로직을 별도 함수로 분리
+        function displayStampMarkers() {
+            const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};
+            stampLocations.forEach(loc => {
+                let markerIconUrl = null;
+                
+                if (collectedStamps[loc.id]) {
+                    markerIconUrl = './images/pointer-green.png';
+                }
+                else {
+                    markerIconUrl = './images/pointer-red.png';
+                }
+                const position = new naver.maps.LatLng(loc.lat, loc.lng);
+                const marker = new naver.maps.Marker({
+                    position, 
+                    map: map,
+                    title: loc.title,
+                    icon: {
+                       url: markerIconUrl, //50, 68 크기의 원본 이미지  -> 50, 50 으로 변경
+                       size: new naver.maps.Size(25, 25),
+                       scaledSize: new naver.maps.Size(25, 25),
+                       origin: new naver.maps.Point(0, 0),
+                       anchor: new naver.maps.Point(12, 16)
+                    }
+                });
+
+                const infoWindow = new naver.maps.InfoWindow({ 
+                    content: `<div style="padding:5px;font-size:12px;text-align:center; color: black;">${loc.title}</div>`
+                });
+              
+                naver.maps.Event.addListener(marker, 'mouseover', () => infoWindow.open(map, marker));
+                naver.maps.Event.addListener(marker, 'mouseout', () => infoWindow.close());
+                naver.maps.Event.addListener(marker, 'click', () => infoWindow.open(map, marker));             
+            });
+        }
+
+        function getDistanceInMeters(lat1, lng1, lat2, lng2) {
+            function toRad(value) { return value * Math.PI / 180; }
+            const R = 6371e3; // 지구 반지름 (미터)
+            const dLat = toRad(lat2 - lat1);
+            const dLng = toRad(lng2 - lng1);
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        // ✨ 3. 상태 팝업창을 보여주는 함수
+        function showStatusModal(title, text, buttonText, buttonAction = null) {
+            document.getElementById('status-modal-title').textContent = title;
+            statusModalText.textContent = text;
+            statusModalBtn.textContent = buttonText;
+            
+            if (buttonAction) {
+                statusModalBtn.style.display = 'inline-block';
+                statusModalBtn.onclick = buttonAction;
+            } else {
+                statusModalBtn.style.display = 'none'; // 버튼이 필요 없는 경우 숨김
+            }
+        
+            statusModal.style.display = 'flex';
+            statusModal.style.zindex = '99999';
+        }
+
+        statusModalCloseBtn.onclick = () => {
+            statusModal.style.display = 'none';
+        };
+
+        let lastKnownPosition = null;
+
+        function updateUserLocation() {
+            const proximityModal = document.getElementById('modal');
+
+            if (proximityModal.style.display === 'flex' && activeModalId) {
+                const loc = stampLocations.find(l => l.id === activeModalId);
+                if (loc) {
+                    const distance = getDistanceInMeters(lastKnownPosition.lat(), lastKnownPosition.lng(), loc.lat, loc.lng);
+            
+            // 사용자가 해당 스탬프 존에서 25미터 이상 벗어나면 팝업을 닫습니다.
+                    if (distance > 25) {
+                        console.log("사용자가 팝업 존을 벗어나서, 팝업을 자동으로 닫습니다.");
+                        closeModal(); // 팝업을 닫는 함수 호출
+                    }
+                }
+            }
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const userPosition = new naver.maps.LatLng(position.coords.latitude, position.coords.longitude);
+
+                    if (!map) return; // map이 아직 준비되지 않았으면 실행하지 않음
+                
+                    lastKnownPosition = userPosition;
+
+                    const distance = getDistanceInMeters(userPosition.lat(), userPosition.lng(), eventCenterPoint.lat(), eventCenterPoint.lng());
+
+                    if (distance > eventRadius) {
+
+                        if (!hasShownOutOfBoundsAlert) {
+                            alert("이벤트 장소에서 벗어났습니다. 행사장으로 이동하여 다시 시도해주세요.");
+                        // ✨ 2. 알림을 한번 보여줬다고 상태를 기록합니다.
+                            hasShownOutOfBoundsAlert = true;
+                        }
+                        // 내 위치 마커가 있다면 숨깁니다.
+                        if (userMarker) {
+                            userMarker.setMap(null); 
+                        }
+                        return; // 스탬프 근접 확인 로직을 실행하지 않음
+                    }
+
+                    hasShownOutOfBoundsAlert = false;
+
+                    if (userMarker) {
+                        userMarker.setPosition(userPosition);
+                        if (userMarker.getMap() === null) {
+                            userMarker.setMap(map); // 숨겨져 있었다면 다시 표시
+                        }
+                    } else {
+                        userMarker = new naver.maps.Marker({
+                            position: userPosition,
+                            map: map,
+                            title: "내 위치",
+                            icon: {
+                                content: '<div style="background-color:blue;width:12px;height:12px;border:2px solid white;border-radius:50%;"></div>',
+                                anchor: new naver.maps.Point(8, 8)
+                            }
+                        });
+                    }    
+                    checkProximity(userPosition);
+                }, () => { alert("위치 정보를 가져오는 데 실패했습니다."); });
+            }
+        }
+
+        function checkProximity(userPosition) {
+
+            if(activeModalId) return; // 모달이 이미 떠있으면 추가 확인 안함
+
+            const proximityLimit = 20; // 20미터
+            
+            for (const loc of stampLocations) {
+                const distance = getDistanceInMeters(userPosition.lat(), userPosition.lng(), loc.lat, loc.lng);
+                if (distance <= proximityLimit) {
+                    const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};
+                    if (!collectedStamps[loc.id]) {
+                        showProximityModal(loc.title, loc.id);
+                        break;
+                    }
+                } 
+            }
+        }
+
+    //    let activeModalId = null;
+
+        function showProximityModal(title, id) {
+            if(activeModalId === id) return;
+            activeModalId = id;
+
+            const modal = document.getElementById('modal');
+            const modalTitle = document.getElementById('modal-title');
+
+            modalTitle.textContent = title;
+            modal.style.display = 'flex';
+
+            document.getElementById('modal-stamp-btn').onclick = () => { window.location.href = `stamptour.html?planet=${id}`; };
+            document.getElementById('modal-photo-btn').onclick = () => { window.location.href = `photozone.html?planet=${id}`; };
+       
+        }
+
+        window.onclick = (event) => {
+            const modal = document.getElementById('modal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+                activeModalId = null;
+            }
+        }
+
+    function closeModal() {
+        const proximityModal = document.getElementById('modal');
+        proximityModal.style.display = 'none';
+        activeModalId = null;
+    }   
+
+        // 페이지 로드 후 1초 뒤부터 위치 확인 시작 (지도 로딩 시간 확보)
+    setTimeout(() => {
+        updateUserLocation();
+        setInterval(updateUserLocation, 5000);
+    }, 1000);
+
+</script>
+
+</body>
+</html>
