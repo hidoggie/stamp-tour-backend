@@ -331,7 +331,7 @@
         // ✨ 3. 상태 팝업창을 보여주는 함수
         function showStatusModal(title, text, buttonText, buttonAction = null) {
             document.getElementById('status-modal-title').textContent = title;
-            statusModalText.textContent = text;
+            statusModalText.innerHTML = text;
             statusModalBtn.textContent = buttonText;
             
             if (buttonAction) {
@@ -474,3 +474,4 @@
 </body>
 
 </html>
+
