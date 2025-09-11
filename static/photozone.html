@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <title>AR 포토존</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="./js/webcomponents-loader.js"></script>
+    <script src="./js/intersection-observer.js"></script>
+    <script src="./js/ResizeObserver.js"></script>
+    <script src="./js/fullscreen.polyfill.js"></script>
+    <script src="./js/prismatic.min.js"></script>
+    <script src="./js/focus-visible.js" defer></script>
+      
+  </head>
+  <body>
+    
+    <div class="overlay-ui top-bar">
+        <button id="map-btn" class="ui-button">🗺️ 행성 지도</button>
+    </div>
+    
+    <section class="attribution">
+      <span>
+        <img
+          src="./images/joayong-title-black.png"
+          alt="ocean breeze"
+          class="center"
+        />
+      </span>
+    </section>
+
+    <model-viewer
+      style="background-color: #E8E8E8"
+      interaction-prompt="auto"
+      auto-rotate
+      autoplay
+      ar
+      ar-modes="scene-viewer webxr"
+      magic-leap
+      quick-look-browsers="safari chrome"
+      shadow-intensity="2"
+      environment-image="neutral"
+      ar-scale="0.25"
+      camera-controls
+      touch-action="pan-y"
+      camera-target="0m -1.1m 0m"
+      camera-orbit="-30deg auto auto"
+      max-camera-orbit="auto 100deg auto"
+    >
+      <button aria-label="에이알로 보기" slot="ar-button" id="ar-button">AR 포토존 보기</button>
+
+      <div id="ar-prompt">
+        <img alt="에이알 손흔들기" src="./images/hand.png" />
+      </div>
+      <div class="progress-bar hide" slot="progress-bar">
+        <div class="update-bar"></div>
+      </div>
+      <div class="slider">
+        <div class="slides" id="modelselection">
+          <button
+            id="first_btn"
+            style="
+              background-image: url('./images/saturn_planet.png');"
+            aria-label="첫번째 모델"
+            class="slide selected"
+          ></button>
+          <button
+            id="second_btn"
+            style="
+              background-image: url('./images/jupiter_planet.png');"
+            aria-label="두번째 모델"
+            class="slide"
+          ></button>
+
+        </div>
+      </div>
+    </model-viewer>
+
+    <script type="module">
+      const modelViewer = document.querySelector("model-viewer");
+      const modelSelectionBar = document.getElementById("modelselection");
+      const FirstBtn = document.getElementById("first_btn");
+      const SecondBtn = document.getElementById("second_btn");
+      const mapBtn = document.getElementById('map-btn');
+     
+              // --- 1. 행성별로 연관된 모델 목록을 정의 ---
+      const planetRelatedModels = {
+            earth: [
+                { id: 'earth_globe', name: '지구본', thumbnail: './images/earth_planet.png', path: 'joayong_rocket', scale: '0.5 0.5 0.5' },
+                { id: 'space_station', name: '우주정거장', thumbnail: './images/uranus_planet.png', path: 'jupiter_planet', scale: '0.2 0.2 0.2' },
+            ],
+            mars: [
+                { id: 'earth_globe', name: '지구본', thumbnail: './images/saturn_planet.png', path: 'saturn_planet', scale: '0.5 0.5 0.5' },
+                { id: 'space_station', name: '우주정거장', thumbnail: './images/jupiter_planet.png', path: 'jupiter_planet', scale: '0.2 0.2 0.2' },
+            ],
+            jupiter: [
+                { id: 'earth_globe', name: '지구본', thumbnail: './images/earth_thumb.png', path: 'saturn_planet', scale: '0.5 0.5 0.5' },
+                { id: 'space_station', name: '우주정거장', thumbnail: './images/mars_thumb.png', path: 'jupiter_planet', scale: '0.2 0.2 0.2' },
+            ],
+            saturn: [
+                { id: 'earth_globe', name: '지구본', thumbnail: './images/earth_thumb.png', path: 'saturn_planet', scale: '0.5 0.5 0.5' },
+                { id: 'space_station', name: '우주정거장', thumbnail: './images/mars_thumb.png', path: 'jupiter_planet', scale: '0.2 0.2 0.2' },
+            ],
+            uranus: [
+                { id: 'earth_globe', name: '지구본', thumbnail: './images/earth_thumb.png', path: 'saturn_planet', scale: '0.5 0.5 0.5' },
+                { id: 'space_station', name: '우주정거장', thumbnail: './images/mars_thumb.png', path: 'jupiter_planet', scale: '0.2 0.2 0.2' },
+            ],
+            neptune: [
+                { id: 'earth_globe', name: '지구본', thumbnail: './images/earth_thumb.png', path: 'saturn_planet', scale: '0.5 0.5 0.5' },
+                { id: 'space_station', name: '우주정거장', thumbnail: './images/mars_thumb.png', path: 'jupiter_planet', scale: '0.2 0.2 0.2' },
+            ],
+            // ... 다른 행성들의 모델 목록도 동일하게 정의 ...
+        };
+    document.addEventListener('DOMContentLoaded', () => {
+        function init() {
+            const urlParams = new URLSearchParams(window.location.search);
+            // URL에서 'planet' 파라미터를 읽어오고, 없으면 'earth'를 기본값으로 사용
+            const planetId = urlParams.get('planet') || 'earth';
+            const modelsToShow = planetRelatedModels[planetId];
+
+            if (!modelsToShow) {
+                alert("해당 행성의 모델 정보를 찾을 수 없습니다.");
+                return;
+            }
+            
+            initModelSelectionBar(modelsToShow);
+        }
+
+        function initModelSelectionBar(models) {
+     //       modelSelectionBar.innerHTML = '';
+
+            modelViewer.src = "./models/" + models[0].path + ".glb";
+            modelViewer.iosSrc = "./models/" + models[0].path + ".usdz";
+            
+            const FirstPath = models[0].path;
+            FirstBtn.style.backgroundImage = `url('${models[0].thumbnail}')`;
+            FirstBtn.setAttribute("onClick", `switchSrc(this, '${FirstPath}')`);
+
+            const SecondPath = models[1].path;
+            SecondBtn.style.backgroundImage = `url('${models[1].thumbnail}')`;
+            SecondBtn.setAttribute("onClick", `switchSrc(this, '${SecondPath}')`);
+        }   
+
+        window.switchSrc = (element, name) => {
+        const base = "./models/" + name;
+        const ImgBase = "./images/" + name;
+        modelViewer.src = base + ".glb";
+        modelViewer.iosSrc = base + ".usdz";
+        modelViewer.poster = ImgBase + ".png";
+        const slides = document.querySelectorAll(".slide");
+        slides.forEach((element) => {
+          element.classList.remove("selected");
+        });
+        element.classList.add("selected");
+      };
+
+      document
+        .querySelector(".slider")
+        .addEventListener("beforexrselect", (ev) => {
+          // Keep slider interactions from affecting the XR scene.
+          ev.preventDefault();
+        });
+
+        mapBtn.onclick = () => window.location.href = './joayong-map.html';
+    
+        init();
+    });
+
+    
+
+    </script>
+    <script
+      type="module"
+      src="./js/model-viewer.min.js"
+    ></script>
+
+    <link rel="stylesheet" href="./css/joayong-photo.css" />
+
+  </body>
+</html>
