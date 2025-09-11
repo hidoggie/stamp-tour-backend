@@ -1,0 +1,182 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+    color: #7B5449;
+    background-color: #E8E8E8;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* 불필요한 스크롤바 방지 */
+}
+
+.overlay-ui { position: fixed; width: 100%; z-index: 10; box-sizing: border-box; }
+.top-bar { top: 0; display: flex; justify-content: right; padding: 20px; }
+.ui-button { width: 8rem; padding: 10px 10px; font-size: 1em; border-radius: 5px; border: none; background-color: rgba(0,0,0,0.6); color: white; cursor: pointer; z-index: 99999; }
+
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+model-viewer {
+  width: 100%;
+  height: 60vh;
+  place-items: center;
+  background-color: #E8E8E8;
+  overflow-x: hidden;
+  --poster-color: #E8E8E8;
+}
+
+.attribution {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  margin: 3em 3em 2em 3em;
+  height: 10em;
+}
+
+.attribution h1 {
+  margin: 0 0 0.25em;
+}
+
+.attribution img {
+  opacity: 0.5;
+  height: 15vh;
+  margin: 7vh;
+}
+
+.attribution .cc {
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+      #ar-button {
+        background-image: url("./../images/joayong-logo.png");
+        background-repeat: no-repeat;
+        background-size: 30px 30px;
+        background-position: 16px 50%;
+        background-color: #ffffff;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+        bottom: 20vh;
+        padding: 0px 16px 0px 50px;
+        font-family: "Pretendard";
+        src: url("https://guide1.ivyro.net/oceanbreeze/AR/font/Pretendard-Regular.otf") format("ttf");
+        font-size: 26px;
+        color: #7b5449;
+        height: 36px;
+        line-height: 36px;
+        border-radius: 18px;
+        border: 1px solid #DADCE0;
+      }
+
+      #ar-button:active {
+        background-color: #7b5449;
+      }
+
+      #ar-button:focus {
+        outline: none;
+      }
+
+      #ar-button:focus-visible {
+        outline: 1px solid #7b5449;
+      }
+
+      @keyframes circle {
+        from {
+          transform: translateX(-50%) rotate(0deg) translateX(50px) rotate(0deg);
+        }
+        to {
+          transform: translateX(-50%) rotate(360deg) translateX(50px)
+            rotate(-360deg);
+        }
+      }
+
+      @keyframes elongate {
+        from {
+          transform: translateX(100px);
+        }
+        to {
+          transform: translateX(-100px);
+        }
+      }
+
+      model-viewer > #ar-prompt {
+        position: absolute;
+        left: 50%;
+        bottom: 15px;
+        animation: elongate 2s infinite ease-in-out alternate;
+        display: none;
+      }
+
+      model-viewer[ar-status="session-started"] > #ar-prompt {
+        display: block;
+      }
+
+      model-viewer > #ar-prompt > img {
+        animation: circle 4s linear infinite;
+      }
+
+model-viewer > #ar-failure {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 175px;
+    display: none;
+}
+
+model-viewer[ar-tracking="not-tracking"] > #ar-failure {
+    display: block;
+}
+
+      .slider {
+        width: 100%;
+        margin: 3px;
+        text-align: center;
+        overflow: hidden;
+        position: absolute;
+        bottom:1vh;
+        justify-content: center;
+      }
+
+      .slides {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        justify-content: center;
+      }
+
+      .slide {
+        scroll-snap-align: start;
+        flex-shrink: 0;
+        width: 70px;
+        height: 70px;
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-color: #bebebe;
+        margin-right: 10px;
+        border-radius: 10px;
+        border: none;
+        display: flex;
+      }
+
+      .selected {
+        border: 2px solid #000000;
+      }
+
+      .slide:focus {
+        outline: none;
+      }
+
+      .slide:focus-visible {
+        outline: 1px solid #ffffff;
+      }
