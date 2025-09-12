@@ -36,7 +36,6 @@ model-viewer {
   flex-direction: row;
   justify-content: center;
   margin: 3em 3em 2em 3em;
-  height: 10em;
 }
 
 .attribution h1 {
@@ -64,7 +63,7 @@ model-viewer {
         left: 50%;
         transform: translateX(-50%);
         white-space: nowrap;
-        bottom: 20vh;
+        bottom: 24vh;
         padding: 0px 16px 0px 50px;
         font-family: "Pretendard";
         src: url("https://guide1.ivyro.net/oceanbreeze/AR/font/Pretendard-Regular.otf") format("ttf");
@@ -106,7 +105,12 @@ model-viewer {
           transform: translateX(-100px);
         }
       }
-
+      model-viewer[ar-status="not-presenting"] #my-button {
+         display: block;
+      }
+      model-viewer[ar-status="presenting"] #my-button {
+         display: none;
+      }
       model-viewer > #ar-prompt {
         position: absolute;
         left: 50%;
@@ -141,11 +145,14 @@ model-viewer[ar-tracking="not-tracking"] > #ar-failure {
         text-align: center;
         overflow: hidden;
         position: absolute;
-        bottom:1vh;
+        bottom:5vh;
         justify-content: center;
       }
 
       .slides {
+        padding: 1rem;
+        flex-wrap: wrap;
+        gap: 2rem;
         display: flex;
         overflow-x: auto;
         scroll-snap-type: x mandatory;
@@ -155,6 +162,7 @@ model-viewer[ar-tracking="not-tracking"] > #ar-failure {
       }
 
       .slide {
+        padding: 0.75rem 1.5rem;
         scroll-snap-align: start;
         flex-shrink: 0;
         width: 70px;
@@ -163,7 +171,6 @@ model-viewer[ar-tracking="not-tracking"] > #ar-failure {
         background-repeat: no-repeat;
         background-position: center;
         background-color: #bebebe;
-        margin-right: 10px;
         border-radius: 10px;
         border: none;
         display: flex;
