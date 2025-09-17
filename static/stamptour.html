@@ -175,12 +175,12 @@
     display: flex;
     justify-content: center;   /* 수평 가운데 */
     align-items: center;       /* 수직 가운데 */
-    height: 70px;             /* 원하는 높이 설정 */
+    height: 15rem;             /* 원하는 높이 설정 */
   }
 
   .square-image {
-    width: 5rem;
-    height: 5rem;
+    overflow-x: auto;
+    width: 30rem;
     border-radius: 15px;         /* 사각형으로 만들기 */
     overflow: hidden;           /* 이미지가 영역을 넘지 않도록 */
     border: 2px solid #ccc;     /* 테두리 (선택사항) */
@@ -192,10 +192,22 @@
     object-fit: cover;          /* 이미지 비율 유지하며 채우기 */
   } 
 
+  .PrizeModal {
+        background-color: #141c2b;
+        color: #5da0f3;
+        top: 28vh;
+        left: 5.5vw;
+        width: 90vw;
+        padding: 20px 10px;
+        border-radius: 1rem;
+        border: 2px solid #00d3f3;
+        min-width: 11rem;
+        position: fixed; /* Essential for custom positioning */
+  }
   .prizelocInfo {
     color: #facc15;
     font-size: 1.3rem;
-    margin: 5px 25px;
+    margin: 10px 25px;
   }
   .PrizeCloseBtn {
     margin: 15px;
@@ -305,14 +317,14 @@
        <button onclick="myAlertDialog.close()" style="width: 10vw; height: 2rem;">확인</button>
     </dialog>
 
-    <div id="prizemodal" class="modal hidden">
+    <div id="prizemodal" class="PrizeModal hidden">
        <h2  class="prizelocInfo">📱 기념품 수령 안내</h2>
        <div class="center-wrapper"> 
           <div class="square-image">
             <img src="./images/prizeloc.png" alt="경품수령 위치 이미지">
           </div>
        </div> 
-       <button onclick="prizemodal.close()" class="PrizeCloseBtn"> 확인</button>
+       <button onclick="closeModal()" class="PrizeCloseBtn">확인</button>
 
     </div>
 
@@ -559,7 +571,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 Dialog.showModal();
                 mapBtn.textContent = "🎁 QR코드 찍기";
                 mapBtn.onclick = () => { window.location.href = 'scanner.html'; };
-                photoBtn.textContent = "경품 수령처 위치 확인"
+                photoBtn.textContent = "경품 수령처 위치"
                 photoBtn.onclick = () => { PrizeLoc.classList.remove('hidden'); };
      //           photoBtn.classList.add('hidden');
      //           resultContainer.classList.remove('hidden'); 
@@ -658,7 +670,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 resultMessage.innerHTML = "축하합니다! <br>모든 스탬프를 모았습니다. <br>부스에서 QR코드를 찍어 경품을 받으세요!";
                 mapBtn.textContent = "🎁 QR코드 찍기";
                 mapBtn.onclick = () => { window.location.href = './scanner.html'; };
-                photoBtn.textContent = "경품 수령처 위치 확인"
+                photoBtn.textContent = "경품 수령처 위치"
                 photoBtn.onclick = () => { PrizeLoc.classList.remove('hidden'); };
 
     //            photoBtn.classList.add('hidden');
@@ -714,6 +726,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 페이지 로드 시 시작 ---
     initPage();
 });
+
+function closeModal() {
+  document.getElementById("prizemodal").style.display = "none";
+}
 </script>
 
 </body>
