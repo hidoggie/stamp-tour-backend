@@ -94,7 +94,8 @@
             cameraId,
             {
               fps: 10,
-              qrbox: { width: 250, height: 250 }
+              qrbox: { width: 250, height: 250 },
+              facingMode: "environment" 
             },
             (decodedText) => {
               console.log("스캔 성공:", decodedText);
