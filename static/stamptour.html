@@ -563,7 +563,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 10개 모두 모았는지 확인
             const PlaneLength = Object.keys(planetData).length;
-            const totalStamps = Object.keys(collectedStamps).length;
+//            const totalStamps = Object.keys(collectedStamps).length;
+            const validStamps = Object.keys(collectedStamps).filter(key => planetData.hasOwnProperty(key));
+            const totalStamps = validStamps.length;
+
+            console.log(`전체 행성 수: ${PlaneLength}, 획득한 유효 스탬프 수: ${totalStamps}`);
+
             if (totalStamps >= PlaneLength) {
           //      alert("축하합니다! 모든 행성 스탬프를 모았습니다. 경품 룰렛 페이지로 이동합니다!");
                 const Dialog = document.querySelector('dialog');
