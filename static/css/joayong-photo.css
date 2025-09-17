@@ -105,12 +105,7 @@ model-viewer {
           transform: translateX(-100px);
         }
       }
-      model-viewer[ar-status="not-presenting"] #my-button {
-         display: block;
-      }
-      model-viewer[ar-status="presenting"] #my-button {
-         display: none;
-      }
+      
       model-viewer > #ar-prompt {
         position: absolute;
         left: 50%;
