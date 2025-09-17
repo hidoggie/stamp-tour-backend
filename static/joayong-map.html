@@ -125,6 +125,66 @@
       transform: scale(2);
       z-index: 1000;
     }
+
+    .photozone-modal {
+      padding: 8px;
+      width: 100%;
+      background-color: #374151;
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    /* 모달 박스 */
+    .modal-box {
+      width: 100%;
+      background-color: white;
+      border-radius: 12px;
+      padding: 10px 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* 제목 */
+    .modal-title {
+      color: #1f2937;
+      font-size: 1.5em;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 5px;
+    }
+
+    /* 이미지 그리드 */
+    .circle-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 10px;
+      justify-items: center;
+      align-items: center;
+    }
+
+    .circle-button {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid #ccc;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .circle-button:hover {
+      transform: scale(1.05);
+    }
+
+    .circle-button img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }  
     </style>
 </head>
 <body>
@@ -151,28 +211,28 @@
         </div>
     </div>
 
-    <!--div id="status-modal">
-        <div class="modal-content">
-            <h2 id="status-modal-title" style="margin-bottom: 16px; "></h2>
-            <span id="status-modal-text"></span>
-            <div class="modal-buttons">
-                <ul style="color: #fef3c7; font-size: 16px; "></ul>
-                <li><button id="status-modal-btn" class="btn-stamp"></button></li>
-                <li><button id="status-modal-close-btn" class="btn-photo">닫기</button></li>
-            </div>
-        </div>
-    </div-->
-
     <div id="status-modal">
         <div class="modal-content">
             <h2 id="status-modal-title" style="margin-bottom: 16px; "></h2>
             <span id="status-modal-text"></span>
               <div class="modal-buttons"><button id="status-modal-btn" class="btn-stamp" style="margin-bottom: 5px;"></button></div>
               <div class="modal-buttons"><button id="status-modal-close-btn" class="btn-photo" style="margin-bottom: 10px;">닫기</button></div>
-            </div>
         </div>
     </div>
 
+    <div class="photozone-modal">
+        <div class="modal-box">
+          <div class="modal-title">AR 포토존 가기</div>
+          <div class="circle-grid">
+            <a href="./photozone.html?planet=earth" class="circle-button"><img src="./images/earth.png" alt="지구 이미지"></a>
+            <a href="./photozone.html?planet=mars" class="circle-button"><img src="./images/mars.png" alt="화성 이미지"></a>
+            <a href="./photozone.html?planet=jupiter" class="circle-button"><img src="./images/jupiter.png" alt="목성 이미지"></a>
+            <a href="./photozone.html?planet=saturn" class="circle-button"><img src="./images/saturn.png" alt="토성 이미지"></a>
+            <a href="./photozone.html?planet=uranus" class="circle-button"><img src="./images/uranus.png" alt="천왕성 이미지"></a>
+            <a href="./photozone.html?planet=neptune" class="circle-button"><img src="./images/neptune.png" alt="해왕성 이미지"></a>
+          </div>
+        </div> 
+    </div>
     <div style="background-color: #854d0e; border-color: #ca8a04; padding: 16px; margin-bottom: 24px; border: 1px solid #4b5563; border-radius: 12px; backdrop-filter: blur(8px);">
         <h3 style="color: #ffffff; margin-bottom: 8px; font-size: 18px; align-items: center; display: flex;">
             <span style="color: #ffffff; font-size: 18px;">💡</span>
@@ -184,7 +244,9 @@
             <li class="listyle">• 사람이 많은 곳에서 뛰거나 부딪히지 않도록 주의하세요</li>
         </ul>
     </div>
-</div>
+    </div>
+
+
     <script>
         let map; // 전역 변수로 map 객체 선언
         let userMarker = null;
@@ -325,14 +387,6 @@
                 }
                 markerElements.push(markerEl);
 
-//                let markerIconUrl = null;
-                
-//                if (collectedStamps[loc.id]) {
-//                    markerIconUrl = './images/pointer-green.png';
-//                }
-//                else {
-//                    markerIconUrl = './images/pointer-red.png';
-//                }
                 const position = new naver.maps.LatLng(loc.lat, loc.lng);
                 const marker = new naver.maps.Marker({
                     position, 
@@ -446,8 +500,13 @@
                             map: map,
                             title: "내 위치",
                             icon: {
-                                content: '<div style="background-color:blue;width:12px;height:12px;border:2px solid white;border-radius:50%;"></div>',
-                                anchor: new naver.maps.Point(8, 8)
+                                content: [
+                                '<div style="text-align: center;">',
+                                '    <img src="./images/my_loc_icon.png" alt="내 위치" ',
+                                '         style="width: 40px; height: 40px;">', // 이미지 크기
+                                '</div>'
+                                ].join(''),
+                                anchor: new naver.maps.Point(20, 20) // 이미지 크기의 절반
                             }
                         });
                     }    
