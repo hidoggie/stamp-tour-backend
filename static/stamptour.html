@@ -170,6 +170,43 @@
     .text-item {
       width: 80vw; /* 텍스트 너비 조정 */
     }
+
+  .center-wrapper {
+    display: flex;
+    justify-content: center;   /* 수평 가운데 */
+    align-items: center;       /* 수직 가운데 */
+    height: 70px;             /* 원하는 높이 설정 */
+  }
+
+  .square-image {
+    width: 5rem;
+    height: 5rem;
+    border-radius: 15px;         /* 사각형으로 만들기 */
+    overflow: hidden;           /* 이미지가 영역을 넘지 않도록 */
+    border: 2px solid #ccc;     /* 테두리 (선택사항) */
+  }
+
+  .square-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;          /* 이미지 비율 유지하며 채우기 */
+  } 
+
+  .prizelocInfo {
+    color: #facc15;
+    font-size: 1.3rem;
+    margin: 5px 25px;
+  }
+  .PrizeCloseBtn {
+    margin: 15px;
+    padding: 10px; 
+    border-radius: 8px;
+    width: 78vw; 
+    font-size: 1rem;
+    background-color: #0088c9;
+    color: #f8fbfe;
+    border: 3px solid #00d3f3;
+  }
     </style>
 </head>
 <body style="margin: 0; overflow: hidden;">
@@ -220,17 +257,22 @@
             raycaster="objects: #joayong-model"
         >
 
-            <a-entity
+            <a-entity scale="0 0 0" animation="property: scale; to: 1 1 1; loop: false; dur: 3000">
+              <a-entity
                 id="planet-model"
-                rotation="20 -30 0"
+                rotation="10 -15 0"
                 animation-mixer
                 selective-click>
+              </a-entity>
             </a-entity>
-            <a-entity
+
+            <a-entity rotation="0 0 0" animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
+              <a-entity
                 id="joayong-model"
                 rotation="20 -30 0"
                 animation-mixer
                 selective-click>
+              </a-entity>
             </a-entity>
             
             <!--a-entity movement-controls="fly: true"-->
@@ -263,6 +305,17 @@
        <button onclick="myAlertDialog.close()" style="width: 10vw; height: 2rem;">확인</button>
     </dialog>
 
+    <div id="prizemodal" class="modal hidden">
+       <h2  class="prizelocInfo">📱 기념품 수령 안내</h2>
+       <div class="center-wrapper"> 
+          <div class="square-image">
+            <img src="./images/prizeloc.png" alt="경품수령 위치 이미지">
+          </div>
+       </div> 
+       <button onclick="prizemodal.close()" class="PrizeCloseBtn"> 확인</button>
+
+    </div>
+
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -274,23 +327,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const InfoView = document.getElementById('info');
     const InfoViewTop = document.getElementById('info_top');
     const quizModal = document.getElementById('quiz-modal');
+    const PrizeLoc = document.getElementById('prizemodal');
 
     const joayongPos = {
-        earth:     { name: '지구', lat: 37.489121, lng: 126.955418, model: './models/joayong_rocket.glb', scale: '0.5 0.5 0.5', position: '-0.5 1 -4' }, 
-        mars: { name: '화성', lat: 37.4895, lng: 126.9556, model: './models/joayong_rocket.glb', scale: '0.5 0.5 0.5', position: '0.3 1.5 -4' },
-        jupiter:   { name: '목성', lat: 37.4893,   lng: 126.9561, model: './models/joayong_rocket.glb', scale: '0.5 0.5 0.5', position: '-0.5 1 -4' },
-        saturn:  { name: '토성', lat: 37.488928, lng: 126.956250, model: './models/joayong_rocket.glb', scale: '0.5 0.5 0.5', position: '-0.5 1 -4' },
-        uranus:   { name: '천왕성', lat: 37.4891, lng: 126.9569, model: './models/joayong_rocket.glb', scale: '0.5 0.5 0.5', position: '-0.5 1 -4'},
-        neptune:   { name: '해왕성', lat: 37.488615, lng: 126.956499, model: './models/joayong_rocket.glb', scale: '0.5 0.5 0.5', position: '-0.5 1 -4' },        
+        earth:     { name: '지구', lat: 37.489121, lng: 126.955418, model: './models/joayong-rocket-fire.glb', scale: '0.7 0.7 0.7', position: '-1.5 1 -4' }, 
+        mars: { name: '화성', lat: 37.4895, lng: 126.9556, model: './models/joayong-cute-ufo.glb', scale: '0.5 0.5 0.5', position: '1.5 1.2 -4' },
+        jupiter:   { name: '목성', lat: 37.4893,   lng: 126.9561, model: './models/joayong-train-fire.glb', scale: '0.7 0.7 0.7', position: '-0.5 1.5 -4' },
+        saturn:  { name: '토성', lat: 37.488928, lng: 126.956250, model: './models/joayong-spaceshuttle.glb', scale: '0.5 0.5 0.5', position: '-0.8 1.7 -4' },
+        uranus:   { name: '천왕성', lat: 37.4891, lng: 126.9569, model: './models/joayong-guitar-magic-fire.glb', scale: '0.7 0.7 0.7', position: '-0.5 1 -4'},
+        neptune:   { name: '해왕성', lat: 37.488615, lng: 126.956499, model: './models/joayong-hoverboard-magic-fire.glb', scale: '0.7 0.7 0.7', position: '-0.5 1 -4' },           
     };    
 
     const planetPos = {
-        earth:     { name: '지구', lat: 37.489121, lng: 126.955418, model: './models/saturn_planet.glb', scale: '0.4 0.4 0.4', position: '1 2 -4' }, 
-        mars: { name: '화성', lat: 37.4895, lng: 126.9556, model: './models/saturn_planet.glb', scale: '0.4 0.4 0.4', position: '1 2 -4'},
-        jupiter:   { name: '목성', lat: 37.4893,   lng: 126.9561, model: './models/saturn_planet.glb', scale: '0.4 0.4 0.4', position: '1 2 -4' },
-        saturn:  { name: '토성', lat: 37.488928, lng: 126.956250, model: './models/saturn_planet.glb', scale: '0.4 0.4 0.4', position: '1 2 -4' },
-        uranus:   { name: '천왕성', lat: 37.4891, lng: 126.9569, model: './models/saturn_planet.glb', scale: '0.4 0.4 0.4', position: '1 2 -4' },
-        neptune:   { name: '해왕성', lat: 37.488615, lng: 126.956499, model: './models/saturn_planet.glb', scale: '0.4 0.4 0.4', position: '1 2 -4' },        
+        earth:     { name: '지구', lat: 37.489121, lng: 126.955418, model: './models/solar-earth.glb', scale: '3 3 3', position: '1 2 -18' }, 
+        mars: { name: '화성', lat: 37.4895, lng: 126.9556, model: './models/solar-mars.glb', scale: '3 3 3', position: '1 2 -18'},
+        jupiter:   { name: '목성', lat: 37.4893,   lng: 126.9561, model: './models/solar-jupiter.glb', scale: '1.5 1.5 1.5', position: '1 2 -18' },
+        saturn:  { name: '토성', lat: 37.488928, lng: 126.956250, model: './models/solar-saturn.glb', scale: '1.5 1.5 1.5', position: '1 2 -18' },
+        uranus:   { name: '천왕성', lat: 37.4891, lng: 126.9569, model: './models/solar-uranus.glb', scale: '2 2 2', position: '1 2 -18' },
+        neptune:   { name: '해왕성', lat: 37.488615, lng: 126.956499, model: './models/solar-neptune.glb', scale: '2 2 2', position: '1 2 -18' },        
     };    
     // test용
         const planetData = {
@@ -505,8 +559,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 Dialog.showModal();
                 mapBtn.textContent = "🎁 QR코드 찍기";
                 mapBtn.onclick = () => { window.location.href = 'scanner.html'; };
-                photoBtn.classList.add('hidden');
-                resultContainer.classList.remove('hidden'); 
+                photoBtn.textContent = "경품 수령처 위치 확인"
+                photoBtn.onclick = () => { PrizeLoc.classList.remove('hidden'); };
+     //           photoBtn.classList.add('hidden');
+     //           resultContainer.classList.remove('hidden'); 
                 return;
             }
         } else {
@@ -602,7 +658,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 resultMessage.innerHTML = "축하합니다! <br>모든 스탬프를 모았습니다. <br>부스에서 QR코드를 찍어 경품을 받으세요!";
                 mapBtn.textContent = "🎁 QR코드 찍기";
                 mapBtn.onclick = () => { window.location.href = './scanner.html'; };
-                photoBtn.classList.add('hidden');
+                photoBtn.textContent = "경품 수령처 위치 확인"
+                photoBtn.onclick = () => { PrizeLoc.classList.remove('hidden'); };
+
+    //            photoBtn.classList.add('hidden');
                 resultContainer.classList.remove('hidden'); 
                 renderStampCard();    //9월 9일 추가
                 StampCard.classList.remove('hidden');  //9월 9일 추가

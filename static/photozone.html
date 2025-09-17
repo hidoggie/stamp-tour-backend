@@ -18,8 +18,30 @@
     
     <div class="overlay-ui top-bar">
         <button id="map-btn" class="ui-button">🗺️ 행성 지도</button>
+        <button id="usage-btn" class="ui-button" onclick="(function() {
+           const Dialog = document.querySelector('dialog'); 
+           Dialog.classList.remove('hidden'); 
+           Dialog.showModal();
+         })()">📱 이용 안내</button>
     </div>
-    
+
+   
+    <dialog id="usagemodal" class="hidden">
+       <h2  class="AlertInfo">📱 조아용 AR 포토존 이용 안내</h2>
+      <div class="center-wrapper"> 
+         <div class="circle-image">
+            <img src="./images/joayong-logo.png" alt="조아용 로고 이미지">
+          </div>
+       </div> 
+       <p Class="infoboxcom infobox1">AR 포토존은 다양한 조아용 캐릭터와 함께 증강현실 사진을 찍을 수 있는 서비스입니다.</p>
+       <p Class="infoboxcom infobox2">화면 하단의 AR 포토존 버튼을 누른 뒤, 카메라로 바닥면을 비추면 3D 캐릭터가 나타납니다.</p>
+       <p Class="infoboxcom infobox3">캐릭터를 한 손가락으로 터치하여 원하는 위치로 이동시킬 수 있습니다.</p>
+       <p Class="infoboxcom infobox4">두 손가락을 사용하면 캐릭터를 회전하거나 크기를 확대/축소할 수 있습니다.</p>
+       <p Class="infoboxcom infobox5">화면 중앙 하단의 원형 촬영 버튼을 눌러 사진 또는 짧은 영상을 촬영할 수 있습니다.</p>
+       <p Class="infoboxcom infobox6">여러 가지 조아용 캐릭터와 특별한 추억을 남겨보세요.</p>
+       <button onclick="usagemodal.close()" class="infoboxcom usageCloseBtn"> AR포토존 체험하기</button>
+    </dialog>
+           
     <section class="attribution">
       <span>
         <img
@@ -33,7 +55,6 @@
     <model-viewer
       style="background-color: #E8E8E8"
       interaction-prompt="auto"
-      auto-rotate
       autoplay
       ar
       ar-modes="scene-viewer webxr"
@@ -84,32 +105,34 @@
       const FirstBtn = document.getElementById("first_btn");
       const SecondBtn = document.getElementById("second_btn");
       const mapBtn = document.getElementById('map-btn');
+      const UsageBtn = document.getElementById('usage-btn');
+      const UsageModal = document.getElementById('usagemodal');
      
               // --- 1. 행성별로 연관된 모델 목록을 정의 ---
       const planetRelatedModels = {
-            earth: [
-                { id: 'earth_globe', name: '지구본', thumbnail: './images/earth_planet.png', path: 'joayong_rocket', scale: '0.5 0.5 0.5' },
-                { id: 'space_station', name: '우주정거장', thumbnail: './images/uranus_planet.png', path: 'jupiter_planet', scale: '0.2 0.2 0.2' },
+             earth: [
+                { id: 'earth_globe', name: '지구', thumbnail: './images/earth-planet.png', path: 'earth-planet', scale: '0.5 0.5 0.5' },
+                { id: 'space_station', name: '우주정거장', thumbnail: './images/earth-base.png', path: 'earth-base', scale: '0.5 0.5 0.5' },
             ],
             mars: [
-                { id: 'earth_globe', name: '지구본', thumbnail: './images/saturn_planet.png', path: 'saturn_planet', scale: '0.5 0.5 0.5' },
-                { id: 'space_station', name: '우주정거장', thumbnail: './images/jupiter_planet.png', path: 'jupiter_planet', scale: '0.2 0.2 0.2' },
+                { id: 'mars_globe', name: '화성', thumbnail: './images/mars-planet.png', path: 'mars-planet', scale: '0.5 0.5 0.5' },
+                { id: 'space_station', name: '우주정거장', thumbnail: './images/mars-base.png', path: 'mars-base', scale: '0.5 0.5 0.5' },
             ],
             jupiter: [
-                { id: 'earth_globe', name: '지구본', thumbnail: './images/earth_thumb.png', path: 'saturn_planet', scale: '0.5 0.5 0.5' },
-                { id: 'space_station', name: '우주정거장', thumbnail: './images/mars_thumb.png', path: 'jupiter_planet', scale: '0.2 0.2 0.2' },
+                { id: 'jupiter_globe', name: '목성', thumbnail: './images/jupiter-planet.png', path: 'jupiter-planet', scale: '0.5 0.5 0.5' },
+                { id: 'space_station', name: '우주정거장', thumbnail: './images/mars-base.png', path: 'jupiter-base', scale: '0.5 0.5 0.5' },
             ],
             saturn: [
-                { id: 'earth_globe', name: '지구본', thumbnail: './images/earth_thumb.png', path: 'saturn_planet', scale: '0.5 0.5 0.5' },
-                { id: 'space_station', name: '우주정거장', thumbnail: './images/mars_thumb.png', path: 'jupiter_planet', scale: '0.2 0.2 0.2' },
+                { id: 'saturn_globe', name: '토성', thumbnail: './images/saturn-planet.png', path: 'saturn-planet', scale: '0.5 0.5 0.5' },
+                { id: 'space_station', name: '우주정거장', thumbnail: './images/saturn-base.png', path: 'saturn-base', scale: '0.5 0.5 0.5' },
             ],
             uranus: [
-                { id: 'earth_globe', name: '지구본', thumbnail: './images/earth_thumb.png', path: 'saturn_planet', scale: '0.5 0.5 0.5' },
-                { id: 'space_station', name: '우주정거장', thumbnail: './images/mars_thumb.png', path: 'jupiter_planet', scale: '0.2 0.2 0.2' },
+                { id: 'uranus_globe', name: '천왕성', thumbnail: './images/uranus-planet.png', path: 'uranus-planet', scale: '0.5 0.5 0.5' },
+                { id: 'space_station', name: '우주정거장', thumbnail: './images/uranus-base.png', path: 'uranus-base', scale: '0.5 0.5 0.5' },
             ],
             neptune: [
-                { id: 'earth_globe', name: '지구본', thumbnail: './images/earth_thumb.png', path: 'saturn_planet', scale: '0.5 0.5 0.5' },
-                { id: 'space_station', name: '우주정거장', thumbnail: './images/mars_thumb.png', path: 'jupiter_planet', scale: '0.2 0.2 0.2' },
+                { id: 'neptune_globe', name: '해왕성', thumbnail: './images/neptune-planet.png', path: 'neptune-planet', scale: '0.5 0.5 0.5' },
+                { id: 'space_station', name: '우주정거장', thumbnail: './images/neptune-base.png', path: 'neptune-base', scale: '0.5 0.5 0.5' },
             ],
             // ... 다른 행성들의 모델 목록도 동일하게 정의 ...
         };
@@ -164,11 +187,14 @@
         });
 
         mapBtn.onclick = () => window.location.href = './joayong-map.html';
-    
+        
         init();
     });
 
-    
+    function InfoClick() {
+           
+    }
+           
 
     </script>
     <script
