@@ -256,15 +256,16 @@
 
         const mapElement = document.getElementById('map');
         const eventCenterPoint = new naver.maps.LatLng(37.489122, 126.956116); // 이벤트 중심 좌표
+        const eventCenterPoint1 = new naver.maps.LatLng(37.249746, 127.165157); // 이벤트 중심 좌표
         const eventRadius = 500; // 이벤트 참여 가능 반경 (500미터)
 
             const stampLocations1 = [
-                { title: '🌍 지구', lat: 37.465467, lng: 126.387857, id: 'earth' },
-                { title: '🔴 화성', lat: 37.465789, lng: 126.386757, id: 'mars' },
-                { title: '🪐 목성', lat: 37.466490, lng: 126.388020, id: 'jupiter' },
-                { title: '💫 토성', lat: 37.465762, lng: 126.385614, id: 'saturn' },
-                { title: '💎 천왕성', lat: 37.467071, lng: 126.386995, id: 'uranus' },
-                { title: '🌊 해왕성', lat: 37.466879, lng: 126.386567, id: 'neptune' },
+                { title: '🌍 지구', lat: 37.249180, lng: 127.165636, id: 'earth', marker: './images/earth.png' },
+                { title: '🔴 화성', lat: 37.249077, lng: 127.164944, id: 'mars', marker: './images/mars.png' },
+                { title: '🪐 목성', lat: 37.249667, lng: 127.166059, id: 'jupiter', marker: './images/jupiter.png' },
+                { title: '💫 토성', lat: 37.250205, lng: 127.165469, id: 'saturn', marker: './images/saturn.png' },
+                { title: '💎 천왕성', lat: 37.250205, lng: 127.164944, id: 'uranus', marker: './images/uranus.png' },
+                { title: '🌊 해왕성', lat: 37.250235, lng: 127.164643, id: 'neptune', marker: './images/neptune.png' }, 
             ];
 
             const stampLocations = [
@@ -273,7 +274,7 @@
                 { title: '🪐 목성', lat: 37.4893,   lng: 126.9561, id: 'jupiter', marker: './images/jupiter.png' },
                 { title: '💫 토성', lat: 37.488928, lng: 126.956250, id: 'saturn', marker: './images/saturn.png' },
                 { title: '💎 천왕성', lat: 37.4891, lng: 126.9569, id: 'uranus', marker: './images/uranus.png' },
-                { title: '🌊 해왕성', lat: 37.488615, lng: 126.956499, id: 'neptune', marker: './images/neptune.png' },
+                { title: '🌊 해왕성', lat: 37.489086, lng: 126.956518, id: 'neptune', marker: './images/neptune.png' }, 
             ];
 
         const TOTAL_STAMPS = stampLocations.length;
