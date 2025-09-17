@@ -78,65 +78,58 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
+        const startButton = document.getElementById("start-button");
+        const readerDiv = document.getElementById("reader");
 
-    const html5QrCode = new Html5Qrcode("reader");
-    const startButton = document.getElementById("start-button");
-    
-    startButton.addEventListener("click", () => {
-      // 버튼 숨기기
-      startButton.classList.add("hidden");
+        // ✨ 1. 변수를 let으로 선언하고, 객체는 나중에 생성합니다.
+        let html5QrCode;
 
-      Html5Qrcode.getCameras().then(devices => {
-        if (devices && devices.length) {
-          const cameraId = devices[0].id;
-
-          html5QrCode.start(
-            cameraId,
-            {
-              fps: 10,
-              qrbox: { width: 250, height: 250 },
-              facingMode: "environment" 
-            },
-            (decodedText) => {
-              console.log("스캔 성공:", decodedText);
-
-              if (/^https?:\/\//.test(decodedText)) {
-                window.location.href = decodedText;
-              } else {
-                alert("QR 코드 내용: " + decodedText);
-              }
-
-              html5QrCode.stop().then(() => {
-                document.getElementById("reader").innerHTML = "";
-                startButton.classList.remove("hidden"); // 스캔 종료 후 버튼 다시 표시
-              });
-            },
-            (errorMessage) => {
-              console.warn("스캔 실패:", errorMessage);
-            }
-          );
-        } else {
-          alert("카메라를 찾을 수 없습니다.");
-          startButton.classList.remove("hidden"); // 실패 시 버튼 다시 표시
+        // 스캔 성공 시 실행될 함수
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log(`스캔 성공: ${decodedText}`);
+            
+            // 스캔이 완료되면 스캐너를 멈추고 결과를 처리합니다.
+            html5QrCode.stop().then(() => {
+                readerDiv.innerHTML = "<h2>스캔 완료!</h2>";
+                
+                if (decodedText.startsWith('http')) {
+                    window.location.href = decodedText;
+                } else {
+                    alert("유효하지 않은 QR 코드입니다: " + decodedText);
+                    startButton.classList.remove("hidden"); // 다시 스캔할 수 있도록 버튼 표시
+                }
+            }).catch(err => {
+                console.error("스캐너 중지 오류", err);
+            });
         }
-      }).catch(err => {
-        alert("카메라 접근 오류: " + err);
-        startButton.classList.remove("hidden");
-      });
-    });
-    });
-  </script>
-    <!--script>
-        const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-        scanner.render(
-        (decodedText) => {
-          alert("QR 코드 내용: " + decodedText);
-          scanner.clear();
-        },
-        (errorMessage) => {
-         console.warn("스캔 실패:", errorMessage);
+
+        // 스캔 실패 시 실행될 함수 (보통 무시)
+        function onScanFailure(error) {}
+
+        // ✨ 2. 페이지 로드 시 바로 스캐너를 시작하는 방식으로 변경
+        // 이렇게 하면 사용자가 버튼을 누를 필요가 없어 더 편리합니다.
+        try {
+            html5QrCode = new Html5Qrcode("reader");
+            const config = {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+            };
+
+            // ✨ 3. 후면 카메라 사용을 start 함수에 명확히 전달합니다.
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                config,
+                onScanSuccess,
+                onScanFailure
+            );
+        } catch (err) {
+            console.error("QR 스캐너 시작 오류:", err);
+            readerDiv.classList.add("hidden");
+            startButton.style.display = "block";
+            startButton.textContent = "오류: 카메라를 시작할 수 없습니다.";
         }
-      );
-    </script-->
+    });
+    </script>
+
 </body>
 </html>
