@@ -17,7 +17,7 @@ html, body {
 }
 
 .overlay-ui { position: fixed; width: 100%; z-index: 10; box-sizing: border-box; }
-.top-bar { top: 0; display: flex; justify-content: right; padding: 20px; }
+.top-bar { top: 0; display: flex; justify-content: space-between; padding: 10px 20px; }
 .ui-button { width: 8rem; padding: 10px 10px; font-size: 1em; border-radius: 5px; border: none; background-color: rgba(0,0,0,0.6); color: white; cursor: pointer; z-index: 99999; }
 
 @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
