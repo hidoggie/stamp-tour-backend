@@ -18,30 +18,8 @@
     
     <div class="overlay-ui top-bar">
         <button id="map-btn" class="ui-button">🗺️ 행성 지도</button>
-        <button id="usage-btn" class="ui-button" onclick="(function() {
-           const Dialog = document.querySelector('dialog'); 
-           Dialog.classList.remove('hidden'); 
-           Dialog.showModal();
-         })()">📱 이용 안내</button>
     </div>
-
-   
-    <dialog id="usagemodal" class="hidden">
-       <h2  class="AlertInfo">📱 조아용 AR 포토존 이용 안내</h2>
-      <div class="center-wrapper"> 
-         <div class="circle-image">
-            <img src="./images/joayong-logo.png" alt="조아용 로고 이미지">
-          </div>
-       </div> 
-       <p Class="infoboxcom infobox1">AR 포토존은 다양한 조아용 캐릭터와 함께 증강현실 사진을 찍을 수 있는 서비스입니다.</p>
-       <p Class="infoboxcom infobox2">화면 하단의 AR 포토존 버튼을 누른 뒤, 카메라로 바닥면을 비추면 3D 캐릭터가 나타납니다.</p>
-       <p Class="infoboxcom infobox3">캐릭터를 한 손가락으로 터치하여 원하는 위치로 이동시킬 수 있습니다.</p>
-       <p Class="infoboxcom infobox4">두 손가락을 사용하면 캐릭터를 회전하거나 크기를 확대/축소할 수 있습니다.</p>
-       <p Class="infoboxcom infobox5">화면 중앙 하단의 원형 촬영 버튼을 눌러 사진 또는 짧은 영상을 촬영할 수 있습니다.</p>
-       <p Class="infoboxcom infobox6">여러 가지 조아용 캐릭터와 특별한 추억을 남겨보세요.</p>
-       <button onclick="usagemodal.close()" class="infoboxcom usageCloseBtn"> AR포토존 체험하기</button>
-    </dialog>
-           
+    
     <section class="attribution">
       <span>
         <img
@@ -69,9 +47,8 @@
       camera-orbit="-30deg auto auto"
       max-camera-orbit="auto 100deg auto"
     >
-    <div style="display: flex">
       <button aria-label="에이알로 보기" slot="ar-button" id="ar-button">AR 포토존 보기</button>
-    </div>
+
       <div id="ar-prompt">
         <img alt="에이알 손흔들기" src="./images/hand.png" />
       </div>
@@ -83,14 +60,14 @@
           <button
             id="first_btn"
             style="
-              background-image: url('./images/saturn_planet.png');"
+              background-image: url('./images/earth-planet.png');"
             aria-label="첫번째 모델"
             class="slide selected"
           ></button>
           <button
             id="second_btn"
             style="
-              background-image: url('./images/jupiter_planet.png');"
+              background-image: url('./images/earth-base.png');"
             aria-label="두번째 모델"
             class="slide"
           ></button>
@@ -105,8 +82,6 @@
       const FirstBtn = document.getElementById("first_btn");
       const SecondBtn = document.getElementById("second_btn");
       const mapBtn = document.getElementById('map-btn');
-      const UsageBtn = document.getElementById('usage-btn');
-      const UsageModal = document.getElementById('usagemodal');
      
               // --- 1. 행성별로 연관된 모델 목록을 정의 ---
       const planetRelatedModels = {
@@ -120,7 +95,7 @@
             ],
             jupiter: [
                 { id: 'jupiter_globe', name: '목성', thumbnail: './images/jupiter-planet.png', path: 'jupiter-planet', scale: '0.5 0.5 0.5' },
-                { id: 'space_station', name: '우주정거장', thumbnail: './images/jupiter-base.png', path: 'jupiter-base', scale: '0.5 0.5 0.5' },
+                { id: 'space_station', name: '우주정거장', thumbnail: './images/mars-base.png', path: 'jupiter-base', scale: '0.5 0.5 0.5' },
             ],
             saturn: [
                 { id: 'saturn_globe', name: '토성', thumbnail: './images/saturn-planet.png', path: 'saturn-planet', scale: '0.5 0.5 0.5' },
@@ -187,14 +162,11 @@
         });
 
         mapBtn.onclick = () => window.location.href = './joayong-map.html';
-        
+    
         init();
     });
 
-    function InfoClick() {
-           
-    }
-           
+    
 
     </script>
     <script
