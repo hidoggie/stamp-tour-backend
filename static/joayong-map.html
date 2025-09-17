@@ -469,13 +469,13 @@
 
                     const hasStamp = collectedStamps[loc.id];    //9.12 수정
 
-                    showProximityModal(loc.title, loc.id, hasStamp); //9.12 수정
-                    break;   //9.12 수정
+ //                   showProximityModal(loc.title, loc.id, hasStamp); //9.12 수정
+ //                   break;   //9.12 수정
 
-//                    if (!collectedStamps[loc.id]) {
-//                        showProximityModal(loc.title, loc.id);
-//                        break;
-//                    }
+                    if (!collectedStamps[loc.id]) {
+                        showProximityModal(loc.title, loc.id, hasStamp);
+                        break;
+                    }
                 } 
             }
         }
@@ -506,11 +506,9 @@
                 modalText.textContent = "행성에 도착했습니다.";
                 modalStampBtn.style.display = 'inline-block'; // '스탬프 투어 참여' 버튼 보이기
                 modalPhotoBtn.style.display = 'inline-block'; // 'AR 포토존 가기' 버튼도 보이기
-            } 
-
-            modalStampBtn.onclick = () => { window.location.href = `stamptour.html?planet=${id}`; };
-            modalPhotoBtn.onclick = () => { window.location.href = `photozone.html?planet=${id}`; };
-       
+                modalStampBtn.onclick = () => { window.location.href = `stamptour.html?planet=${id}`; };
+                modalPhotoBtn.onclick = () => { window.location.href = `photozone.html?planet=${id}`; };
+            }        
         }
 
         window.onclick = (event) => {
