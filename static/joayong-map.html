@@ -338,8 +338,13 @@
 
             const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};
 
+            const validStamps = Object.keys(collectedStamps).filter(key => 
+                stampLocations.some(loc => loc.id === key)
+            );
+            const totalStamps = validStamps.length;
+
             // 스탬프를 모두 모았을 경우에만 서버에 확인
-            if (Object.keys(collectedStamps).length >= TOTAL_STAMPS) {
+            if (totalStamps >= TOTAL_STAMPS) {
                 fetch(`/api/check-eligibility/${userId}`)
                     .then(res => res.json())
                     .then(status => {
