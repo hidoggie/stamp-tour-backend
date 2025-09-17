@@ -64,7 +64,7 @@ model-viewer {
         left: 50%;
         transform: translateX(-50%);
         white-space: nowrap;
-        bottom: 20vh;
+        bottom: 24vh;
         padding: 0px 16px 0px 50px;
         font-family: "Pretendard";
         src: url("https://guide1.ivyro.net/oceanbreeze/AR/font/Pretendard-Regular.otf") format("ttf");
@@ -141,7 +141,7 @@ model-viewer[ar-tracking="not-tracking"] > #ar-failure {
         text-align: center;
         overflow: hidden;
         position: absolute;
-        bottom:1vh;
+        bottom:5vh;
         justify-content: center;
       }
 
