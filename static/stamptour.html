@@ -16,6 +16,15 @@
     <script src="./js/aframe-ar.js"></script>
     <script src="./js/aframe-extras.min.js"></script>
 
+    <script>
+        function setScreenHeight() {
+            let vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        window.addEventListener('resize', setScreenHeight);
+        setScreenHeight(); // 최초 실행
+    </script>
+
     <style>
         * {
             margin: 0;
@@ -27,18 +36,18 @@
             margin: 0;
             padding: 0;
             width: 100%;
-            height: 100%;
+            height: calc(var(--vh, 1vh) * 100);
             overflow: hidden; /* 불필요한 스크롤바 방지 */
         }
 
         a-scene {
             width: 100%;
-            height: 100%;
+            height: calc(var(--vh, 1vh) * 100);
         }
 
         body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
                text-align: center; background-color: #111827; color: white; margin: 0;  font-size: 14px; line-height: 1.5;}
-        .container { max-width: 448px; margin: 0 auto; padding: 16px; min-height: 100vh; }
+        .container { max-width: 448px; margin: 0 auto; padding: 16px; min-height: calc(var(--vh, 1vh) * 100); }
 
         .modal {
             position: fixed;
@@ -46,7 +55,7 @@
             left: 0;
             top: 0;
             width: 100%;
-            height: 100%;
+            height: calc(var(--vh, 1vh) * 100);
             background-color: rgba(0,0,0,0.5);
             display: flex;
             align-items: center;
@@ -117,7 +126,7 @@
         #ar-view, #video-quiz-view { width: 100%; height: 100%; }
 
     dialog {
-        top: 15vh;
+        top: calc(var(--vh, 1vh) * 15);
         left: 11vw;
         width: 80%;
         padding: 20px 10px;
@@ -136,7 +145,7 @@
         display: flex; 
         align-items: center;
         position: fixed; 
-        top: 6vh; 
+        top: calc(var(--vh, 1vh) * 6);
         text-align: center; 
         width: 100%; 
         color: white; 
@@ -150,7 +159,7 @@
         display: flex; 
         align-items: center;
         position: fixed; 
-        top: 85vh; 
+        top: calc(var(--vh, 1vh) * 85);
         text-align: center; 
         width: 100%; 
         color: white; 
@@ -195,7 +204,7 @@
   .PrizeModal {
         background-color: #141c2b;
         color: #5da0f3;
-        top: 28vh;
+        top: calc(var(--vh, 1vh) * 28);
         left: 5.5vw;
         width: 90vw;
         padding: 20px 10px;
@@ -262,6 +271,7 @@
         <a-scene
             id="scene"
             vr-mode-ui="enabled: false"
+            device-orientation-permission-ui="enabled: false"
             arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
             renderer="logarithmicDepthBuffer: true"
             emitevents="true" 
@@ -347,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
         jupiter:   { name: '목성', lat: 37.4893,   lng: 126.9561, model: './models/joayong-train-fire.glb', scale: '0.7 0.7 0.7', position: '-0.5 1.5 -4' },
         saturn:  { name: '토성', lat: 37.488928, lng: 126.956250, model: './models/joayong-spaceshuttle.glb', scale: '0.5 0.5 0.5', position: '-0.8 1.7 -4' },
         uranus:   { name: '천왕성', lat: 37.4891, lng: 126.9569, model: './models/joayong-guitar-magic-fire.glb', scale: '0.7 0.7 0.7', position: '-0.5 1 -4'},
-        neptune:   { name: '해왕성', lat: 37.488615, lng: 126.956499, model: './models/joayong-hoverboard-magic-fire.glb', scale: '0.7 0.7 0.7', position: '-0.5 1 -4' },           
+        neptune:   { name: '해왕성', lat: 37.489086, lng: 126.956518, model: './models/joayong-hoverboard-magic-fire.glb', scale: '0.7 0.7 0.7', position: '-0.5 1 -4' },           
     };    
 
     const planetPos = {
@@ -356,7 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
         jupiter:   { name: '목성', lat: 37.4893,   lng: 126.9561, model: './models/solar-jupiter.glb', scale: '1.5 1.5 1.5', position: '1 2 -18' },
         saturn:  { name: '토성', lat: 37.488928, lng: 126.956250, model: './models/solar-saturn.glb', scale: '1.5 1.5 1.5', position: '1 2 -18' },
         uranus:   { name: '천왕성', lat: 37.4891, lng: 126.9569, model: './models/solar-uranus.glb', scale: '2 2 2', position: '1 2 -18' },
-        neptune:   { name: '해왕성', lat: 37.488615, lng: 126.956499, model: './models/solar-neptune.glb', scale: '2 2 2', position: '1 2 -18' },        
+        neptune:   { name: '해왕성', lat: 37.489086, lng: 126.956518, model: './models/solar-neptune.glb', scale: '2 2 2', position: '1 2 -18' },        
     };    
     // test용
         const planetData = {

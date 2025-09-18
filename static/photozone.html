@@ -12,6 +12,14 @@
     <script src="./js/fullscreen.polyfill.js"></script>
     <script src="./js/prismatic.min.js"></script>
     <script src="./js/focus-visible.js" defer></script>
+    <script>
+        function setScreenHeight() {
+            let vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        window.addEventListener('resize', setScreenHeight);
+        setScreenHeight(); // 페이지 로드 시 즉시 실행
+    </script>
       
   </head>
   <body>

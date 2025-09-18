@@ -5,7 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>스탬프 투어 - 행성 여행</title>
     <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=eb9mai2ikc&callback=initMap"></script>
- 
+
+    <script>
+        function setScreenHeight() {
+            let vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        window.addEventListener('resize', setScreenHeight);
+        setScreenHeight(); // 최초 실행
+    </script>
+
     <style>
         * {
             margin: 0;
@@ -13,8 +22,8 @@
             box-sizing: border-box;
         }
 
-        html, body, #map { 
-            height: 100%; 
+        html, body { 
+            height: calc(var(--vh, 1vh) * 100); 
             margin: 0; 
             padding: 0; 
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
@@ -25,7 +34,19 @@
             overflow-x: hidden;
 
         }
-        #modal, #status-modal { display: none; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 9999; width: 80vw; height: 40vh; max-width: 220px;}
+        #map { 
+            height: calc(var(--vh, 1vh) * 70); 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+            background-color: #111827;
+            color: #ffffff;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-x: hidden;
+
+        }
+        #modal, #status-modal { display: none; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 9999; width: 80vw; height: calc(var(--vh, 1vh) * 40);; max-width: 220px;}
         .modal-content { width: 100%; position: absolute; background-color: #1f2937; margin: auto; padding: 15px; border-radius: 10px; text-align: center; grid-template-columns: 1fr; }
         .modal-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 15px; width: 100%; }
         .modal-buttons button { padding: 10px 20px; font-size: 1em; cursor: pointer; border-radius: 5px; border: none; color: white; margin-bottom: 15px; }
@@ -43,7 +64,7 @@
           background-color: #1f2937;
           border: 1px solid #4b5563;
           width: 100%;
-          height: 70vh;
+          height: calc(var(--vh, 1vh) * 70);
           border-radius: 12px;
           margin-bottom: 8px;
           padding: 8px;
@@ -59,12 +80,12 @@
         }
      
         .container {
-            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
             position: relative;
             max-width: 448px;
             margin: 0 auto;
             padding: 16px;
-            min-height: 100vh;
+            min-height: calc(var(--vh, 1vh) * 100);
         }
 
         #info {
