@@ -12,7 +12,7 @@ html, body {
     background-color: #E8E8E8;
     justify-content: center;
     width: 100%;
-    height: 100%;
+    height: calc(var(--vh, 1vh) * 100);
     overflow: hidden; /* 불필요한 스크롤바 방지 */
 }
 
@@ -24,7 +24,7 @@ html, body {
 
 model-viewer {
   width: 100%;
-  height: 60vh;
+  height: calc(var(--vh, 1vh) * 60);
   place-items: center;
   background-color: #E8E8E8;
   overflow-x: hidden;
@@ -45,8 +45,8 @@ model-viewer {
 
 .attribution img {
   opacity: 0.5;
-  height: 15vh;
-  margin: 7vh;
+  height: calc(var(--vh, 1vh) * 15);
+  margin: calc(var(--vh, 1vh) * 7);
 }
 
 .attribution .cc {
@@ -64,7 +64,7 @@ model-viewer {
         left: 50%;
         transform: translateX(-50%);
         white-space: nowrap;
-        bottom: 24vh;
+        bottom: calc(var(--vh, 1vh) * 24);
         padding: 0px 16px 0px 50px;
         font-family: "Pretendard";
         src: url("https://guide1.ivyro.net/oceanbreeze/AR/font/Pretendard-Regular.otf") format("ttf");
@@ -141,7 +141,7 @@ model-viewer[ar-tracking="not-tracking"] > #ar-failure {
         text-align: center;
         overflow: hidden;
         position: absolute;
-        bottom:5vh;
+        bottom: calc(var(--vh, 1vh) * 5);
         justify-content: center;
       }
 
@@ -185,7 +185,7 @@ model-viewer[ar-tracking="not-tracking"] > #ar-failure {
     dialog {
         background-color: #141c2b;
         color: #5da0f3;
-        top: 10vh;
+        top: calc(var(--vh, 1vh) * 10);
         left: 5.5vw;
         width: 90vw;
         padding: 20px 10px;
@@ -204,7 +204,7 @@ model-viewer[ar-tracking="not-tracking"] > #ar-failure {
         display: flex; 
         align-items: center;
         position: fixed; 
-        top: 6vh; 
+        top: calc(var(--vh, 1vh) * 6);
         text-align: center; 
         width: 100%; 
         color: white; 
@@ -218,7 +218,7 @@ model-viewer[ar-tracking="not-tracking"] > #ar-failure {
         display: flex; 
         align-items: center;
         position: fixed; 
-        top: 85vh; 
+        top: calc(var(--vh, 1vh) * 85); 
         text-align: center; 
         width: 100%; 
         color: white; 
