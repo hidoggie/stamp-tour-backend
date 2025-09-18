@@ -45,8 +45,8 @@ model-viewer {
 
 .attribution img {
   opacity: 0.5;
-  height: calc(var(--vh, 1vh) * 15);
-  margin: calc(var(--vh, 1vh) * 7);
+  height: calc(var(--vh, 1vh) * 12);
+  margin: calc(var(--vh, 1vh) * 5);
 }
 
 .attribution .cc {
