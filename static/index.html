@@ -722,17 +722,24 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-3 gap-3 mb-6" id="planet-preview">
-                <!-- Planets will be dynamically populated -->
-            </div>
+            <!--div class="grid grid-cols-3 gap-3 mb-6" id="planet-preview">
+            </div-->
 
-            <button class="btn btn-primary btn-full py-6 text-lg" onclick="navigateTo('guide')">
+            <button class="btn btn-primary btn-full py-6 text-lg" onclick="location.href='joayong-map.html'">
                 우주 여행 시작하기 🚀
             </button>
         </div>
 
         <!-- Guide Page -->
         <div id="guide-page" class="page">
+            <div class="flex space-x-3">
+                <button class="btn btn-outline flex-1" onclick="navigateTo('story')">
+                    이전
+                </button>
+                <button class="btn btn-primary flex-1" onclick="location.href='./joayong-map.html'">
+                    시작하기
+                </button>
+            </div>
             <div class="text-center mb-6 pt-4">
                 <h1 class="text-3xl text-white mb-2">📋 스탬프 투어 사용 안내</h1>
                 <p class="text-gray-200 text-lg">스탬프투어 이용 방법을 알아보세요</p>
@@ -752,15 +759,6 @@
                     <li class="listyle">• 배터리를 충분히 충전하고 시작하세요</li>
                     <li class="listyle">• 사람이 많은 곳에서 뛰거나 부딪히지 않도록 주의 하세요</li>
                 </ul>
-            </div>
-
-            <div class="flex space-x-3">
-                <button class="btn btn-outline flex-1" onclick="navigateTo('story')">
-                    이전
-                </button>
-                <button class="btn btn-primary flex-1" onclick="location.href='joayong-map.html'">
-                    시작하기
-                </button>
             </div>
         </div>
 
@@ -869,7 +867,7 @@
 
         // Initialize app
         function initApp() {
-            renderPlanetPreview();
+  //          renderPlanetPreview();
             renderGuideSteps();
         }
 
