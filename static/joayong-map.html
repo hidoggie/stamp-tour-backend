@@ -212,6 +212,13 @@
       height: 100%;
       object-fit: cover;
     }  
+
+    /* 오버레이로 사용할 이미지의 스타일 */
+    .overlay-image {
+        position: absolute; /* 지도 위에 떠 있도록 설정 */
+        opacity: 0.8; /* 이미지 투명도 (선택 사항) */
+        pointer-events: none; /* 오버레이 아래의 지도를 클릭할 수 있도록 설정 */
+    }
     </style>
 </head>
 <body>
@@ -294,8 +301,8 @@
 
             const stampLocations = [
                 { title: '🌍 지구', lat: 37.249180, lng: 127.165636, id: 'earth', marker: './images/earth.png' },
-                { title: '🔴 화성', lat: 37.249077, lng: 127.164944, id: 'mars', marker: './images/mars.png' },
-                { title: '🪐 목성', lat: 37.249667, lng: 127.166059, id: 'jupiter', marker: './images/jupiter.png' },
+                { title: '🔴 화성', lat: 37.249109, lng: 127.164899, id: 'mars', marker: './images/mars.png' }, 
+                { title: '🪐 목성', lat: 37.249670, lng: 127.165778, id: 'jupiter', marker: './images/jupiter.png' }, 
                 { title: '💫 토성', lat: 37.250205, lng: 127.165469, id: 'saturn', marker: './images/saturn.png' },
                 { title: '💎 천왕성', lat: 37.250205, lng: 127.164944, id: 'uranus', marker: './images/uranus.png' },
                 { title: '🌊 해왕성', lat: 37.250235, lng: 127.164643, id: 'neptune', marker: './images/neptune.png' }, 
@@ -351,7 +358,65 @@
             // 사용자의 최종 상태를 먼저 확인
             checkUserStatusOnLoad();
 
-            // 스탬프 존 마커 표시
+            
+//9월 19일 추가
+
+// 1. 오버레이를 표시할 지리적 영역(bounds)을 정의합니다.
+//    (예: 서울역과 남산타워를 잇는 사각형 영역)
+const overlayBounds = new naver.maps.LatLngBounds(
+    new naver.maps.LatLng(37.248601, 127.163775), // 남서쪽(South-West) 좌표
+    new naver.maps.LatLng(37.250843, 127.166517)  // 북동쪽(North-East) 좌표
+);
+
+// 2. CustomOverlay를 상속받아 우리만의 오버레이 클래스를 만듭니다.
+function ImageOverlay(bounds, imageUrl, map) {
+    this._bounds = bounds;
+    this._imageUrl = imageUrl;
+    this._element = document.createElement('img');
+    this._element.src = this._imageUrl;
+    this._element.className = 'overlay-image';
+    
+    this.setMap(map);
+}
+// CustomOverlay의 프로토타입을 상속합니다.
+ImageOverlay.prototype = new naver.maps.OverlayView();
+ImageOverlay.prototype.constructor = ImageOverlay;
+
+// 오버레이가 지도에 추가될 때 호출될 함수
+ImageOverlay.prototype.onAdd = function() {
+    const overlayLayer = this.getPanes().overlayImage;
+    overlayLayer.appendChild(this._element);
+};
+
+// 오버레이를 그릴 때 호출될 함수 (지도 이동/줌 시 계속 호출됨)
+ImageOverlay.prototype.draw = function() {
+    const projection = this.getProjection();
+    const sw = projection.fromCoordToOffset(this._bounds.getSW()); // 영역의 남서쪽 화면 좌표
+    const ne = projection.fromCoordToOffset(this._bounds.getNE()); // 영역의 북동쪽 화면 좌표
+
+    const width = ne.x - sw.x;
+    const height = sw.y - ne.y;
+
+    this._element.style.left = sw.x + 'px';
+    this._element.style.top = ne.y + 'px';
+    this._element.style.width = width + 'px';
+    this._element.style.height = height + 'px';
+};
+
+// 오버레이가 지도에서 제거될 때 호출될 함수
+ImageOverlay.prototype.onRemove = function() {
+    this._element.parentNode.removeChild(this._element);
+};
+
+// 3. 생성한 오버레이 클래스의 인스턴스를 만들고 지도에 추가합니다.
+const imageUrl = './images/mir-layout.png'; // 오버레이로 사용할 이미지 경로
+const overlay = new ImageOverlay(overlayBounds, imageUrl, map);
+
+
+
+// 종료지점
+
+// 스탬프 존 마커 표시
             displayStampMarkers();
 
         let isFirstLoad = true;
@@ -450,6 +515,66 @@
                 naver.maps.Event.addListener(marker, 'mouseout', () => infoWindow.close());
                 naver.maps.Event.addListener(marker, 'click', () => infoWindow.open(map, marker));             
             });
+
+//9월 19일 상품수령처 마커 추가
+    const infoMarkerLocation = {
+        title: 'ℹ️ 경품 수령처',
+        lat: 37.249329,  
+        lng: 127.165839,
+    };
+    const infoMarkerPosition = new naver.maps.LatLng(infoMarkerLocation.lat, infoMarkerLocation.lng);
+
+    // 안내 마커를 생성합니다.
+    const infoMarker = new naver.maps.Marker({
+        position: infoMarkerPosition,
+        map: map,
+        title: infoMarkerLocation.title,
+        icon: { // 다른 마커와 구분되도록 아이콘을 다르게 설정
+            url: './images/prize50.png', // 예시 아이콘 경로
+            size: new naver.maps.Size(50, 50),
+            anchor: new naver.maps.Point(25, 50)
+        }
+    });
+
+    // 안내 마커에 대한 정보창을 생성합니다.
+    const infoWindow = new naver.maps.InfoWindow({
+        content: `<div style="padding:5px;font-size:12px;text-align:center; color: black">${infoMarkerLocation.title}</div>`
+    });
+
+    // 마우스를 올리면 정보창이 나타나도록 이벤트를 추가합니다.
+    naver.maps.Event.addListener(infoMarker, 'mouseover', () => {
+        infoWindow.open(map, infoMarker);
+    });
+    naver.maps.Event.addListener(infoMarker, 'mouseout', () => {
+        infoWindow.close();
+    });
+
+    // ✨ 1. 마커의 확대 상태를 기억할 변수를 선언합니다.
+    let isMarkerEnlarged = false;
+
+    // ✨ 2. 마커를 클릭했을 때의 동작을 아래 로직으로 교체합니다.
+    naver.maps.Event.addListener(infoMarker, 'click', () => {
+        if (isMarkerEnlarged) {
+            // 현재 확대된 상태이면, 원래 크기로 되돌립니다.
+            infoMarker.setIcon({
+                url: './images/prize50.png',
+                size: new naver.maps.Size(50, 50),
+                anchor: new naver.maps.Point(25, 50)
+            });
+            isMarkerEnlarged = false;
+        } else {
+            // 현재 원래 크기이면, 더 큰 사이즈로 변경합니다.
+            infoMarker.setIcon({
+                url: './images/prize50.png',
+                size: new naver.maps.Size(100, 100), // 예: 1.5배 큰 사이즈
+                anchor: new naver.maps.Point(25, 50) // 고정점도 그에 맞게 변경
+            });
+            isMarkerEnlarged = true;
+        }
+    });
+
+//추가 끝
+
         }
 
         function getDistanceInMeters(lat1, lng1, lat2, lng2) {
@@ -529,27 +654,29 @@
 
                     hasShownOutOfBoundsAlert = false;
 
-                    if (userMarker) {
-                        userMarker.setPosition(userPosition);
-                        if (userMarker.getMap() === null) {
-                            userMarker.setMap(map); // 숨겨져 있었다면 다시 표시
-                        }
-                    } else {
-                        userMarker = new naver.maps.Marker({
-                            position: userPosition,
-                            map: map,
-                            title: "내 위치",
-                            icon: {
-                                content: [
-                                '<div style="text-align: center;">',
-                                '    <img src="./images/my_loc_icon.png" alt="내 위치" ',
-                                '         style="width: 40px; height: 40px;">', // 이미지 크기
-                                '</div>'
-                                ].join(''),
-                                anchor: new naver.maps.Point(20, 20) // 이미지 크기의 절반
-                            }
-                        });
-                    }    
+                    //9월 19일 userMarker 숨기기 처리
+
+   //                 if (userMarker) {
+   //                     userMarker.setPosition(userPosition);
+   //                     if (userMarker.getMap() === null) {
+   //                         userMarker.setMap(map); // 숨겨져 있었다면 다시 표시
+   //                     }
+   //                 } else {
+     //                   userMarker = new naver.maps.Marker({
+     //                       position: userPosition,
+     //                       map: map,
+     //                       title: "내 위치",
+     //                       icon: {
+     //                           content: [
+     //                           '<div style="text-align: center;">',
+     //                           '    <img src="./images/my_loc_icon.png" alt="내 위치" ',
+     //                           '         style="width: 40px; height: 40px;">', // 이미지 크기
+     //                           '</div>'
+     //                           ].join(''),
+     //                           anchor: new naver.maps.Point(20, 20) // 이미지 크기의 절반
+     //                       }
+     //                   });
+      //              }    
                     checkProximity(userPosition);
                 }, () => { alert("위치 정보를 가져오는 데 실패했습니다."); });
             }
