@@ -276,11 +276,11 @@
         let hasShownOutOfBoundsAlert = false;
 
         const mapElement = document.getElementById('map');
-        const eventCenterPoint = new naver.maps.LatLng(37.489122, 126.956116); // 이벤트 중심 좌표
-        const eventCenterPoint1 = new naver.maps.LatLng(37.249746, 127.165157); // 이벤트 중심 좌표
+        const eventCenterPoint1 = new naver.maps.LatLng(37.489122, 126.956116); // 이벤트 중심 좌표
+        const eventCenterPoint = new naver.maps.LatLng(37.249746, 127.165157); // 이벤트 중심 좌표
         const eventRadius = 500; // 이벤트 참여 가능 반경 (500미터)
 
-            const stampLocations1 = [
+            const stampLocations = [
                 { title: '🌍 지구', lat: 37.249180, lng: 127.165636, id: 'earth', marker: './images/earth.png' },
                 { title: '🔴 화성', lat: 37.249077, lng: 127.164944, id: 'mars', marker: './images/mars.png' },
                 { title: '🪐 목성', lat: 37.249667, lng: 127.166059, id: 'jupiter', marker: './images/jupiter.png' },
@@ -289,7 +289,7 @@
                 { title: '🌊 해왕성', lat: 37.250235, lng: 127.164643, id: 'neptune', marker: './images/neptune.png' }, 
             ];
 
-            const stampLocations = [
+            const stampLocations1 = [
                 { title: '🌍 지구', lat: 37.489121, lng: 126.955418, id: 'earth', marker: './images/earth.png' },
                 { title: '🔴 화성', lat: 37.4895,   lng: 126.9556, id: 'mars', marker: './images/mars.png' },
                 { title: '🪐 목성', lat: 37.4893,   lng: 126.9561, id: 'jupiter', marker: './images/jupiter.png' },
