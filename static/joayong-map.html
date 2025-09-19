@@ -35,21 +35,23 @@
 
         }
         #map { 
-            height: calc(var(--vh, 1vh) * 70); 
+            height: calc(var(--vh, 1vh) * 65); 
             margin: 0; 
-            padding: 0; 
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
             background-color: #111827;
             color: #ffffff;
             font-size: 14px;
             line-height: 1.5;
             overflow-x: hidden;
-
+            border: 1px solid #4b5563;
+            overflow: hidden;
+            padding: 16px; 
+            border-radius: 12px;
         }
         #modal, #status-modal { display: none; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 9999; width: 80vw; height: calc(var(--vh, 1vh) * 40);; max-width: 220px;}
         .modal-content { width: 100%; position: absolute; background-color: #1f2937; margin: auto; padding: 15px; border-radius: 10px; text-align: center; grid-template-columns: 1fr; }
         .modal-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 15px; width: 100%; }
-        .modal-buttons button { padding: 10px 20px; font-size: 1em; cursor: pointer; border-radius: 5px; border: none; color: white; margin-bottom: 15px; }
+        .modal-buttons button { height: 4em; padding: 10px 20px; font-size: 1em; cursor: pointer; border-radius: 5px; border: none; color: white; margin-bottom: 15px; }
         .btn-stamp { background-color: #007bff; width: 100%;}
         .btn-photo { background-color: #28a745; width: 100%;}
 
@@ -64,21 +66,12 @@
           background-color: #1f2937;
           border: 1px solid #4b5563;
           width: 100%;
-          height: calc(var(--vh, 1vh) * 70);
+          height: calc(var(--vh, 1vh) * 65);
           border-radius: 12px;
-          margin-bottom: 8px;
+          margin-bottom: 2em;
           padding: 8px;
         }
 
-       #map { 
-        border: 1px solid #4b5563;
-        overflow: hidden;
-        margin: 0; 
-        padding: 16px; 
-        border-radius: 12px;
-        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-        }
-     
         .container {
             height: calc(var(--vh, 1vh) * 100);
             position: relative;
@@ -89,7 +82,7 @@
         }
 
         #info {
-            padding-top: 16px;
+            padding-top: 10px;
             margin-bottom: 16px;
             text-align: center;
         }
@@ -177,6 +170,19 @@
       margin-bottom: 5px;
     }
 
+    .modal-sub-title {
+      color: #1f2937;
+      font-size: 1.2em;
+      text-align: center;
+      margin-bottom: 5px;
+    }
+
+    .modal-sub-contens {
+      color: #1f2937;
+      font-size: 1em;
+      text-align: center;
+      margin-bottom: 5px;       
+    }
     /* 이미지 그리드 */
     .circle-grid {
       display: grid;
@@ -211,13 +217,18 @@
 <body>
     <div class="container">
     <div id="info">
-      <h1 style="color:#ffffff; margin-bottom: 8px; font-size: 30px;">🥽 AR 행성 체험 </h1>
-      <span style="color: #e5e7eb; font-size: 18px;">증강현실로 행성을 만나보세요</span>
+      <h1 style="color:#ffffff; margin-bottom: 8px; font-size: 1.7em;">🥽 AR 행성 체험 </h1>
+      <!--span style="color: #e5e7eb; font-size: 18px;">증강현실로 행성을 만나보세요</span-->
     </div>
     
     <div id="MapCover">
         <div id="map"></div>
     </div>
+
+    <div class="modal-buttons">
+        <button class="btn-stamp" onclick="window.location.href = './scanner.html'";>🚀 QR코드 찍기</button>
+    </div>
+ 
     
     <div id="modal">
         <div class="modal-content">
@@ -243,7 +254,8 @@
 
     <div class="photozone-modal">
         <div class="modal-box">
-          <div class="modal-title">AR 포토존 가기</div>
+          <div class="modal-sub-title">📷 AR 포토존 체험하기</div>
+          <div class="modal-sub-contens">행성 버튼을 눌러 포토존을 체험하세요.</div>
           <div class="circle-grid">
             <a href="./photozone.html?planet=earth" class="circle-button"><img src="./images/earth.png" alt="지구 이미지"></a>
             <a href="./photozone.html?planet=mars" class="circle-button"><img src="./images/mars.png" alt="화성 이미지"></a>
