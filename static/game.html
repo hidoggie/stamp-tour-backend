@@ -49,6 +49,19 @@
         #back_button:disabled { background-color: #555; cursor: not-allowed; }
 
         .hidden { display: none; }
+
+        .highlight {
+            color: #fcd34d;
+            font-size: 1.4em;
+            font-weight: bold;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%   { opacity: 1; }
+            50%  { opacity: 0; }
+            100% { opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -144,11 +157,11 @@
                         'canvasId': 'canvas', 
                         'numSegments': segments.length, 
                         'outerRadius': 170,
-                        'textFontSize': 16, 
+                        'textFontSize': 24, 
                         'textFillStyle': 'white', 
                         'segments': segments,
                         'textOrientation' : 'horizontal', 
-                        'textAlignment' : 'center',
+                        'textAlignment' : 'outer',
                         'lineWidth': 2,
                         'lineColor': '#FFD700',
                         'animation': { 'type': 'spinToStop', 'duration': 8, 'spins': 10 },
@@ -184,7 +197,7 @@
                     theWheel.animation.callbackFinished = () => {
                         alert(`축하합니다! '${result.prizeName}'에 당첨되었습니다!`);
                         wheelSpinning = false;
-                        spinButton.textContent = "경품 수령 완료";
+                        spinButton.innerHTML = "<span class='highlight'>🎁 " + result.prizeName +  + "</span> 에 당첨되었습니다.";
                         document.querySelector('p').textContent = "부스에서 화면을 보여주고 경품을 수령하세요!";
                     };
                     theWheel.startAnimation();
