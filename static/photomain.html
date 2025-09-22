@@ -36,7 +36,7 @@
 
         #modal { display: none; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 9999; width: 80vw; height: calc(var(--vh, 1vh) * 40);; max-width: 220px;}
         .modal-content { width: 100%; position: absolute; background-color: #1f2937; margin: auto; padding: 15px; border-radius: 10px; text-align: center; grid-template-columns: 1fr; }
-        .modal-buttons { padding: 0 8px; display: flex; gap: 10px; justify-content: center; margin-top: 15px; width: 100%; }
+        .modal-buttons { padding: 0 8px; display: flex; gap: 10px; justify-content: center; width: 100%; }
         .modal-buttons button { height: 4em; padding: 10px 20px; font-size: 1em; cursor: pointer; border-radius: 5px; border: none; color: white; margin-bottom: 15px; }
         .btn-stamp { background-color: #007bff; width: 100%;}
         .btn-photo { background-color: #28a745; width: 100%;}
@@ -46,15 +46,13 @@
           border: 1px solid #4b5563;
           width: 100%;
           border-radius: 12px;
-          margin-bottom: 2em;
-          padding: 8px;
+          margin-bottom: 1em;
         }
         .mainImg {
             width: 100%;
             object-fit: cover;
-            border-radius: 8px;
-            margin-bottom: 16px;
-        }
+            border-radius: 12px;
+         }
 
         .container {
             height: calc(var(--vh, 1vh) * 100);
@@ -66,8 +64,8 @@
         }
 
         #info {
-            padding-top: 10px;
-            margin-bottom: 16px;
+            padding-top: 0.2em;
+            margin-bottom: 1em;
             text-align: center;
         }
         
@@ -137,9 +135,9 @@
     }
    .modal-sub-contens {
       color: #1f2937;
-      font-size: 1em;
+      font-size: 1.2em;
       text-align: center;
-      margin-bottom: 5px;       
+      margin-bottom: 0.7em;       
     }
 
 
@@ -211,7 +209,7 @@
 
     <div class="photozone-modal">
         <div class="modal-box">
-          <h3 class="modal-sub-title">📷 AR 포토존 체험하기</h3>
+          <!--h3 class="modal-sub-title">📷 AR 포토존 체험하기</h3-->
           <p class="modal-sub-contens">행성 버튼을 눌러 포토존을 체험하세요.</p>
           <div class="photo-grid">
             <button class="photoBtn" onclick="window.location.href = './photozone.html?planet=earth'">
