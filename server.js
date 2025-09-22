@@ -25,7 +25,7 @@ const stampLocations = [
     { title: '🔴 화성', id: 'mars' },
     { title: '🪐 목성', id: 'jupiter' },
     { title: '💫 토성', id: 'saturn' },
-    { title: '💎 천왕성', id: 'uranus' },
+//    { title: '💎 천왕성', id: 'uranus' },
     { title: '🌊 해왕성', id: 'neptune' },    
 ];
 const TOTAL_STAMPS = stampLocations.length;
