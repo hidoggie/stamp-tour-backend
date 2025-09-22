@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR 포토존</title>
+
+    <script>
+        function setScreenHeight() {
+            let vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        window.addEventListener('resize', setScreenHeight);
+        setScreenHeight(); // 최초 실행
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body { 
+            height: calc(var(--vh, 1vh) * 100); 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+            background-color: #111827;
+            color: #ffffff;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-x: hidden;
+
+        }
+
+        #modal { display: none; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 9999; width: 80vw; height: calc(var(--vh, 1vh) * 40);; max-width: 220px;}
+        .modal-content { width: 100%; position: absolute; background-color: #1f2937; margin: auto; padding: 15px; border-radius: 10px; text-align: center; grid-template-columns: 1fr; }
+        .modal-buttons { padding: 0 8px; display: flex; gap: 10px; justify-content: center; margin-top: 15px; width: 100%; }
+        .modal-buttons button { height: 4em; padding: 10px 20px; font-size: 1em; cursor: pointer; border-radius: 5px; border: none; color: white; margin-bottom: 15px; }
+        .btn-stamp { background-color: #007bff; width: 100%;}
+        .btn-photo { background-color: #28a745; width: 100%;}
+
+        #mainImgModal {
+          background-color: #1f2937;
+          border: 1px solid #4b5563;
+          width: 100%;
+          border-radius: 12px;
+          margin-bottom: 2em;
+          padding: 8px;
+        }
+        .mainImg {
+            width: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .container {
+            height: calc(var(--vh, 1vh) * 100);
+            position: relative;
+            max-width: 448px;
+            margin: 0 auto;
+            padding: 16px;
+            min-height: calc(var(--vh, 1vh) * 100);
+        }
+
+        #info {
+            padding-top: 10px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        
+        @import url("https://fonts.googleapis.com/css2?family=Edu+AU+VIC+WA+NT+Hand:wght@400..700&display=swap");
+
+        @font-face {
+            font-family: "Pretendard-Regular";
+            src: url("https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff")
+                format("woff");
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: "HSSanTokki20-Regular";
+            src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/2405@1.0/HSSanTokki20-Regular.woff2")
+                format("woff2");
+            font-weight: normal;
+            font-style: normal;
+        }
+
+
+        .font-Pretendard-Regular {
+            font-family: "Pretendard-Regular";
+        }
+
+        li {
+            list-style-type: none;
+        }
+
+        .listyle {
+            list-style-position: inside;
+            text-indent: -10px;
+        }
+
+    .photozone-modal {
+      padding: 6px;
+      display: flex;
+      margin-bottom: 16px;
+    }
+
+    /* 모달 박스 */
+    .modal-box {
+       border: 1px solid #4b5563;
+      width: 100%;
+      background-color: white;
+      border-radius: 12px;
+      padding: 10px 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .modal-title {
+      color: #1f2937;
+      font-size: 1.5em;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 5px;
+    }
+
+    .modal-sub-title {
+      color: #1f2937;
+      font-size: 1.2em;
+      text-align: center;
+      margin-bottom: 5px;
+    }
+   .modal-sub-contens {
+      color: #1f2937;
+      font-size: 1em;
+      text-align: center;
+      margin-bottom: 5px;       
+    }
+
+
+    /* 이미지 그리드 */
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      justify-items: center;
+      align-items: center;
+    }
+
+    .photoBtn {
+      box-shadow: 6px 6px 10px #4b5563;
+      width: 100%;
+      padding: 12px;
+      background-color: #6b7280;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #4b5563;
+      border-color: #6b7280;
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+    }
+
+    .photoBtn:hover {
+      transform: scale(1.05);
+    }
+
+    .photoBtn img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }  
+
+    .photoName 
+    {
+        color: #ffffff;
+        font-size: 1em;
+    }
+
+    .photoImg {
+        margin-left: auto;
+        margin-right: auto;
+        overflow: hidden;
+        border-radius: 50%;
+        height: 50px;
+        width: 50px;
+    }
+
+    .image-item {
+      margin-left: 0.7em;
+      margin-right: 0.7em; /* 이미지와 텍스트 사이 간격 */
+      width: 1.3em; 
+      height: 1.3em;
+    }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+    <div id="info">
+      <h1 style="color:#ffffff; margin-bottom: 8px; font-size: 1.7em;">🥽 AR 포토존 </h1>
+    </div>
+    
+    <div id="mainImgModal">
+        <img src="./images/photo-main.jpg" alt="태양계 우주 탐험" class="mainImg"/>
+    </div>
+
+    <div class="photozone-modal">
+        <div class="modal-box">
+          <h3 class="modal-sub-title">📷 AR 포토존 체험하기</h3>
+          <p class="modal-sub-contens">행성 버튼을 눌러 포토존을 체험하세요.</p>
+          <div class="photo-grid">
+            <button class="photoBtn" onclick="window.location.href = './photozone.html?planet=earth'">
+                <div class="photoImg"><img src="./images/earth.png" alt="지구 이미지"></div>
+                <div class="photoName">지구</div>
+            </button>
+            <button class="photoBtn" onclick="window.location.href = './photozone.html?planet=mars'">
+                <div class="photoImg"><img src="./images/mars.png" alt="화성 이미지"></div>
+                <div class="photoName">화성</div>
+            </button>
+            <button class="photoBtn" onclick="window.location.href = './photozone.html?planet=jupiter'">
+                <div class="photoImg"><img src="./images/jupiter.png" alt="목성 이미지"></div>
+                <div class="photoName">목성</div>
+            </button>
+            <button class="photoBtn" onclick="window.location.href = './photozone.html?planet=saturn'">
+                <div class="photoImg"><img src="./images/saturn.png" alt="토성 이미지"></div>
+                <div class="photoName">토성</div>
+            </button>
+            <button class="photoBtn" onclick="window.location.href = './photozone.html?planet=neptune'">
+                <div class="photoImg"><img src="./images/neptune.png" alt="해왕성 이미지"></div>
+                <div class="photoName">해왕성</div>
+            </button>
+           </div>
+        </div> 
+    </div>
+    <div class="modal-buttons">
+        <button class="btn-stamp" onclick="window.location.href = './joayong-map.html'";>🗺️ 행성 지도</button>
+    </div>
+    <div style="background-color: #854d0e; border-color: #ca8a04; padding: 16px; margin-bottom: 24px; border: 1px solid #4b5563; border-radius: 12px; backdrop-filter: blur(8px);">
+        <h3 style="color: #ffffff; margin-bottom: 8px; font-size: 18px; align-items: center; display: flex;">
+            <span style="color: #ffffff; font-size: 18px;">💡</span>
+            <span>Tip</span>
+        </h3>
+        <ul style="color: #fef3c7; font-size: 1em; ">
+            <li class="listyle">• 미션 시작 시 카메라 권한을 허용해주세요</li>
+            <li class="listyle">• 배터리를 충분히 충전하고 시작하세요</li>
+            <li class="listyle">• 사람이 많은 곳에서 부딪히지 않도록 주의하세요</li>
+        </ul>
+    </div>
+    </div>
+
+</body>
+</html>

@@ -234,6 +234,21 @@
         opacity: 0.8; /* 이미지 투명도 (선택 사항) */
         pointer-events: none; /* 오버레이 아래의 지도를 클릭할 수 있도록 설정 */
     }
+
+    .prizeInfo {
+        color: white;
+        font-size: 1em;
+        font-weight: bold;
+        width: 80%;
+    }
+
+    .image-item {
+      margin-left: 0.7em;
+      margin-right: 0.7em; /* 이미지와 텍스트 사이 간격 */
+      width: 1.3em; 
+      height: 1.3em;
+    }
+
     </style>
 </head>
 <body>
@@ -247,10 +262,18 @@
         <div id="map"></div>
     </div>
 
-    <div class="modal-buttons">
-        <button class="btn-stamp" onclick="window.location.href = './scanner.html'";>🚀 QR코드로 스탬프 수집</button>
+    <div style="display: flex; align-items: center;">
+        <img src="./images/alert.gif" alert="알림 이미지" class="image-item">
+        <p class="prizeInfo">스탬프를 모두 수집하여 경품수령처를 방문하세요!</p>
+        <img src="./images/alert.gif" alert="알림 이미지" class="image-item">
     </div>
- 
+
+    <div class="modal-buttons">
+        <ul style="width: 100%">
+        <li><button class="btn-stamp" onclick="window.location.href = './scanner.html'";>🚀 QR코드로 스탬프 수집</button></li>
+        <li><button class="btn-photo" onclick="window.location.href = './photomain.html'";>📷 AR 포토존 체험하기</button></li>
+        </ul>
+    </div>
     
     <div id="modal">
         <div class="modal-content">
@@ -274,7 +297,7 @@
         </div>
     </div>
 
-    <div class="photozone-modal">
+    <!--div class="photozone-modal">
         <div class="modal-box">
           <h3 class="modal-sub-title">📷 AR 포토존 체험하기</h3>
           <p class="modal-sub-contens">행성 버튼을 눌러 포토존을 체험하세요.</p>
@@ -295,17 +318,13 @@
                 <div class="photoImg"><img src="./images/saturn.png" alt="토성 이미지"></div>
                 <div class="photoName">토성</div>
             </button>
-            <button class="photoBtn" onclick="window.location.href = './photozone.html?planet=uranus'">
-                <div class="photoImg"><img src="./images/uranus.png" alt="천왕성 이미지"></div>
-                <div class="photoName">천왕성</div>
-            </button>
             <button class="photoBtn" onclick="window.location.href = './photozone.html?planet=neptune'">
                 <div class="photoImg"><img src="./images/neptune.png" alt="해왕성 이미지"></div>
                 <div class="photoName">해왕성</div>
             </button>
            </div>
         </div> 
-    </div>
+    </div-->
     <div style="background-color: #854d0e; border-color: #ca8a04; padding: 16px; margin-bottom: 24px; border: 1px solid #4b5563; border-radius: 12px; backdrop-filter: blur(8px);">
         <h3 style="color: #ffffff; margin-bottom: 8px; font-size: 18px; align-items: center; display: flex;">
             <span style="color: #ffffff; font-size: 18px;">💡</span>
@@ -337,7 +356,7 @@
                 { title: '🔴 화성', lat: 37.249109, lng: 127.164899, id: 'mars', marker: './images/mars.png' }, 
                 { title: '🪐 목성', lat: 37.249670, lng: 127.165778, id: 'jupiter', marker: './images/jupiter.png' }, 
                 { title: '💫 토성', lat: 37.250205, lng: 127.165469, id: 'saturn', marker: './images/saturn.png' },
-                { title: '💎 천왕성', lat: 37.250205, lng: 127.164944, id: 'uranus', marker: './images/uranus.png' },
+  //              { title: '💎 천왕성', lat: 37.250205, lng: 127.164944, id: 'uranus', marker: './images/uranus.png' },
                 { title: '🌊 해왕성', lat: 37.250235, lng: 127.164643, id: 'neptune', marker: './images/neptune.png' }, 
             ];
 
@@ -346,7 +365,7 @@
                 { title: '🔴 화성', lat: 37.4895,   lng: 126.9556, id: 'mars', marker: './images/mars.png' },
                 { title: '🪐 목성', lat: 37.4893,   lng: 126.9561, id: 'jupiter', marker: './images/jupiter.png' },
                 { title: '💫 토성', lat: 37.488928, lng: 126.956250, id: 'saturn', marker: './images/saturn.png' },
-                { title: '💎 천왕성', lat: 37.4891, lng: 126.9569, id: 'uranus', marker: './images/uranus.png' },
+ //               { title: '💎 천왕성', lat: 37.4891, lng: 126.9569, id: 'uranus', marker: './images/uranus.png' },
                 { title: '🌊 해왕성', lat: 37.489086, lng: 126.956518, id: 'neptune', marker: './images/neptune.png' }, 
             ];
 
@@ -521,7 +540,8 @@ const overlay = new ImageOverlay(overlayBounds, imageUrl, map);
                  
                 if (collectedStamps[loc.id]) {
                     markerEl.style.borderColor = "red"
-                    markerEl.style.filter = "brightness(50%)";
+ //                   markerEl.style.filter = "brightness(50%)";
+                    markerEl.innerHTML = `<img src="./images/find-stamp.png" alt="마커 이미지">`;
                 }
                 markerElements.push(markerEl);
 
@@ -563,7 +583,7 @@ const overlay = new ImageOverlay(overlayBounds, imageUrl, map);
         map: map,
         title: infoMarkerLocation.title,
         icon: { // 다른 마커와 구분되도록 아이콘을 다르게 설정
-            url: './images/prize50.png', // 예시 아이콘 경로
+            url: './images/gift-place-50.png', // 예시 아이콘 경로
             size: new naver.maps.Size(50, 50),
             anchor: new naver.maps.Point(25, 50)
         }
