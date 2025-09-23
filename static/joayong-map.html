@@ -559,7 +559,7 @@ const overlay = new ImageOverlay(overlayBounds, imageUrl, map);
         map: map,
         title: infoMarkerLocation.title,
         icon: { // 다른 마커와 구분되도록 아이콘을 다르게 설정
-            url: './images/gift-loc-85.gif', // 예시 아이콘 경로
+            url: './images/gift-n2-85.png', 
             size: new naver.maps.Size(200, 150),
             anchor: new naver.maps.Point(40, 44)
         }
@@ -586,7 +586,7 @@ const overlay = new ImageOverlay(overlayBounds, imageUrl, map);
         if (isMarkerEnlarged) {
             // 현재 확대된 상태이면, 원래 크기로 되돌립니다.
             infoMarker.setIcon({
-                url: './images/gift-loc-85.gif',
+                url: './images/gift-n2-85.png',
                 size: new naver.maps.Size(200, 150),
                 anchor: new naver.maps.Point(40, 44)
             });
@@ -594,7 +594,7 @@ const overlay = new ImageOverlay(overlayBounds, imageUrl, map);
         } else {
             // 현재 원래 크기이면, 더 큰 사이즈로 변경합니다.
             infoMarker.setIcon({
-                url: './images/gift-loc-85.gif',
+                url: './images/gift-n2-85.png',
                 size: new naver.maps.Size(105, 105), // 예: 1.5배 큰 사이즈
                 anchor: new naver.maps.Point(40, 44) // 고정점도 그에 맞게 변경
             });
