@@ -71,6 +71,10 @@
         li {
             margin-left: 2em;
         }
+
+        .modal-buttons { padding: 1.5em 0.5em; display: flex; gap: 10px; justify-content: center; width: 100%; }
+        .modal-buttons button { background-color: #007bff;; padding: 10px 20px; font-size: 1.125em; font-weight: bold; cursor: pointer; border-radius: 5px; border: none; color: white; }
+
     </style>
 </head>
 <body>
@@ -109,9 +113,13 @@
         </div>
         <p id="update-message"></p>
     </fieldset>
+    <div class="modal-buttons">
+        <button onclick="window.location.replace('./admin_login.html')">로그아웃</button>
+    </div>
     </div>
 
-    <script>
+    <!--script>
+    
     document.addEventListener('DOMContentLoaded', () => {
         // --- 2. 이 안으로 이전의 모든 JavaScript 코드를 옮깁니다. ---
         const token = localStorage.getItem('adminToken');
@@ -256,6 +264,6 @@
     // ✨ 3. 통계 로드와 함께 웹소켓 연결 시작
     connectAdminSocket();
     });
-    </script>
+    </script-->
 </body>
 </html>
