@@ -2,12 +2,39 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>이벤트 관리</title>
+    <script>
+        function setScreenHeight() {
+            let vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        window.addEventListener('resize', setScreenHeight);
+        setScreenHeight(); // 최초 실행
+    </script>
+
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 20px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body { 
+            height: calc(var(--vh, 1vh) * 100); 
+            margin: 3em; 
+            padding: 0; 
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+            background-color: #f8f8f8;
+            color: black;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-x: hidden;
+
+        }
         fieldset { margin-bottom: 20px; border-radius: 5px; border: 1px solid #ccc; }
         table, th, td { border: 1px solid black; border-collapse: collapse; padding: 5px; }
-        #update-form { display: flex; align-items: center; gap: 10px; }
+        #update-form { display: flex; align-items: center; gap: 10px; margin-bottom: 2em; }
         /* ✨ 2. 숫자 입력창의 상하 버튼(spinner) 숨기기 */
         input[type=number]::-webkit-outer-spin-button,
         input[type=number]::-webkit-inner-spin-button {
@@ -19,42 +46,67 @@
             -moz-appearance: textfield;
             appearance: textfield;      /* 표준 속성 추가 */
         }
+        .container {
+            border: 1px solid green;
+            border-radius: 12px;
+            height: calc(var(--vh, 1vh) * 90);
+            position: relative;
+            max-width: 448px;
+            margin: 0 auto;
+            min-height: calc(var(--vh, 1vh) * 100);
+        }
+
+        #info {
+            padding-top: 10px;
+            margin-bottom: 1.5em;
+            text-align: center;
+        }
+        .cont-title {
+            font-size: 1.15em;
+            margin-bottom: 0.5em;
+        }
+        .cont-text {
+            margin: 0.3em;
+        }
     </style>
 </head>
 <body>
-    <h1>이벤트 관리 대시보드</h1>
-    
+    <div class="container">
+        <div id="info">
+            <h1 style="color:black; margin-bottom: 8px; font-size: 1.7em;">📒 이벤트 관리</h1>
+        </div>
     <fieldset>
-        <legend><strong>누적 통계 (이벤트 전체 기간)</strong></legend>
-        <p><strong>총 참가자 수:</strong> <span id="cum-participants">0</span></p>
-        <p><strong>지급된 경품 총량:</strong> <span id="cum-total-given">0</span></p>
+        <legend class="cont-title"><strong>🖥️ 누적 통계 (이벤트 전체 기간)</strong></legend>
+        <p class="cont-text"><strong>총 참가자 수:</strong> <span id="cum-participants">0</span></p>
+        <p class="cont-text"><strong>지급된 경품 총량:</strong> <span id="cum-total-given">0</span></p>
         <ul id="cum-prize-list"></ul>
     </fieldset>
 
     <fieldset>
-        <legend><strong>일일 통계</strong></legend>
-        <label for="date-picker">날짜 선택:</label>
+        <legend class="cont-title"><strong>🖥️ 일별 통계</strong></legend>
+        <label style="font-weight: bold; margin: 0.3em;" for="date-picker">날짜 선택:</label>
         <input type="date" id="date-picker">
-        <p><strong>해당일 참가자 수:</strong> <span id="daily-participants">0</span></p>
-        <p><strong>해당일 지급 경품 총량:</strong> <span id="daily-total-given">0</span></p>
+        <p class="cont-text"><strong>해당일 참가자 수:</strong> <span id="daily-participants">0</span></p>
+        <p class="cont-text"><strong>해당일 지급 경품 총량:</strong> <span id="daily-total-given">0</span></p>
         <ul id="daily-prize-list"></ul>
     </fieldset>
 
     <fieldset>
-        <legend><strong>현재 경품 재고 현황 및 관리</strong></legend>
-        <table id="prize-table">
+        <legend class="cont-title"><strong>🖥️ 현재 경품 재고 현황</strong></legend>
+        <table id="prize-table" style="margin: 0.3em;">
             <thead><tr><th>경품명</th><th>남은 수량</th><th>총 수량</th></tr></thead>
             <tbody></tbody>
         </table>
-        <h3 style="margin-top: 20px;">경품 수량 보충/수정</h3>
-        <div id="update-form">
+        <h3 style="margin-top: 20px; margin-left: 0.3em;">경품 수량 수정</h3>
+        <div id="update-form" style="margin: 0.3em;">
             <select id="prize-select"></select>
-            <input type="number" id="new-quantity" placeholder="새 수량">
-            <input type="password" id="admin-password" placeholder="관리자 비밀번호 확인">
-            <button id="updateBtn">수량 업데이트</button>
+            <input type="number" id="new-quantity" style="width: 3.7em;" placeholder="새 수량">
+            <input type="password" id="admin-password" style="width: 5em;" placeholder="관리자 비밀번호 확인">
+            <button id="updateBtn">업데이트</button>
         </div>
         <p id="update-message"></p>
     </fieldset>
+    </div>
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
