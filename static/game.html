@@ -33,7 +33,8 @@
             cursor: pointer; 
             background-color: #ca8a04;; 
             color: white; 
-            margin-top: 20px; 
+            margin-top: 1.25em;
+            margin-bottom: 1.25em; 
             transition: background-color 0.2s; }
         #spin_button:disabled { background-color: #555; cursor: not-allowed; }
         #back_button { 
@@ -116,10 +117,14 @@
                             spinButton.classList.remove('hidden'); 
                             spinButton.textContent = "참여 완료";
                             spinButton.disabled = true;
+
+                            backButton.classList.remove('hidden');
+                            backButton.disabled = false;                          
                         }
                         else {
                             backButton.classList.remove('hidden');
                             backButton.disabled = false;
+                            spinButton.classList.add('hidden'); // 스핀 버튼은 숨김
                         }
                         return;
                     }

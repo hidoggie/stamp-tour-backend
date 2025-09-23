@@ -55,6 +55,10 @@
         .btn-stamp { background-color: #007bff; width: 100%;}
         .btn-photo { background-color: #28a745; width: 100%;}
 
+        .guide-buttons { padding: 0 8px; display: flex; gap: 10px; justify-content: center; margin-top: 15px; width: 100%; }
+        .guide-buttons button { height: 3.5em; padding: 10px 20px; font-size: 1.125em; font-weight: bold; cursor: pointer; border-radius: 5px; border: none; color: white; margin-bottom: 15px; }
+
+
         .gm-style-iw-c button {
             display: none !important;
         }
@@ -262,13 +266,13 @@
         <div id="map"></div>
     </div>
 
-    <div style="display: flex; align-items: center;">
+    <div style="display: flex; text-align: center;">
         <img src="./images/alert.gif" alert="알림 이미지" class="image-item">
         <p class="prizeInfo">스탬프를 모두 수집하여 경품수령처를 방문하세요!</p>
         <img src="./images/alert.gif" alert="알림 이미지" class="image-item">
     </div>
 
-    <div class="modal-buttons">
+    <div class="guide-buttons">
         <ul style="width: 100%">
         <li><button class="btn-stamp" onclick="window.location.href = './scanner.html'";>🚀 QR코드로 스탬프 수집</button></li>
         <li><button class="btn-photo" onclick="window.location.href = './photomain.html'";>📷 AR 포토존 체험하기</button></li>
@@ -296,35 +300,7 @@
               <div class="modal-buttons"><button id="status-modal-close-btn" class="btn-photo" style="margin-bottom: 10px;">닫기</button></div>
         </div>
     </div>
-
-    <!--div class="photozone-modal">
-        <div class="modal-box">
-          <h3 class="modal-sub-title">📷 AR 포토존 체험하기</h3>
-          <p class="modal-sub-contens">행성 버튼을 눌러 포토존을 체험하세요.</p>
-          <div class="photo-grid">
-            <button class="photoBtn" onclick="window.location.href = './photozone.html?planet=earth'">
-                <div class="photoImg"><img src="./images/earth.png" alt="지구 이미지"></div>
-                <div class="photoName">지구</div>
-            </button>
-            <button class="photoBtn" onclick="window.location.href = './photozone.html?planet=mars'">
-                <div class="photoImg"><img src="./images/mars.png" alt="화성 이미지"></div>
-                <div class="photoName">화성</div>
-            </button>
-            <button class="photoBtn" onclick="window.location.href = './photozone.html?planet=jupiter'">
-                <div class="photoImg"><img src="./images/jupiter.png" alt="목성 이미지"></div>
-                <div class="photoName">목성</div>
-            </button>
-            <button class="photoBtn" onclick="window.location.href = './photozone.html?planet=saturn'">
-                <div class="photoImg"><img src="./images/saturn.png" alt="토성 이미지"></div>
-                <div class="photoName">토성</div>
-            </button>
-            <button class="photoBtn" onclick="window.location.href = './photozone.html?planet=neptune'">
-                <div class="photoImg"><img src="./images/neptune.png" alt="해왕성 이미지"></div>
-                <div class="photoName">해왕성</div>
-            </button>
-           </div>
-        </div> 
-    </div-->
+   
     <div style="background-color: #854d0e; border-color: #ca8a04; padding: 16px; margin-bottom: 24px; border: 1px solid #4b5563; border-radius: 12px; backdrop-filter: blur(8px);">
         <h3 style="color: #ffffff; margin-bottom: 8px; font-size: 18px; align-items: center; display: flex;">
             <span style="color: #ffffff; font-size: 18px;">💡</span>
@@ -583,9 +559,9 @@ const overlay = new ImageOverlay(overlayBounds, imageUrl, map);
         map: map,
         title: infoMarkerLocation.title,
         icon: { // 다른 마커와 구분되도록 아이콘을 다르게 설정
-            url: './images/gift-place-50.png', // 예시 아이콘 경로
-            size: new naver.maps.Size(50, 50),
-            anchor: new naver.maps.Point(25, 50)
+            url: './images/gift-loc-85.gif', // 예시 아이콘 경로
+            size: new naver.maps.Size(200, 150),
+            anchor: new naver.maps.Point(40, 44)
         }
     });
 
@@ -610,17 +586,17 @@ const overlay = new ImageOverlay(overlayBounds, imageUrl, map);
         if (isMarkerEnlarged) {
             // 현재 확대된 상태이면, 원래 크기로 되돌립니다.
             infoMarker.setIcon({
-                url: './images/prize50.png',
-                size: new naver.maps.Size(50, 50),
-                anchor: new naver.maps.Point(25, 50)
+                url: './images/gift-loc-85.gif',
+                size: new naver.maps.Size(200, 150),
+                anchor: new naver.maps.Point(40, 44)
             });
             isMarkerEnlarged = false;
         } else {
             // 현재 원래 크기이면, 더 큰 사이즈로 변경합니다.
             infoMarker.setIcon({
-                url: './images/prize50.png',
-                size: new naver.maps.Size(100, 100), // 예: 1.5배 큰 사이즈
-                anchor: new naver.maps.Point(25, 50) // 고정점도 그에 맞게 변경
+                url: './images/gift-loc-85.gif',
+                size: new naver.maps.Size(105, 105), // 예: 1.5배 큰 사이즈
+                anchor: new naver.maps.Point(40, 44) // 고정점도 그에 맞게 변경
             });
             isMarkerEnlarged = true;
         }
