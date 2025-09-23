@@ -121,10 +121,27 @@ app.post('/api/spin', async (req, res) => {
             }
         }
 
-        // 룰렛 애니메이션을 위한 각도 계산
-        const segmentAngle = 360 / prizes.length;
-        const winningIndex = prizes.findIndex(p => p.id === winningPrize.id);
-        const stopAt = (winningIndex * segmentAngle) + (Math.random() * (segmentAngle - 10) + 5);
+        // 룰렛 애니메이션을 위한 각도 계산 (표시된 부분과의 차이 오류 발생)
+   //     const segmentAngle = 360 / prizes.length;
+   //     const winningIndex = prizes.findIndex(p => p.id === winningPrize.id);
+   //     const stopAt = (winningIndex * segmentAngle) + (Math.random() * (segmentAngle - 10) + 5);
+        // --- ✨ 2. 멈출 각도를 정확하게 계산 (핵심 수정) ---
+        let startAngle = 0;
+        let stopAtAngle = 0;
+        
+        // 프론트엔드와 동일한 방식으로 세그먼트 정보를 서버에서도 만듭니다.
+        for (const prize of prizes) {
+            const segmentSize = (prize.remaining_quantity / totalQuantity) * 360;
+            
+            if (prize.id === winningPrize.id) {
+                // 당첨된 칸의 시작 각도와 끝 각도 사이의 임의의 지점을 멈출 각도로 정합니다.
+                // (약간의 여백을 두어 경계선에 멈추지 않도록 함)
+                stopAtAngle = startAngle + (Math.random() * (segmentSize - 10) + 5);
+                break;
+            }
+            startAngle += segmentSize;
+        }
+
 
         // ✨ 1. 교환권 코드 생성
         const redeemCode = await db.recordWinner(userId, winningPrize.id, winningPrize.name);
@@ -132,7 +149,7 @@ app.post('/api/spin', async (req, res) => {
         // --- ✨ 2. 관리자 페이지에 실시간 업데이트 신호 방송 ---
         broadcastStatsUpdate();
 
-        res.json({ stopAt: stopAt, redeemCode: redeemCode, prizeName: winningPrize.name });
+        res.json({ stopAt: stopAtAngle, redeemCode: redeemCode, prizeName: winningPrize.name });
     } catch (err) {
         console.error("스핀 처리 중 오류:", err.message);
         res.status(500).json({ error: '룰렛 처리 중 오류가 발생했습니다.' });
