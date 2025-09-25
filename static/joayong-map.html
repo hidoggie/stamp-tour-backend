@@ -715,7 +715,7 @@ const overlay = new ImageOverlay(overlayBounds, imageUrl, map);
 
             if(activeModalId) return; // 모달이 이미 떠있으면 추가 확인 안함
 
-            const proximityLimit = 30; // 20미터에서 30m로 변경
+            const proximityLimit = 20; // 20미터에서 30m로 변경
             
             for (const loc of stampLocations) {
                 const distance = getDistanceInMeters(userPosition.lat(), userPosition.lng(), loc.lat, loc.lng);
@@ -789,4 +789,5 @@ const overlay = new ImageOverlay(overlayBounds, imageUrl, map);
 </script>
 
 </body>
+
 </html>
