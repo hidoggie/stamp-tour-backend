@@ -340,6 +340,16 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+            // ✨✨✨ 1. 사용자 ID 확인 및 생성 로직 (가장 먼저 실행) ✨✨✨
+        let userId = localStorage.getItem('userId');
+        if (!userId) {
+            userId = crypto.randomUUID();
+            localStorage.setItem('userId', userId);
+            console.log(`stamptour.html에서 새로운 사용자 ID가 생성되었습니다: ${userId}`);
+        } else {
+            console.log(`stamptour.html에서 기존 사용자 ID를 사용합니다: ${userId}`);
+        }
+        
     const sceneEl = document.querySelector('a-scene');
     const arView = document.getElementById('ar-view');
 //    const videoQuizView = document.getElementById('video-quiz-view');
