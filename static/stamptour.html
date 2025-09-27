@@ -340,6 +340,16 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+            // ✨✨✨ 1. 사용자 ID 확인 및 생성 로직 (가장 먼저 실행) ✨✨✨
+        let userId = localStorage.getItem('userId');
+        if (!userId) {
+            userId = crypto.randomUUID();
+            localStorage.setItem('userId', userId);
+            console.log(`stamptour.html에서 새로운 사용자 ID가 생성되었습니다: ${userId}`);
+        } else {
+            console.log(`stamptour.html에서 기존 사용자 ID를 사용합니다: ${userId}`);
+        }
+
     const sceneEl = document.querySelector('a-scene');
     const arView = document.getElementById('ar-view');
 //    const videoQuizView = document.getElementById('video-quiz-view');
@@ -570,6 +580,8 @@ document.addEventListener('DOMContentLoaded', () => {
             renderStampCard();
             StampCard.classList.remove('hidden');
 
+            updateUI(); 
+
             // 10개 모두 모았는지 확인
             const PlaneLength = Object.keys(planetData).length;
 //            const totalStamps = Object.keys(collectedStamps).length;
@@ -744,6 +756,21 @@ document.addEventListener('DOMContentLoaded', () => {
 function closeModal() {
   document.getElementById("prizemodal").style.display = "none";
 }
+
+function updateUI() {
+        const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};
+        const userId = localStorage.getItem('userId');
+
+        fetch(`/api/check-eligibility/${userId}`)
+            .then(res => res.json())
+            .then(status => {
+                if (status.hasRedeemed) {
+                    showCompletionMessage("경품을 이미 수령하셨습니다.", true);
+                } else if (Object.keys(collectedStamps).length >= TOTAL_STAMPS) {
+                    showCompletionMessage("축하합니다! 모든 스탬프를 모았습니다.", false);
+                }
+            });
+    }
 </script>
 
 </body>
