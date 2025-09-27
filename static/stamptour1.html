@@ -349,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             console.log(`stamptour.html에서 기존 사용자 ID를 사용합니다: ${userId}`);
         }
-        
+
     const sceneEl = document.querySelector('a-scene');
     const arView = document.getElementById('ar-view');
 //    const videoQuizView = document.getElementById('video-quiz-view');
@@ -573,14 +573,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("서버에 스탬프를 기록하는 데 실패했습니다:", error);
             }
 
-             initPage();     //9월 27일 수정
-
             resultMessage.textContent = "정답입니다! 🏆 스탬프를 획득하셨습니다!";
             Explain.innerHTML = currentQuiz.e;
             Explain.classList.remove('hidden');
             // 2. 스탬프 카드 UI를 즉시 갱신합니다.
             renderStampCard();
             StampCard.classList.remove('hidden');
+
+            updateUI(); 
 
             // 10개 모두 모았는지 확인
             const PlaneLength = Object.keys(planetData).length;
@@ -756,6 +756,21 @@ document.addEventListener('DOMContentLoaded', () => {
 function closeModal() {
   document.getElementById("prizemodal").style.display = "none";
 }
+
+function updateUI() {
+        const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};
+        const userId = localStorage.getItem('userId');
+
+        fetch(`/api/check-eligibility/${userId}`)
+            .then(res => res.json())
+            .then(status => {
+                if (status.hasRedeemed) {
+                    showCompletionMessage("경품을 이미 수령하셨습니다.", true);
+                } else if (Object.keys(collectedStamps).length >= TOTAL_STAMPS) {
+                    showCompletionMessage("축하합니다! 모든 스탬프를 모았습니다.", false);
+                }
+            });
+    }
 </script>
 
 </body>
