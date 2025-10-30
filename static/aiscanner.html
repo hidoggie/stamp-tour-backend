@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>전시물 인식</title>
+    <style>
+        body { margin: 0; background-color: #000; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        #video-container { position: relative; width: 100%; max-width: 500px; }
+        #video { width: 100%; }
+        #capture-btn { width: 70px; height: 70px; border-radius: 50%; border: 4px solid white; background-color: rgba(255,255,255,0.3); cursor: pointer; margin-top: 20px; }
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; color: white; font-size: 1.5em; z-index: 100; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <h1>전시물을 카메라에 맞춰주세요</h1>
+    <div id="video-container">
+        <video id="video" playsinline autoplay></video>
+        <canvas id="canvas" class.bind="hidden"></canvas>
+    </div>
+    <button id="capture-btn" title="스탬프 획득"></button>
+
+    <div id="loading-overlay">
+        <p>이미지를 분석 중입니다...</p>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureBtn = document.getElementById('capture-btn');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        
+        // 1. 후면 카메라 시작
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                video.srcObject = stream;
+            } catch (err) {
+                alert("카메라에 접근할 수 없습니다. 권한을 확인해주세요.");
+            }
+        }
+
+        // 2. 사진 촬영 및 AI 서버 호출
+        captureBtn.onclick = async () => {
+            loadingOverlay.style.display = 'flex'; // 로딩 시작
+            captureBtn.disabled = true;
+
+            // 비디오 프레임을 캔버스에 그리기
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = canvas.toDataURL('image/jpeg', 0.8);
+            
+            try {
+                // 3. AI 비전 서버(suziestamp-ai)에 분석 요청
+                const response = await fetch('https://suziestamp-ai.onrender.com/api/recognize-stamp-object', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: imageData })
+                });
+                
+                if (!response.ok) throw new Error('AI 서버 응답 오류');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    // 4. AI가 행성 ID를 알려주면, 해당 퀴즈 페이지로 '이동'
+                    alert(`'${data.planet_id}' 행성 발견! 퀴즈 페이지로 이동합니다.`);
+                    window.location.href = `stamptour.html?planet=${data.planet_id}`;
+                } else {
+                    alert("일치하는 전시물을 찾지 못했습니다. 다시 시도해주세요.");
+                    loadingOverlay.style.display = 'none';
+                    captureBtn.disabled = false;
+                }
+            } catch (err) {
+                alert(`오류가 발생했습니다: ${err.message}`);
+                loadingOverlay.style.display = 'none';
+                captureBtn.disabled = false;
+            }
+        };
+        
+        startCamera();
+    });
+    </script>
+</body>
+</html>
