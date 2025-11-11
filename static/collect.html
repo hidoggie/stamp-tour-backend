@@ -3,79 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>스탬프 획득 중...</title>
+    <title>스탬프 획득</title>
     <style>
         body { font-family: sans-serif; text-align: center; background-color: #1a1a2e; color: white; padding-top: 50px; }
         .spinner { border: 8px solid #f3f3f3; border-top: 8px solid #3498db; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* --- 스탬프 카드 스타일 (stamptour.html에서 가져옴) --- */
+        #stamp-card-container { margin-top: 30px; }
+        .stamp-card {
+            display: grid;
+            gap: 10px;
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 500px;
+            margin: 0 auto;
+            /* 배경 이미지와 열 개수는 JS로 설정됩니다. */
+            background-size: cover;
+            background-position: center;
+        }
+        .stamp-slot {
+            background-color: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin: auto;
+        }
+        .stamp-slot img {
+            max-width: 90%;
+            max-height: 90%;
+            opacity: 0.3; /* 획득 전 흐리게 */
+        }
+        .stamp-slot.stamped img {
+            opacity: 1; /* 획득 후 선명하게 */
+        }
+        
+        #map-btn {
+            padding: 12px 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            border-radius: 5px;
+            border: none;
+            color: white;
+            background-color: #007bff;
+            margin-top: 20px;
+        }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
-    <h1>스탬프를 획득하는 중입니다...</h1>
-    <p>잠시만 기다려주세요.</p>
-    <div class="spinner"></div>
+    <div id="loading-state">
+        <h1 id="loading-title">스탬프를 획득하는 중입니다...</h1>
+        <p>잠시만 기다려주세요.</p>
+        <div class="spinner"></div>
+    </div>
+    
+    <div id="stamp-card-container" class="hidden">
+        <h1 id="result-title">✅ 스탬프 획득 완료!</h1>
+        <div id="stamp-card" class="stamp-card"></div>
+        <button id="map-btn">🗺️ 메인 지도로 돌아가기</button>
+    </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            let userId = localStorage.getItem('userId');
-            if (!userId) {
-                userId = crypto.randomUUID();
-                localStorage.setItem('userId', userId);
-                console.log(`collect.html에서 새로운 사용자 ID가 생성되었습니다: ${userId}`);
+        // --- 3. 스탬프 카드 렌더링 함수 (stamptour.html과 동일) ---
+        function renderStampCard(currentTheme, collectedStamps) {
+            const stampCardEl = document.getElementById('stamp-card');
+            stampCardEl.innerHTML = '';
+            const layout = currentTheme.stamp_card_layout;
+            if (!layout || !layout.stamps) {
+                console.error("테마 설정에 'stamp_card_layout' 정보가 없습니다.");
+                return;
             }
+            stampCardEl.style.backgroundImage = `url(${layout.background_image})`;
+            stampCardEl.style.gridTemplateColumns = `repeat(${layout.grid_columns || 5}, 1fr)`;
 
+            layout.stamps.forEach(stamp => {
+                const slot = document.createElement('div');
+                slot.className = 'stamp-slot';
+                const img = document.createElement('img');
+                img.src = stamp.image;
+                img.title = stamp.name;
+                if (collectedStamps[stamp.id]) {
+                    slot.classList.add('stamped');
+                }
+                slot.appendChild(img);
+                stampCardEl.appendChild(slot);
+            });
+        }
+
+        // --- 4. 메인 실행 로직 ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            const loadingStateDiv = document.getElementById('loading-state');
+            const stampCardContainer = document.getElementById('stamp-card-container');
+            const resultTitle = document.getElementById('result-title');
+            
             const urlParams = new URLSearchParams(window.location.search);
             const stampId = urlParams.get('stampId');
             const eventId = urlParams.get('event_id');
-          
-            // --- 1. 필수 정보 확인 ---
- 
-            if (!stampId || !eventId) {
-                alert("잘못된 QR 코드입니다.");
-                window.location.href = 'index.html';
+            const userId = localStorage.getItem('userId');
+
+            if (!userId || !stampId || !eventId) {
+                alert("잘못된 접근입니다.");
+                window.location.href = 'map.html';
                 return;
             }
 
-// --- 3. localStorage에 즉시 스탬프 기록 ---
-        const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};
-        
-        // 이미 획득한 스탬프인지 확인
-        if (collectedStamps[stampId]) {
-             document.querySelector('h1').textContent = "👌 이미 획득한 스탬프입니다.";
-        } else {
-            collectedStamps[stampId] = true;
-            localStorage.setItem('stamps', JSON.stringify(collectedStamps));
-            document.querySelector('h1').textContent = "✅ 스탬프 획득 완료!";
-        }
-        document.querySelector('p').textContent = "지도 화면으로 돌아갑니다.";
-        
-        try {
-            // --- 4. 서버 DB에 스탬프 획득 사실 기록 ---
-            // (서버의 upsertUserStamp 함수가 DB에 사용자를 생성/업데이트합니다)
-            const response = await fetch('/api/collect-stamp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    userId: userId, // 방금 생성/확인한 ID
-                    stampId: stampId,
-                    event_id: eventId 
-                })
-            });
+            try {
+                // 5. 서버에서 이 이벤트의 테마 정보를 가져옴 (스탬프 카드를 그리기 위해)
+                const themeResponse = await fetch(`/api/event-theme/${eventId}`);
+                const currentTheme = await themeResponse.json();
 
-            if (!response.ok) {
-                throw new Error("서버에 스탬프를 기록하지 못했습니다.");
-            }
-            
-            // --- 5. 성공 시, map.html로 복귀 ---
-            setTimeout(() => {
+                const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};
+                const alreadyCollected = collectedStamps[stampId];
+
+                if (!alreadyCollected) {
+                    // 6. 새 스탬프인 경우에만 서버에 기록 요청
+                    const response = await fetch('/api/collect-stamp', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId, stampId, event_id: eventId })
+                    });
+                    if (!response.ok) throw new Error("서버 기록 실패");
+
+                    // 7. localStorage에도 기록
+                    collectedStamps[stampId] = true;
+                    localStorage.setItem('stamps', JSON.stringify(collectedStamps));
+                }
+                
+                // 8. 로딩 UI 숨기기
+                loadingStateDiv.classList.add('hidden');
+
+                // 9. 스탬프 카드 렌더링 및 표시
+                resultTitle.textContent = alreadyCollected ? "👌 이미 획득한 스탬프입니다." : "✅ 스탬프 획득 완료!";
+                renderStampCard(currentTheme, collectedStamps);
+                stampCardContainer.classList.remove('hidden');
+
+            } catch (error) {
+                alert(`오류가 발생했습니다: ${error.message}`);
                 window.location.href = 'index.html';
-            }, 1000); // 1초 후 이동
+            }
+        });
 
-        } catch (error) {
-            alert(`스탬프 획득에 실패했습니다: ${error.message}`);
+        // "메인 지도로" 버튼 이벤트
+        document.getElementById('map-btn').onclick = () => {
             window.location.href = 'index.html';
-        }
-    });
-</script>
+        };
+    </script>
 </body>
 </html>
