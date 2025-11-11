@@ -18,7 +18,7 @@ const server = http.createServer(app);
 // Render.com 같은 클라우드 환경을 위해 process.env.PORT를 우선 사용
 const PORT = process.env.PORT || 3000;
 const ADMIN_SECRET_CODE = "1004"; // 운영자 확인용 코드
-const JWT_SECRET = 'your-super-secret-key-for-jwt-and-events'; // JWT 서명용 비밀키
+const JWT_SECRET = 'suzisoft2011'; // JWT 서명용 비밀키
 
 app.use(express.json()); // JSON 요청 본문 파싱
 app.use(express.static(path.join(__dirname, 'static'))); // 'static' 폴더를 정적 파일 폴더로 지정
