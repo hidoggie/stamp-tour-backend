@@ -35,13 +35,25 @@ try {
 }
 
 // 서버 시작 시 테이블이 없으면 자동으로 생성하는 함수
+// event_type 은 gps_ar , simple_qr, auth_qr, image_ai 중 하나
 async function setupDatabase() {
     const client = await pool.connect();
     try {
         await client.query(`
+            CREATE TABLE IF NOT EXISTS Events (
+                event_id VARCHAR(255) PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                event_type VARCHAR(50) NOT NULL,  
+                total_stamps INTEGER NOT NULL,
+                theme_config JSONB  
+            );
+        `);
+
+        await client.query(`
             CREATE TABLE IF NOT EXISTS Prizes (
                 id SERIAL PRIMARY KEY,
-                name VARCHAR(255) NOT NULL UNIQUE,
+                event_id VARCHAR(255) REFERENCES Events(event_id),
+                name VARCHAR(255) NOT NULL,
                 total_quantity INTEGER NOT NULL,
                 remaining_quantity INTEGER NOT NULL
             );
@@ -49,11 +61,10 @@ async function setupDatabase() {
         await client.query(`
             CREATE TABLE IF NOT EXISTS Users (
                 user_id VARCHAR(255) PRIMARY KEY,
-                stamps JSONB,
-                prize_won_id INTEGER REFERENCES Prizes(id),
-                is_redeemed INTEGER DEFAULT 0,
-                redeem_code VARCHAR(255),
-                registration_date TIMESTAMPTZ
+                name VARCHAR(255),
+                phone VARCHAR(50) UNIQUE,
+                email VARCHAR(255) UNIQUE,
+                registration_date TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             );
         `);
         await client.query(`
@@ -71,12 +82,23 @@ async function setupDatabase() {
                 redemption_date TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             );
         `);
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS UserProgress (
+                progress_id SERIAL PRIMARY KEY,
+                user_id VARCHAR(255) REFERENCES Users(user_id),
+                event_id VARCHAR(255) REFERENCES Events(event_id),
+                stamps JSONB,
+                prize_won_id INTEGER REFERENCES Prizes(id),
+                is_redeemed INTEGER DEFAULT 0,
+                redeem_code VARCHAR(255)
+            );
+        `);
 
         // 기본 관리자 계정 생성 (없을 경우에만)
         const adminRes = await client.query("SELECT * FROM Admins WHERE username = 'admin'");
         if (adminRes.rows.length === 0) {
             const saltRounds = 10;
-            const adminPassword = 'admin'; // ✨ 초기 비밀번호
+            const adminPassword = 'suzisoft2011'; // ✨ 초기 비밀번호
             const hash = await bcrypt.hash(adminPassword, saltRounds);
             await client.query(`INSERT INTO Admins (username, password_hash) VALUES ($1, $2)`, ['admin', hash]);
             console.log("기본 Admin 계정이 생성되었습니다. (ID: admin, PW: admin)");
@@ -184,28 +206,42 @@ async function recordWinner(userId, prizeId, prizeName) {
 }
 
 // ✨ 스탬프 획득 시 사용자 정보를 생성하거나 업데이트하는 함수 (반드시 필요)
-async function upsertUserStamp(userId, planetId) {
+async function upsertUserStamp(userId, eventId, stampId) {
     const today = new Date();
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
-        const user = await client.query("SELECT stamps FROM Users WHERE user_id = $1", [userId]);
+
+        // ✨ 2. Users 테이블에 사용자가 등록되어 있는지 확인하고, 없으면 생성합니다.
+        // (stamptour에서 바로 접속한 유령 사용자를 위한 로직)
+        const userSql = `
+            INSERT INTO Users (user_id, registration_date)
+            VALUES ($1, $2)
+            ON CONFLICT (user_id) DO NOTHING
+        `;
+        await client.query(userSql, [userId, today]);
+
+        // ✨ 3. UserProgress 테이블에서 해당 사용자의 '해당 이벤트' 진행 상황을 찾습니다.
+        const progress = await client.query(
+            "SELECT stamps FROM UserProgress WHERE user_id = $1 AND event_id = $2 FOR UPDATE",
+            [userId, eventId]
+        );
         
         let stamps = {};
-        // 기존 사용자인 경우, 기존 스탬프 정보를 가져옴
-        if (user.rows.length > 0 && user.rows[0].stamps) {
-            stamps = (typeof user.rows[0].stamps === 'string') ? JSON.parse(user.rows[0].stamps) : user.rows[0].stamps;
+        if (progress.rows.length > 0) {
+            stamps = progress.rows[0].stamps || {}; // 기존 스탬프 불러오기
         }
-        stamps[planetId] = true;
+        stamps[stampId] = true; // 새 스탬프 추가
 
-        const sql = `
-            INSERT INTO Users (user_id, stamps, registration_date, is_redeemed) 
-            VALUES ($1, $2, $3, 0)
-            ON CONFLICT (user_id) DO UPDATE SET
-            stamps = $2
+        // ✨ 4. UserProgress 테이블에 스탬프 정보를 삽입(INSERT)하거나 업데이트(UPDATE)합니다.
+        const progressSql = `
+            INSERT INTO UserProgress (user_id, event_id, stamps)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (user_id, event_id) DO UPDATE SET
+            stamps = $3
         `;
-        // 신규 사용자는 등록 날짜와 함께 INSERT, 기존 사용자는 stamps 정보만 UPDATE
-        await client.query(sql, [userId, JSON.stringify(stamps), today]);
+        await client.query(progressSql, [userId, eventId, stamps]);
+        
         await client.query('COMMIT');
     } catch (e) {
         await client.query('ROLLBACK');
