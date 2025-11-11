@@ -212,8 +212,7 @@ async function upsertUserStamp(userId, eventId, stampId) {
     try {
         await client.query('BEGIN');
 
-        // ✨ 2. Users 테이블에 사용자가 등록되어 있는지 확인하고, 없으면 생성합니다.
-        // (stamptour에서 바로 접속한 유령 사용자를 위한 로직)
+        // 1. Users 테이블에 사용자가 등록되어 있는지 확인하고, 없으면 생성합니다.
         const userSql = `
             INSERT INTO Users (user_id, registration_date)
             VALUES ($1, $2)
@@ -221,7 +220,7 @@ async function upsertUserStamp(userId, eventId, stampId) {
         `;
         await client.query(userSql, [userId, today]);
 
-        // ✨ 3. UserProgress 테이블에서 해당 사용자의 '해당 이벤트' 진행 상황을 찾습니다.
+        // 2. UserProgress 테이블에서 해당 사용자의 '해당 이벤트' 진행 상황을 찾습니다.
         const progress = await client.query(
             "SELECT stamps FROM UserProgress WHERE user_id = $1 AND event_id = $2 FOR UPDATE",
             [userId, eventId]
@@ -229,21 +228,27 @@ async function upsertUserStamp(userId, eventId, stampId) {
         
         let stamps = {};
         if (progress.rows.length > 0) {
-            stamps = progress.rows[0].stamps || {}; // 기존 스탬프 불러오기
+            // --- 3a. 이미 진행 기록이 있으면, UPDATE ---
+            stamps = progress.rows[0].stamps || {};
+            stamps[stampId] = true;
+            
+            await client.query(
+                "UPDATE UserProgress SET stamps = $1 WHERE user_id = $2 AND event_id = $3",
+                [stamps, userId, eventId]
+            );
+        } else {
+            // --- 3b. 진행 기록이 없으면, 새로 INSERT ---
+            stamps[stampId] = true;
+            
+            await client.query(
+                "INSERT INTO UserProgress (user_id, event_id, stamps) VALUES ($1, $2, $3)",
+                [userId, eventId, stamps]
+            );
         }
-        stamps[stampId] = true; // 새 스탬프 추가
-
-        // ✨ 4. UserProgress 테이블에 스탬프 정보를 삽입(INSERT)하거나 업데이트(UPDATE)합니다.
-        const progressSql = `
-            INSERT INTO UserProgress (user_id, event_id, stamps)
-            VALUES ($1, $2, $3)
-            ON CONFLICT (user_id, event_id) DO UPDATE SET
-            stamps = $3
-        `;
-        await client.query(progressSql, [userId, eventId, stamps]);
         
         await client.query('COMMIT');
     } catch (e) {
+        console.error("upsertUserStamp 오류:", e.message); // 서버 로그에 오류 기록
         await client.query('ROLLBACK');
         throw e;
     } finally {
