@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스탬프 획득 중...</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background-color: #1a1a2e; color: white; padding-top: 50px; }
+        .spinner { border: 8px solid #f3f3f3; border-top: 8px solid #3498db; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <h1>스탬프를 획득하는 중입니다...</h1>
+    <p>잠시만 기다려주세요.</p>
+    <div class="spinner"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const StampId = urlParams.get('stampId');
+            const eventId = urlParams.get('event_id');
+            const userId = localStorage.getItem('userId');
+
+            // --- 1. 필수 정보 확인 ---
+            if (!userId) {
+                alert("사용자 정보가 없습니다. 메인 화면으로 돌아가 이벤트를 다시 시작해주세요.");
+                window.location.href = 'index.html';
+                return;
+            }
+            if (!StampId || !eventId) {
+                alert("잘못된 QR 코드입니다.");
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // --- 2. localStorage에 즉시 스탬프 기록 (빠른 UI 반응을 위해) ---
+            const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};
+            collectedStamps[StampId] = true;
+            localStorage.setItem('stamps', JSON.stringify(collectedStamps));
+
+            try {
+                // --- 3. 서버 DB에 스탬프 획득 사실 기록 ---
+                const response = await fetch('/api/collect-stamp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        userId: userId, 
+                        stampId: StampId,
+                        event_id: eventId 
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error("서버에 스탬프를 기록하지 못했습니다.");
+                }
+                
+                // --- 4. 성공 시, 1초 후 map.html로 복귀 ---
+                document.querySelector('h1').textContent = "✅ 스탬프 획득 완료!";
+                document.querySelector('p').textContent = "지도 화면으로 돌아갑니다.";
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+
+            } catch (error) {
+                alert(`스탬프 획득에 실패했습니다: ${error.message}`);
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>
