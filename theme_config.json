@@ -1,0 +1,14 @@
+{
+  "page_layout": "simple_quiz",
+  "stamp_card_layout": {
+    "background_image": "/static/assets/events/october_fest/bg.png",
+    "grid_columns": 2,
+    "stamps": [
+      { "id": "stamp_1", "name": "스탬프1", "image": "/static/assets/events/october_fest/stamp_1.png" },
+      { "id": "stamp_2", "name": "스탬프2", "image": "/static/assets/events/october_fest/stamp_2.png" },
+      { "id": "stamp_3", "name": "스탬프3", "image": "/static/assets/events/october_fest/stamp_3.png" },
+      { "id": "stamp_4", "name": "스탬프4", "image": "/static/assets/events/october_fest/stamp_4.png" },
+      { "id": "stamp_5", "name": "스탬프5", "image": "/static/assets/events/october_fest/stamp_5.png" }
+      ]
+  }
+}
