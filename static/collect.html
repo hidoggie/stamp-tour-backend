@@ -30,8 +30,7 @@
         }
 
         .stamp-card {
-            display: grid;
-    
+            display: grid;    
             gap: 1rem;
             padding: 15px;
             border-radius: 10px;
@@ -40,6 +39,13 @@
             /* 배경 이미지와 열 개수는 JS로 설정됩니다. */
             background-size: cover;
             background-position: center;
+        }
+
+        .stamp-card::before {
+            position: absolute;
+            content: "";
+            background-color: rgba(0,0,0,0.4);
+            z-index: 0;
         }
 
         .stamp-slot {
