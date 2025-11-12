@@ -28,8 +28,26 @@
             margin-bottom: 2rem;
             color: #333;
         }
+        .stamp-card-wrapper {
+           position: relative;
+           width: 100%;
+        }
+
+        .stamp-card-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15;
+            z-index: 0;
+        }
 
         .stamp-card {
+            z-index: 1;
+            position: relative;
             display: grid;    
             gap: 1rem;
             padding: 15px;
@@ -39,13 +57,6 @@
             /* 배경 이미지와 열 개수는 JS로 설정됩니다. */
             background-size: cover;
             background-position: center;
-        }
-
-        .stamp-card::before {
-            position: absolute;
-            content: "";
-            background-color: rgba(0,0,0,0.4);
-            z-index: 0;
         }
 
         .stamp-slot {
@@ -97,7 +108,10 @@
     
     <div id="stamp-card-container" class="hidden">
         <h1 id="result-title">✅ 스탬프 획득 완료!</h1>
-        <div id="stamp-card" class="stamp-card"></div>
+        <div class="stamp-card-wrapper">
+           <div id="stamp-card-background" class="stamp-card-background"></div>
+           <div id="stamp-card" class="stamp-card"></div>
+        </div>   
         <button id="index-btn">🗺️ 메인 화면으로 돌아가기</button>
     </div>
 
@@ -105,13 +119,14 @@
         // --- 3. 스탬프 카드 렌더링 함수 (stamptour.html과 동일) ---
         function renderStampCard(currentTheme, collectedStamps) {
             const stampCardEl = document.getElementById('stamp-card');
+            const stampCardBgEl = document.getElementById('stamp-card-background');
             stampCardEl.innerHTML = '';
             const layout = currentTheme.stamp_card_layout;
             if (!layout || !layout.stamps) {
                 console.error("테마 설정에 'stamp_card_layout' 정보가 없습니다.");
                 return;
             }
-            stampCardEl.style.backgroundImage = `url(${layout.background_image})`;
+            stampCardBgEl.style.backgroundImage = `url(${layout.background_image})`;
             stampCardEl.style.gridTemplateColumns = `repeat(${layout.grid_columns || 5}, 1fr)`;
 
             layout.stamps.forEach(stamp => {
