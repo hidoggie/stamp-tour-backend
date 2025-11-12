@@ -290,6 +290,26 @@ app.post('/api/collect-stamp', async (req, res) => {
     }
 });
 
+app.get('/api/event-theme/:event_id', async (req, res) => {
+    try {
+        const event_id = req.params.event_id;
+        if (!event_id) {
+            return res.status(400).json({ error: 'event_id가 필요합니다.' });
+        }
+        
+        const themeConfig = await db.getEventTheme(event_id);
+        
+        if (themeConfig) {
+            res.json(themeConfig);
+        } else {
+            res.status(404).json({ error: '이벤트 설정을 찾을 수 없습니다.' });
+        }
+    } catch (e) {
+        console.error("이벤트 테마 조회 오류:", e.message);
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // --- 6. 서버 시작 ---
 server.listen(PORT, () => {
     console.log(`🎉 스탬프 투어 서버가 http://localhost:${PORT} 에서 실행 중입니다.`);

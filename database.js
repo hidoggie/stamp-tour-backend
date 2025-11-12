@@ -270,6 +270,16 @@ async function createUser(userId) {
 }
 
 
+async function getEventTheme(eventId) {
+    if (!eventId) return null;
+    const res = await pool.query(
+        "SELECT theme_config FROM Events WHERE event_id = $1",
+        [eventId]
+    );
+    // theme_config 컬럼의 값 (JSON)을 반환, 없으면 null 반환
+    return res.rows[0]?.theme_config; 
+}
+
 // 서버 시작 시 DB 셋업
 setupDatabase();
 
@@ -283,4 +293,5 @@ module.exports = {
     getUser,
     upsertUserStamp,
     createUser,
+    getEventTheme,
 };
