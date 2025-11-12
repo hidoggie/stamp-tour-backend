@@ -42,7 +42,7 @@
             opacity: 1; /* 획득 후 선명하게 */
         }
         
-        #map-btn {
+        #index-btn {
             padding: 12px 25px;
             font-size: 1.1em;
             cursor: pointer;
@@ -65,7 +65,7 @@
     <div id="stamp-card-container" class="hidden">
         <h1 id="result-title">✅ 스탬프 획득 완료!</h1>
         <div id="stamp-card" class="stamp-card"></div>
-        <button id="map-btn">🗺️ 메인 지도로 돌아가기</button>
+        <button id="index-btn">🗺️ 메인 화면으로 돌아가기</button>
     </div>
 
     <script>
@@ -104,11 +104,17 @@
             const urlParams = new URLSearchParams(window.location.search);
             const stampId = urlParams.get('stampId');
             const eventId = urlParams.get('event_id');
-            const userId = localStorage.getItem('userId');
+            let userId = localStorage.getItem('userId');
 
-            if (!userId || !stampId || !eventId) {
+            if (!userId) {
+                userId = crypto.randomUUID();
+                localStorage.setItem('userId', userId);
+                console.log(`collect.html에서 새로운 사용자 ID가 생성되었습니다: ${userId}`);
+            }
+
+            if (!stampId || !eventId) {
                 alert("잘못된 접근입니다.");
-                window.location.href = 'map.html';
+                window.location.href = 'index.html';
                 return;
             }
 
@@ -149,7 +155,7 @@
         });
 
         // "메인 지도로" 버튼 이벤트
-        document.getElementById('map-btn').onclick = () => {
+        document.getElementById('index-btn').onclick = () => {
             window.location.href = 'index.html';
         };
     </script>
