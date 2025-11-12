@@ -5,15 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>스탬프 획득</title>
     <style>
-        body { font-family: sans-serif; text-align: center; background-color: #1a1a2e; color: white; padding-top: 50px; }
-        .spinner { border: 8px solid #f3f3f3; border-top: 8px solid #3498db; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 20px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      body {
+          margin: 0;
+          font-family: 'Segoe UI', sans-serif;
+          background: url('logo.png') center center no-repeat;
+          background-size: 300px auto;
+          background-attachment: fixed;
+          background-blend-mode: lighten;
+          background-color: #f9f9f9;
+        }
         
         /* --- 스탬프 카드 스타일 (stamptour.html에서 가져옴) --- */
-        #stamp-card-container { margin-top: 30px; }
+        #stamp-card-container { 
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            text-align: center; 
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+
         .stamp-card {
             display: grid;
-            gap: 10px;
+    
+            gap: 1rem;
             padding: 15px;
             border-radius: 10px;
             max-width: 500px;
@@ -22,11 +41,12 @@
             background-size: cover;
             background-position: center;
         }
+
         .stamp-slot {
             background-color: rgba(255,255,255,0.2);
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
+            border-radius: 10px;
+            aspect-ratio: 1 / 1;
+            width: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -34,9 +54,10 @@
             margin: auto;
         }
         .stamp-slot img {
-            max-width: 90%;
-            max-height: 90%;
+            max-width: 70%;
+            max-height: 70%;
             opacity: 0.3; /* 획득 전 흐리게 */
+            object-fit: contain;
         }
         .stamp-slot.stamped img {
             opacity: 1; /* 획득 후 선명하게 */
@@ -53,6 +74,12 @@
             margin-top: 20px;
         }
         .hidden { display: none; }
+
+        @media (max-width: 480px) {
+           h1 {
+              font-size: 1.5rem;
+           }
+        }
     </style>
 </head>
 <body>
@@ -111,6 +138,7 @@
                 localStorage.setItem('userId', userId);
                 console.log(`collect.html에서 새로운 사용자 ID가 생성되었습니다: ${userId}`);
             }
+
 
             if (!stampId || !eventId) {
                 alert("잘못된 접근입니다.");
