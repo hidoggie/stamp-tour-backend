@@ -71,8 +71,6 @@
             margin: auto;
         }
         .stamp-slot img {
-            max-width: 70%;
-            max-height: 70%;
             opacity: 0.3; /* 획득 전 흐리게 */
             object-fit: contain;
         }
@@ -96,6 +94,11 @@
            h1 {
               font-size: 1.5rem;
            }
+        }
+        
+        #loading-state {
+           align-items: center;
+           justify-content: center;  
         }
     </style>
 </head>
@@ -133,10 +136,14 @@
                 const slot = document.createElement('div');
                 slot.className = 'stamp-slot';
                 const img = document.createElement('img');
-                img.src = stamp.image;
                 img.title = stamp.name;
+
                 if (collectedStamps[stamp.id]) {
+                    img.src = stamp.image_acquired;
                     slot.classList.add('stamped');
+                }
+                else {
+                    img.src = stamp.image_unacquired;      
                 }
                 slot.appendChild(img);
                 stampCardEl.appendChild(slot);
