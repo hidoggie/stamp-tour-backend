@@ -49,8 +49,8 @@
             z-index: 1;
             position: relative;
             display: grid;    
-            gap: 1rem;
-            padding: 15px;
+            gap: 0.5rem;
+            padding: 0.2rem;
             border-radius: 10px;
             max-width: 500px;
             margin: 0 auto;
@@ -161,15 +161,16 @@
             const eventId = urlParams.get('event_id');
             let userId = localStorage.getItem('userId');
 
+            let eventConfig; // 현재 이벤트의 규칙을 저장할 변수
+
             if (!userId) {
                 userId = crypto.randomUUID();
                 localStorage.setItem('userId', userId);
                 console.log(`collect.html에서 새로운 사용자 ID가 생성되었습니다: ${userId}`);
             }
 
-
             if (!stampId || !eventId) {
-                alert("잘못된 접근입니다.");
+                alert("잘못된 접근입니다. 이벤트를 확인하세요!");
                 window.location.href = 'index.html';
                 return;
             }
@@ -178,6 +179,9 @@
                 // 5. 서버에서 이 이벤트의 테마 정보를 가져옴 (스탬프 카드를 그리기 위해)
                 const themeResponse = await fetch(`/api/event-theme/${eventId}`);
                 const currentTheme = await themeResponse.json();
+
+                const response = await fetch(`/api/event-config/${eventId}`);
+                eventConfig = await response.json();
 
                 const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};
                 const alreadyCollected = collectedStamps[stampId];
@@ -206,13 +210,13 @@
 
             } catch (error) {
                 alert(`오류가 발생했습니다: ${error.message}`);
-                window.location.href = 'index.html';
+                window.location.href = eventConfig.main_page_url; 
             }
         });
 
         // "메인 지도로" 버튼 이벤트
         document.getElementById('index-btn').onclick = () => {
-            window.location.href = 'index.html';
+            window.location.href = eventConfig.main_page_url; 
         };
     </script>
 </body>
