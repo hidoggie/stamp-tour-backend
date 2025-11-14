@@ -309,6 +309,22 @@ app.get('/api/event-theme/:event_id', async (req, res) => {
         res.status(500).json({ error: e.message });
     }
 });
+// ✨ [신규] 이벤트의 '규칙'을 반환하는 API
+app.get('/api/event-config/:event_id', async (req, res) => {
+    try {
+        const event_id = req.params.event_id;
+        // ✨ database.js에 getEventConfig 함수가 필요합니다.
+        const config = await db.getEventConfig(event_id); 
+        
+        if (config) {
+            res.json(config);
+        } else {
+            res.status(404).json({ error: '이벤트 설정을 찾을 수 없습니다.' });
+        }
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
 
 // --- 6. 서버 시작 ---
 server.listen(PORT, () => {

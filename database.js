@@ -43,9 +43,13 @@ async function setupDatabase() {
             CREATE TABLE IF NOT EXISTS Events (
                 event_id VARCHAR(255) PRIMARY KEY,
                 name VARCHAR(255) NOT NULL,
-                event_type VARCHAR(50) NOT NULL,  
+                main_page_url VARCHAR(255) NOT NULL,
                 total_stamps INTEGER NOT NULL,
-                theme_config JSONB  
+                has_quiz BOOLEAN DEFAULT false,
+                has_roulette BOOLEAN DEFAULT false,
+                has_ar BOOLEAN DEFAULT false,
+                auto_collect BOOLEAN DEFAULT false,
+                theme_config JSONB
             );
         `);
 
@@ -90,7 +94,8 @@ async function setupDatabase() {
                 stamps JSONB,
                 prize_won_id INTEGER REFERENCES Prizes(id),
                 is_redeemed INTEGER DEFAULT 0,
-                redeem_code VARCHAR(255)
+                redeem_code VARCHAR(255),
+                UNIQUE(user_id, event_id)
             );
         `);
 
@@ -149,7 +154,9 @@ async function getStats(date) {
 
 // --- 경품 관련 함수 ---
 async function getRemainingPrizes() {
-    const res = await pool.query("SELECT id, name, remaining_quantity FROM prizes WHERE remaining_quantity > 0 ORDER BY id");
+    const res = await pool.query(
+        'SELECT id, name, remaining_quantity FROM prizes WHERE remaining_quantity > 0 AND event_id = $1 ORDER BY id',
+        [eventId]);
     return res.rows;
 }
 
@@ -168,7 +175,7 @@ async function getUser(userId) {
     return res.rows[0];
 }
 
-async function recordWinner(userId, prizeId, prizeName) {
+async function recordWinner(userId, eventId, prizeId, prizeName) {
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
@@ -177,20 +184,25 @@ async function recordWinner(userId, prizeId, prizeName) {
         const redeemCode = Math.random().toString(36).substring(2, 8).toUpperCase();
         
         const today = new Date();
-        const userSql = `
-            INSERT INTO Users (user_id, prize_won_id, redeem_code, is_redeemed, registration_date, stamps) 
-            VALUES ($1, $2, $3, 1, $4, '{"completed": true}')
-            ON CONFLICT (user_id) DO UPDATE SET
-            prize_won_id = EXCLUDED.prize_won_id,
-            redeem_code = EXCLUDED.redeem_code,
-            is_redeemed = 1
-        `;
-        await client.query(userSql, [userId, prizeId, redeemCode, today]);
-
-        // Redemptions 및 Prizes 테이블 업데이트
-        await client.query("INSERT INTO Redemptions (user_id, prize_id, prize_name) VALUES ($1, $2, $3)", 
-            [userId, prizeId, prizeName]);
-        await client.query("UPDATE Prizes SET remaining_quantity = remaining_quantity - 1 WHERE id = $1 AND remaining_quantity > 0", [prizeId]);
+ 
+        // 1. UserProgress 테이블에 당첨 정보 업데이트
+        await client.query(
+            `UPDATE "UserProgress" SET prize_won_id = $1, is_redeemed = 1, redeem_code = $2
+             WHERE user_id = $3 AND event_id = $4`,
+            [prizeId, redeemCode, userId, eventId]
+        );
+        
+        // 2. Redemptions 테이블에 지급 기록 (날짜별 통계용)
+        await client.query(
+            'INSERT INTO "Redemptions" (user_id, prize_id, prize_name, redemption_date) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)',
+            [userId, prizeId, prizeName]
+        );
+        
+        // 3. Prizes 테이블 재고 차감
+        await client.query(
+            'UPDATE "Prizes" SET remaining_quantity = remaining_quantity - 1 WHERE id = $1 AND remaining_quantity > 0',
+            [prizeId]
+        );
         
         await client.query("COMMIT");
 
@@ -269,6 +281,15 @@ async function createUser(userId) {
     }
 }
 
+// [수정] 사용자의 특정 이벤트 진행 상황 조회
+async function getUserProgress(userId, eventId) {
+    if (!userId || !eventId) return null;
+    const res = await pool.query(
+        'SELECT * FROM "UserProgress" WHERE user_id = $1 AND event_id = $2',
+        [userId, eventId]
+    );
+    return res.rows[0];
+}
 
 async function getEventTheme(eventId) {
     if (!eventId) return null;
@@ -278,6 +299,24 @@ async function getEventTheme(eventId) {
     );
     // theme_config 컬럼의 값 (JSON)을 반환, 없으면 null 반환
     return res.rows[0]?.theme_config; 
+}
+
+// [신규] 이벤트의 규칙 정보를 가져오는 함수
+async function getEventConfig(eventId) {
+    if (!eventId) return null;
+    const res = await pool.query('SELECT * FROM "Events" WHERE event_id = $1', [eventId]);
+    return res.rows[0];
+}
+
+// [신규] 본인 인증 사용자 등록 함수
+async function registerUser(userId, name, phone, email) {
+    const sql = `
+        INSERT INTO "Users" (user_id, name, phone, email)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (user_id) DO UPDATE SET
+        name = $2, phone = $3, email = $4
+    `;
+    await pool.query(sql, [userId, name, phone, email]);
 }
 
 // 서버 시작 시 DB 셋업
@@ -294,4 +333,7 @@ module.exports = {
     upsertUserStamp,
     createUser,
     getEventTheme,
+    getEventConfig,
+    registerUser,
+    getUserProgress,
 };
