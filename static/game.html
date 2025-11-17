@@ -78,13 +78,14 @@
             <canvas id="canvas" width="350" height="350"></canvas>
         </div>
         <button id="spin_button" disabled class="hidden">🎰 룰렛 돌리기</button>
-        <button id="back_button" onclick="location.href='./joayong-map.html'" disabled class="hidden">🗺️ 행성 지도</button>
+        <!--button id="back_button" onclick="location.href='./joayong-map.html'" disabled class="hidden">🗺️ 메인 페이지로 이동</button-->
+        <button id="back_button" disabled class="hidden">🗺️ 메인 페이지로 이동</button>
     </div>
 
     <script src="./js/TweenMax.min.js"></script>
     <script src="./js/Winwheel.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             const spinButton = document.getElementById('spin_button');
             const RContainer = document.getElementById('roulette-Container');
             const InfoBox = document.getElementById('info');
@@ -92,6 +93,7 @@
             const backButton = document.getElementById('back_button');
             let theWheel;
             let wheelSpinning = false;
+            let eventConfig; // 현재 이벤트의 규칙을 저장할 변수
 
             // 1. 사용자 ID를 먼저 확인합니다.
             const userId = localStorage.getItem('userId');
@@ -106,9 +108,16 @@
             async function initializeGame() {
                 try {
                     // 3. 서버에 룰렛 참여 자격 확인
-                    console.log("서버에 참여 자격을 확인합니다...");
+                    const configResponse = await fetch(`/api/event-config/${eventId}`);
+                    const eventConfig = await configResponse.json();
+                    if (!eventConfig || !eventConfig.main_page_url) {
+                        throw new Error('이벤트 설정 정보를 찾을 수 없습니다.');
+                    }
+                
+                // "메인으로" 버튼에 DB에서 가져온 URL 설정
+                    backButton.onclick = () => { window.location.href = eventConfig.main_page_url; };
 
-                    const eligibilityResponse = await fetch(`/api/check-eligibility/${userId}`);
+                    const eligibilityResponse = await fetch(`/api/check-eligibility/${userId}?event_id=${eventId}`);
                     const eligibility = await eligibilityResponse.json();
 
                     if (!eligibility.eligible) {
@@ -133,15 +142,14 @@
                         InfoBox1.classList.remove('hidden'); 
                         RContainer.classList.remove('hidden'); 
                         spinButton.classList.remove('hidden'); 
+                        backButton.classList.remove('hidden');
+                        backButton.disabled = false; // 이제 메인으로 돌아갈 수 있음
                     }
-                    console.log("참여 자격 확인 완료.");
-
+ 
                     // 4. 경품 정보를 가져와 룰렛 생성
-                    console.log("경품 정보를 가져옵니다...");
-                    const prizesResponse = await fetch('/api/prizes');
+                    const prizesResponse = await fetch(`/api/prizes?event_id=${eventId}`);
                     const prizes = await prizesResponse.json();
-                
-                    
+                                    
                     if (!prizes || prizes.length === 0) throw new Error("남아있는 경품이 없습니다.");
                     
                     const totalQuantity = prizes.reduce((sum, p) => sum + p.remaining_quantity, 0);
@@ -177,12 +185,11 @@
                     theWheel.draw();
                     spinButton.textContent = "🎰 룰렛 돌리기";
                     spinButton.disabled = false;
-                    console.log("룰렛 그리기를 완료했습니다.");
-
                 } catch (error) {
                     alert(error.message);
                     spinButton.textContent = "오류 발생";
-                    console.error("초기화 오류:", error);
+                    backButton.classList.remove('hidden'); // 오류 시에도 돌아갈 수 있도록
+                    backButton.disabled = false;
                 }
             }
 
@@ -190,12 +197,13 @@
                 if (wheelSpinning) return;
                 spinButton.disabled = true;
                 wheelSpinning = true;
+                backButton.disabled = true; // 돌리는 중에는 이동 방지
 
                 try {
                     const response = await fetch('/api/spin', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId: userId })
+                        body: JSON.stringify({ userId: userId, event_id: eventId })
                     });
                     const result = await response.json();
                     if (result.error) throw new Error(result.error);
@@ -206,12 +214,14 @@
                         wheelSpinning = false;
                         spinButton.innerHTML = "<span class='highlight'>🎁 " + result.prizeName + "</span> 에 당첨되었습니다.";
                         document.querySelector('p').textContent = "부스에서 화면을 보여주고 경품을 수령하세요!";
+                        backButton.disabled = false; // 이제 이동 가능
                     };
                     theWheel.startAnimation();
                 } catch (error) {
                     alert(`룰렛을 돌리는 중 오류가 발생했습니다: ${error.message}`);
                     wheelSpinning = false;
                     spinButton.disabled = false;
+                    backButton.disabled = false;
                 }
             };
 
