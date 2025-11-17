@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>강아지와 함께 스탬프 투어</title>
+  <title>수지달의 스탬프 투어</title>
   <meta name="description" content="반려동물과 함께 공원에서 즐기는 스탬프 투어 인트로 페이지" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -216,7 +216,7 @@
             산책의 순간들이 작은 기념으로 남습니다.
           </p>
           <div class="cta">
-            <button class="btn btn-primary">스탬프 시작하기</button>
+            <button class="btn btn-primary" onclick="location.href='#howto'">스탬프 시작하기</button>
             <button class="btn btn-ghost">가이드 보기</button>
           </div>
 
@@ -229,11 +229,11 @@
               <div class="stamp"><span>💧</span><span class="label">분수대</span></div>
               <div class="stamp"><span>🛝</span><span class="label">놀이터</span></div>
               <div class="stamp"><span>🌼</span><span class="label">꽃밭</span></div>
-              <div class="stamp"><span>🪵</span><span class="label">벤치</span></div>
+              <!--div class="stamp"><span>🪵</span><span class="label">벤치</span></div>
               <div class="stamp"><span>🦮</span><span class="label">견견존</span></div>
               <div class="stamp"><span>☕</span><span class="label">카페</span></div>
               <div class="stamp"><span>📷</span><span class="label">포토존</span></div>
-              <div class="stamp"><span>🌅</span><span class="label">전망대</span></div>
+              <div class="stamp"><span>🌅</span><span class="label">전망대</span></div-->
             </div>
           </div>
         </div>
@@ -264,5 +264,16 @@
       © 2025 수지달의 스탬프 투어
     </footer-->
   </div>
+  <script>
+      let userId = localStorage.getItem('userId');
+      let PathName = window.location.pathname;
+
+      if (!userId) {
+        userId = crypto.randomUUID();
+        localStorage.setItem('userId', userId);        
+        console.log(`${PathName} 에서 새로운 사용자 ID가 생성되었습니다: ${userId}`);
+      }
+
+  </script>
 </body>
 </html>

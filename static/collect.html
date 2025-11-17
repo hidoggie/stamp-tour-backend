@@ -96,14 +96,17 @@
         }
         
         #loading-state {
-           align-items: center;
-           justify-content: center;  
+            text-align: center;
+            font-size: 1.8em;
+            margin-top: 5%;
+            font-family: 'Roboto';
+            font-weight: 100; 
         }
     </style>
 </head>
 <body>
     <div id="loading-state">
-        <h1 id="loading-title">스탬프를 획득하는 중입니다...</h1>
+        <h1 id="loading-title">스탬프를 기록하는 중입니다...</h1>
         <p>잠시만 기다려주세요.</p>
         <div class="spinner"></div>
     </div>
@@ -114,7 +117,7 @@
            <div id="stamp-card-background" class="stamp-card-background"></div>
            <div id="stamp-card" class="stamp-card"></div>
         </div>   
-        <button id="index-btn">🗺️ 메인 화면으로 돌아가기</button>
+        <button id="index-btn">🗺️ 메인 페이지로 이동</button>
     </div>
 
     <script>
@@ -166,7 +169,7 @@
             if (!userId) {
                 userId = crypto.randomUUID();
                 localStorage.setItem('userId', userId);
-                console.log(`collect.html에서 새로운 사용자 ID가 생성되었습니다: ${userId}`);
+                
             }
 
             if (!stampId || !eventId) {
@@ -212,6 +215,30 @@
                 renderStampCard(currentTheme, collectedStamps);
                 stampCardContainer.classList.remove('hidden');
 
+                const totalStampsCollected = Object.keys(collectedStamps).length;
+            
+                if (totalStampsCollected >= eventConfig.total_stamps) {
+                // --- A. 모든 스탬프를 모았을 때 ---
+                    resultTitle.textContent = "🎉 모든 스탬프를 모았습니다!";
+
+                    if (eventConfig.has_roulette) {
+                        indexBtn.textContent = "🎁 룰렛 돌리기";
+                        indexBtn.onclick = () => {
+                            window.location.href = `game.html?event_id=${eventId}`;
+                        };
+                    } else if (eventConfig.has_quiz) {
+                        indexBtn.textContent = "📝 퀴즈 풀기";
+                        indexBtn.onclick = () => {
+                            window.location.href = `stamptour.html?planet=final_quiz&event_id=${eventId}`;
+                        };
+                    } else {
+                        indexBtn.textContent = "🗺️ 메인 페이지로 이동";
+                    }
+
+                } else {
+                    resultTitle.textContent = alreadyCollected ? "👌 이미 획득한 스탬프입니다." : "✅ 스탬프 획득 완료!";
+                    indexBtn.textContent = "🗺️ 메인 페이지로 이동";
+                }               
             } catch (error) {
                 alert(`오류가 발생했습니다: ${error.message}`);
                 window.location.href = eventConfig.main_page_url; 
