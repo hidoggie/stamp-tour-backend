@@ -154,6 +154,7 @@
             const loadingStateDiv = document.getElementById('loading-state');
             const stampCardContainer = document.getElementById('stamp-card-container');
             const resultTitle = document.getElementById('result-title');
+            const indexBtn = document.getElementById('index-btn');
             
             const urlParams = new URLSearchParams(window.location.search);
             const stampId = urlParams.get('stampId');
@@ -181,6 +182,10 @@
 
                 const response = await fetch(`/api/event-config/${eventId}`);
                 eventConfig = await response.json();
+
+                indexBtn.onclick = () => {
+                    window.location.href = eventConfig.main_page_url;
+                };
 
                 const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};
                 const alreadyCollected = collectedStamps[stampId];
@@ -213,10 +218,6 @@
             }
         });
 
-        // "메인 지도로" 버튼 이벤트
-        document.getElementById('index-btn').onclick = () => {
-            window.location.href = eventConfig.main_page_url; 
-        };
     </script>
 </body>
 </html>
