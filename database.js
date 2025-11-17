@@ -40,7 +40,7 @@ async function setupDatabase() {
     const client = await pool.connect();
     try {
         await client.query(`
-            CREATE TABLE IF NOT EXISTS Events (
+            CREATE TABLE IF NOT EXISTS events (
                 event_id VARCHAR(255) PRIMARY KEY,
                 name VARCHAR(255) NOT NULL,
                 main_page_url VARCHAR(255) NOT NULL,
@@ -54,7 +54,7 @@ async function setupDatabase() {
         `);
 
         await client.query(`
-            CREATE TABLE IF NOT EXISTS Prizes (
+            CREATE TABLE IF NOT EXISTS prizes (
                 id SERIAL PRIMARY KEY,
                 event_id VARCHAR(255) REFERENCES Events(event_id),
                 name VARCHAR(255) NOT NULL,
@@ -63,7 +63,7 @@ async function setupDatabase() {
             );
         `);
         await client.query(`
-            CREATE TABLE IF NOT EXISTS Users (
+            CREATE TABLE IF NOT EXISTS users (
                 user_id VARCHAR(255) PRIMARY KEY,
                 name VARCHAR(255),
                 phone VARCHAR(50) UNIQUE,
@@ -72,13 +72,13 @@ async function setupDatabase() {
             );
         `);
         await client.query(`
-            CREATE TABLE IF NOT EXISTS Admins (
+            CREATE TABLE IF NOT EXISTS admins (
                 username VARCHAR(255) PRIMARY KEY,
                 password_hash VARCHAR(255)
             );
         `);
         await client.query(`
-            CREATE TABLE IF NOT EXISTS Redemptions (
+            CREATE TABLE IF NOT EXISTS redemptions (
                 id SERIAL PRIMARY KEY,
                 user_id VARCHAR(255),
                 prize_id INTEGER,
@@ -87,7 +87,7 @@ async function setupDatabase() {
             );
         `);
         await client.query(`
-            CREATE TABLE IF NOT EXISTS UserProgress (
+            CREATE TABLE IF NOT EXISTS userprogress (
                 progress_id SERIAL PRIMARY KEY,
                 user_id VARCHAR(255) REFERENCES Users(user_id),
                 event_id VARCHAR(255) REFERENCES Events(event_id),
@@ -100,12 +100,12 @@ async function setupDatabase() {
         `);
 
         // 기본 관리자 계정 생성 (없을 경우에만)
-        const adminRes = await client.query("SELECT * FROM Admins WHERE username = 'admin'");
+        const adminRes = await client.query("SELECT * FROM admins WHERE username = 'admin'");
         if (adminRes.rows.length === 0) {
             const saltRounds = 10;
             const adminPassword = 'suzisoft2011'; // ✨ 초기 비밀번호
             const hash = await bcrypt.hash(adminPassword, saltRounds);
-            await client.query(`INSERT INTO Admins (username, password_hash) VALUES ($1, $2)`, ['admin', hash]);
+            await client.query(`INSERT INTO admins (username, password_hash) VALUES ($1, $2)`, ['admin', hash]);
             console.log("기본 Admin 계정이 생성되었습니다. (ID: admin, PW: admin)");
         }
 
@@ -119,7 +119,7 @@ async function setupDatabase() {
 
 // --- 관리자 관련 함수 ---
 async function getAdminUser(username) {
-    const res = await pool.query("SELECT * FROM Admins WHERE username = $1", [username]);
+    const res = await pool.query("SELECT * FROM admins WHERE username = $1", [username]);
     return res.rows[0];
 }
 
@@ -130,11 +130,11 @@ async function getStats(date) {
     try {
         const [ dailyParticipantsRes, dailyPrizesRes, cumulativeParticipantsRes, 
                 cumulativePrizesRes, currentInventoryRes ] = await Promise.all([
-            client.query(`SELECT COUNT(DISTINCT user_id) as count FROM Users WHERE DATE(registration_date) = $1`, [date]),
-            client.query(`SELECT prize_name, COUNT(*) as count FROM Redemptions WHERE DATE(redemption_date) = $1 GROUP BY prize_name`, [date]),
-            client.query(`SELECT COUNT(DISTINCT user_id) as count FROM Users`),
-            client.query(`SELECT prize_name, COUNT(*) as count FROM Redemptions GROUP BY prize_name`),
-            client.query("SELECT id, name, total_quantity, remaining_quantity FROM Prizes ORDER BY id")
+            client.query(`SELECT COUNT(DISTINCT user_id) as count FROM users WHERE DATE(registration_date) = $1`, [date]),
+            client.query(`SELECT prize_name, COUNT(*) as count FROM redemptions WHERE DATE(redemption_date) = $1 GROUP BY prize_name`, [date]),
+            client.query(`SELECT COUNT(DISTINCT user_id) as count FROM users`),
+            client.query(`SELECT prize_name, COUNT(*) as count FROM redemptions GROUP BY prize_name`),
+            client.query("SELECT id, name, total_quantity, remaining_quantity FROM prizes ORDER BY id")
         ]);
 
         stats.dailyParticipants = parseInt(dailyParticipantsRes.rows[0]?.count || 0, 10);
@@ -162,7 +162,7 @@ async function getRemainingPrizes() {
 
 async function updatePrizeQuantity(prizeName, newQuantity) {
     const res = await pool.query(
-        "UPDATE Prizes SET remaining_quantity = $1, total_quantity = $1 WHERE name = $2", 
+        "UPDATE prizes SET remaining_quantity = $1, total_quantity = $1 WHERE name = $2", 
         [newQuantity, prizeName]
     );
     return res.rowCount;
@@ -171,7 +171,7 @@ async function updatePrizeQuantity(prizeName, newQuantity) {
 // --- 참가자 및 당첨/수령 관련 함수 ---
 async function getUser(userId) {
     if (!userId) return null;
-    const res = await pool.query("SELECT * FROM Users WHERE user_id = $1", [userId]);
+    const res = await pool.query("SELECT * FROM users WHERE user_id = $1", [userId]);
     return res.rows[0];
 }
 
@@ -194,13 +194,13 @@ async function recordWinner(userId, eventId, prizeId, prizeName) {
         
         // 2. Redemptions 테이블에 지급 기록 (날짜별 통계용)
         await client.query(
-            'INSERT INTO "Redemptions" (user_id, prize_id, prize_name, redemption_date) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)',
+            'INSERT INTO "redemptions" (user_id, prize_id, prize_name, redemption_date) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)',
             [userId, prizeId, prizeName]
         );
         
         // 3. Prizes 테이블 재고 차감
         await client.query(
-            'UPDATE "Prizes" SET remaining_quantity = remaining_quantity - 1 WHERE id = $1 AND remaining_quantity > 0',
+            'UPDATE "prizes" SET remaining_quantity = remaining_quantity - 1 WHERE id = $1 AND remaining_quantity > 0',
             [prizeId]
         );
         
@@ -226,7 +226,7 @@ async function upsertUserStamp(userId, eventId, stampId) {
 
         // 1. Users 테이블에 사용자가 등록되어 있는지 확인하고, 없으면 생성합니다.
         const userSql = `
-            INSERT INTO Users (user_id, registration_date)
+            INSERT INTO users (user_id, registration_date)
             VALUES ($1, $2)
             ON CONFLICT (user_id) DO NOTHING
         `;
@@ -234,7 +234,7 @@ async function upsertUserStamp(userId, eventId, stampId) {
 
         // 2. UserProgress 테이블에서 해당 사용자의 '해당 이벤트' 진행 상황을 찾습니다.
         const progress = await client.query(
-            "SELECT stamps FROM UserProgress WHERE user_id = $1 AND event_id = $2 FOR UPDATE",
+            "SELECT stamps FROM userprogress WHERE user_id = $1 AND event_id = $2 FOR UPDATE",
             [userId, eventId]
         );
         
@@ -245,7 +245,7 @@ async function upsertUserStamp(userId, eventId, stampId) {
             stamps[stampId] = true;
             
             await client.query(
-                "UPDATE UserProgress SET stamps = $1 WHERE user_id = $2 AND event_id = $3",
+                "UPDATE userprogress SET stamps = $1 WHERE user_id = $2 AND event_id = $3",
                 [stamps, userId, eventId]
             );
         } else {
@@ -253,7 +253,7 @@ async function upsertUserStamp(userId, eventId, stampId) {
             stamps[stampId] = true;
             
             await client.query(
-                "INSERT INTO UserProgress (user_id, event_id, stamps) VALUES ($1, $2, $3)",
+                "INSERT INTO userprogress (user_id, event_id, stamps) VALUES ($1, $2, $3)",
                 [userId, eventId, stamps]
             );
         }
@@ -273,7 +273,7 @@ async function createUser(userId) {
     if (!userId) return;
     const today = new Date();
     // ON CONFLICT DO NOTHING: 이미 존재하는 사용자라면 아무것도 하지 않음
-    const sql = `INSERT INTO Users (user_id, stamps, registration_date, is_redeemed) VALUES ($1, '{}', $2, 0) ON CONFLICT (user_id) DO NOTHING`;
+    const sql = `INSERT INTO users (user_id, stamps, registration_date, is_redeemed) VALUES ($1, '{}', $2, 0) ON CONFLICT (user_id) DO NOTHING`;
     try {
         await pool.query(sql, [userId, today]);
     } catch (e) {
@@ -285,7 +285,7 @@ async function createUser(userId) {
 async function getUserProgress(userId, eventId) {
     if (!userId || !eventId) return null;
     const res = await pool.query(
-        'SELECT * FROM "UserProgress" WHERE user_id = $1 AND event_id = $2',
+        'SELECT * FROM "userprogress" WHERE user_id = $1 AND event_id = $2',
         [userId, eventId]
     );
     return res.rows[0];
@@ -294,7 +294,7 @@ async function getUserProgress(userId, eventId) {
 async function getEventTheme(eventId) {
     if (!eventId) return null;
     const res = await pool.query(
-        "SELECT theme_config FROM Events WHERE event_id = $1",
+        "SELECT theme_config FROM events WHERE event_id = $1",
         [eventId]
     );
     // theme_config 컬럼의 값 (JSON)을 반환, 없으면 null 반환
@@ -304,14 +304,14 @@ async function getEventTheme(eventId) {
 // [신규] 이벤트의 규칙 정보를 가져오는 함수
 async function getEventConfig(eventId) {
     if (!eventId) return null;
-    const res = await pool.query('SELECT * FROM "Events" WHERE event_id = $1', [eventId]);
+    const res = await pool.query('SELECT * FROM "events" WHERE event_id = $1', [eventId]);
     return res.rows[0];
 }
 
 // [신규] 본인 인증 사용자 등록 함수
 async function registerUser(userId, name, phone, email) {
     const sql = `
-        INSERT INTO "Users" (user_id, name, phone, email)
+        INSERT INTO "users" (user_id, name, phone, email)
         VALUES ($1, $2, $3, $4)
         ON CONFLICT (user_id) DO UPDATE SET
         name = $2, phone = $3, email = $4
