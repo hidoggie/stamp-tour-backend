@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>강아지와 함께 스탬프 투어</title>
+  <meta name="description" content="반려동물과 함께 공원에서 즐기는 스탬프 투어 인트로 페이지" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f7fbf5;
+      --green:#5aa96b;
+      --dark:#26413c;
+      --sand:#f5e6c8;
+      --sky:#cfe9ff;
+      --accent:#ff8b6a;
+      --stamp:#dd3b3b;
+      --card:#fffdfa;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+        margin: 0;
+        max-width: 860px;
+        font-family: 'Segoe UI', sans-serif;
+        background: url('logo.png') center center no-repeat;
+        background-size: 300px auto;
+        color:var(--dark);
+        background:
+          radial-gradient(circle at 30% -20%, #eaf8ff 0%, #f7fbf5 50%, #f7fbf5 100%),
+          linear-gradient(to bottom, #f7fbf5 0%, #f7fbf5 100%);
+    }
+
+    /* Layout */
+    .wrap{display:flex; flex-direction:column; min-height:100dvh;}
+    header{
+      position:relative;
+      padding:24px clamp(20px,4vw,40px);
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .logo{
+      display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit;
+    }
+    .logo-dog{
+      width:40px; height:40px; border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, #fff 0 30%, #f0f0f0 31% 100%);
+      box-shadow: 0 4px 12px rgba(0,0,0,.08);
+      position:relative;
+    }
+    .logo-dog:before,.logo-dog:after{
+      content:""; position:absolute; background:#754f2e; border-radius:50%;
+    }
+    .logo-dog:before{width:8px; height:8px; left:11px; top:13px;}
+    .logo-dog:after{width:8px; height:8px; right:11px; top:13px;}
+    .logo-dog .nose{
+      position:absolute; left:50%; transform:translateX(-50%);
+      bottom:9px; width:10px; height:8px; background:#333; border-radius:50% 50% 40% 40%;
+    }
+    nav a{
+      color:var(--dark); text-decoration:none; font-weight:700; padding:8px 12px;
+      border-radius:8px;
+    }
+    nav a:hover{background:#eaf5ee}
+
+    /* Hero */
+    .hero{
+      position:relative;
+      padding: clamp(20px, 6vw, 60px);
+      display:grid; grid-template-columns: 1.2fr 1fr; gap: clamp(20px, 4vw, 48px);
+      align-items:center;
+    }
+
+    .title{
+      font-family:"Jua", "Nanum Gothic", sans-serif;
+      font-weight:400;
+      font-size: clamp(28px, 6vw, 64px);
+      line-height:1.1;
+      color:var(--dark);
+      margin:0 0 12px;
+      letter-spacing:0.5px;
+    }
+    .subtitle{
+      font-size: clamp(15px, 2.4vw, 18px);
+      color:#3c5a52;
+      margin:0 0 24px;
+    }
+    .cta{
+      display:flex; gap:12px; flex-wrap:wrap;
+    }
+    .btn{
+      appearance:none; border:0; cursor:pointer;
+      padding:12px 18px; border-radius:12px; font-weight:700;
+      transition:transform .08s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .btn-primary{
+      background:var(--green); color:white;
+      box-shadow: 0 8px 20px rgba(90,169,107,.25);
+    }
+    .btn-primary:hover{transform:translateY(-1px)}
+    .btn-ghost{
+      background:#eaf5ee; color:#256b4a;
+    }
+
+    /* Scene Illustration */
+    .scene{
+      position:relative; min-height:300px; border-radius:20px;
+      background:
+        linear-gradient(to top, #c6e6ff 0 60%, #f7fbf5 60% 100%);
+      overflow:hidden;
+      box-shadow: 0 12px 30px rgba(0,0,0,.08);
+    }
+    .sun{
+      position:absolute; width:90px; height:90px; border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, #fff59e 0%, #ffd95e 70%, #ffcc3d 100%);
+      top:24px; right:24px; box-shadow: 0 0 40px rgba(255,220,100,.5);
+      animation: floatSun 8s ease-in-out infinite;
+    }
+    @keyframes floatSun{
+      0%,100%{transform:translateY(0)}
+      50%{transform:translateY(8px)}
+    }
+    .hill{position:absolute; bottom:-10px; left:-10%; width:130%; height:160px; background:
+      radial-gradient(120% 100% at 0% 0%, #7ac48b 0%, #65b37a 60%, #58a26d 100%);
+      border-top-left-radius:50% 30%; border-top-right-radius:50% 30%;
+    }
+    .tree{position:absolute; bottom:70px; width:24px; height:90px; left:60px;}
+    .tree:before{content:""; position:absolute; width:10px; height:50px; background:#7a5a44; bottom:0; left:7px; border-radius:4px}
+    .tree:after{content:""; position:absolute; width:0; height:0; border-left:28px solid transparent; border-right:28px solid transparent; border-bottom:60px solid #2f7d55; left:-16px; bottom:40px; filter:drop-shadow(0 4px 6px rgba(0,0,0,.2))}
+    .paw{
+      position:absolute; bottom:22px; right:24px; display:flex; gap:6px; align-items:flex-end; color:#2f7d55; font-size:22px;
+    }
+
+    /* Stamp Card Preview */
+    .card{
+      background:var(--card); border:2px dashed #e1d4b1; border-radius:18px;
+      padding:18px; max-width:640px; margin: 16px 0 0; box-shadow: 0 8px 24px rgba(0,0,0,.06);
+    }
+    .card h3{
+      margin:0 0 12px; font-size:20px; color:#524b3a;
+    }
+    .grid{
+      display:grid; gap:10px; grid-template-columns: repeat(5, 1fr);
+    }
+    @media (max-width:560px){ .grid{grid-template-columns: repeat(4,1fr)} }
+    .stamp{
+      aspect-ratio:1/1; background:#fff; border:1.6px solid #e0d6c5; border-radius:12px;
+      display:grid; place-items:center; font-size:22px; color:#c08a4b; position:relative; overflow:hidden;
+    }
+    .stamp.done{
+      color:white; background: conic-gradient(from 180deg at 50% 50%, #ffb3a3, #ff8b6a, #dd3b3b 70%, #ff8b6a);
+      border-color:#e89e8e;
+    }
+    .stamp .label{
+      position:absolute; bottom:8px; left:8px; font-size:10px; color:#7f6e54; font-weight:700; letter-spacing:.2px;
+    }
+
+    /* Info Section */
+    .info{
+      padding: 12px clamp(20px,4vw,40px) 40px;
+      display:grid; gap:20px; grid-template-columns: 1fr 1fr;
+    }
+    @media (max-width:860px){ .info{grid-template-columns:1fr} }
+    .notice{
+      background:#fff; border-left:6px solid var(--green); border-radius:12px;
+      padding:16px; box-shadow: 0 6px 18px rgba(0,0,0,.05)
+    }
+    .notice h4{margin:0 0 8px; font-size:18px}
+    .notice p{margin:0; color:#3d5248}
+
+    /* Footer */
+    footer{
+      margin-top:auto; padding:16px clamp(20px,4vw,40px);
+      background:linear-gradient(to right, #eaf5ee, #f7fbf5);
+      color:#355a4f; font-size:13px;
+    }
+
+    /* Decorative stamp mark */
+    .stamp-mark{
+      position:absolute; left:18px; top:18px; width:86px; height:86px; border-radius:50%;
+      border:3px solid var(--stamp);
+      opacity:.15; transform: rotate(-8deg);
+    }
+    .stamp-mark::before{
+      content:"PARK TOUR"; position:absolute; inset:8px; border:3px dashed var(--stamp); border-radius:50%;
+    }
+    .stamp-mark::after{
+      content:"🐾"; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font-size:28px;
+    }
+
+    @media (max-width: 600px){
+      .hero{grid-template-columns: 1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <a class="logo" href="#">
+        <div class="logo-dog"><span class="nose"></span></div>
+        <strong>수지달의 스탬프 투어</strong>
+      </a>
+      <nav>
+        <a href="#intro">소개</a>
+        <a href="#howto">참여방법</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="intro">
+        <div>
+          <h1 class="title">수지달의 스탬프 투어</h1>
+          <p class="subtitle">
+            수지달과 함께 스탬프를 모으는 즐거움.<br>
+            산책의 순간들이 작은 기념으로 남습니다.
+          </p>
+          <div class="cta">
+            <button class="btn btn-primary">스탬프 시작하기</button>
+            <button class="btn btn-ghost">가이드 보기</button>
+          </div>
+
+          <div class="card" aria-label="스탬프 카드 미리보기">
+            <div class="stamp-mark" aria-hidden="true"></div>
+            <h3>오늘의 산책 스탬프</h3>
+            <div class="grid">
+              <div class="stamp done"><span>🐶</span><span class="label">입구</span></div>
+              <div class="stamp"><span>🌳</span><span class="label">큰 나무</span></div>
+              <div class="stamp"><span>💧</span><span class="label">분수대</span></div>
+              <div class="stamp"><span>🛝</span><span class="label">놀이터</span></div>
+              <div class="stamp"><span>🌼</span><span class="label">꽃밭</span></div>
+              <div class="stamp"><span>🪵</span><span class="label">벤치</span></div>
+              <div class="stamp"><span>🦮</span><span class="label">견견존</span></div>
+              <div class="stamp"><span>☕</span><span class="label">카페</span></div>
+              <div class="stamp"><span>📷</span><span class="label">포토존</span></div>
+              <div class="stamp"><span>🌅</span><span class="label">전망대</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="scene" role="img" aria-label="햇살 좋은 공원과 초원, 나무, 수지달 발자국">
+          <div class="sun" aria-hidden="true"></div>
+          <div class="tree" style="left: 20%"></div>
+          <div class="tree" style="left: 38%"></div>
+          <div class="tree" style="left: 68%"></div>
+          <div class="hill"></div>
+          <div class="paw" aria-hidden="true">🐾 🐾 🐾</div>
+        </div>
+      </section>
+
+      <section class="info" id="howto" aria-label="참여 방법">
+        <div class="notice">
+          <h4>참여 방법</h4>
+          <p>공원 내 체크포인트에서 QR을 스캔하면 스탬프가 자동으로 찍혀요. 모든 포인트를 완주하면 기념 뱃지를 드립니다.</p>
+        </div>
+        <!--div class="notice">
+          <h4>반려견 에티켓</h4>
+          <p>짧은 리드줄을 사용하고, 배변 봉투를 꼭 지참해주세요. 다른 이용자와 반려동물을 배려하는 산책 문화 함께 만들어요.</p>
+        </div-->
+      </section>
+    </main>
+
+    <!--footer>
+      © 2025 수지달의 스탬프 투어
+    </footer-->
+  </div>
+</body>
+</html>
