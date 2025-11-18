@@ -162,13 +162,7 @@
                     const colors = ['#ef4444', '#3b82f6', '#22d3ee'];  //빨강, 파랑, 민트
     //                const colorIndex = index % 3;
 
-                    const segments = prizes.map((p, index) => ({
-    //                    'fillStyle': index % 2 === 0 ? '#1f4068' : '#162447',
-                        'fillStyle': colors[index % 3],
-                        'text': p.name,
-                        'size': (p.remaining_quantity / totalQuantity) * 360,
-                        'prizeId': p.id
-                    }));
+                    const segments = prizes;
 
                     theWheel = new Winwheel({
                         'centerX': 175,
