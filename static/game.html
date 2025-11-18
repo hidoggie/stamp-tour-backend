@@ -211,7 +211,7 @@
                         alert(`축하합니다! '${result.prizeName}'에 당첨되었습니다!`);
                         wheelSpinning = false;
                         spinButton.innerHTML = "<span class='highlight'>🎁 " + result.prizeName + "</span> 에 당첨되었습니다.";
-                        document.querySelector('p').textContent = "부스에서 화면을 보여주고 경품을 수령하세요!";
+                        InfoBox1.textContent = "부스에서 화면을 보여주고 경품을 수령하세요!";
                         backButton.disabled = false; // 이제 이동 가능
                     };
                     theWheel.startAnimation();
