@@ -179,16 +179,13 @@ async function recordWinner(userId, eventId, prizeId, prizeName) {
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-        console.log(`[Debug] 트랜잭션 시작: User=${userId}, Event=${eventId}, Prize=${prizeId}`);   //삽입1
-
+        
         // ✨ 1. 교환권 코드를 이 함수 안에서 생성합니다.
         const redeemCode = Math.random().toString(36).substring(2, 8).toUpperCase();
         
         const today = new Date();
  
         // 1. UserProgress 테이블에 당첨 정보 업데이트
-        console.log("[Debug] UserProgress 업데이트 시도...");  //삽입2
-
         await client.query(
             `UPDATE "userprogress" SET prize_won_id = $1, is_redeemed = 1, redeem_code = $2
              WHERE user_id = $3 AND event_id = $4`,
