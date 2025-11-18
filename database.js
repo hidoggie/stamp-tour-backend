@@ -153,7 +153,7 @@ async function getStats(date) {
 }
 
 // --- 경품 관련 함수 ---
-async function getRemainingPrizes() {
+async function getRemainingPrizes(eventId) {
     const res = await pool.query(
         'SELECT id, name, remaining_quantity FROM prizes WHERE remaining_quantity > 0 AND event_id = $1 ORDER BY id',
         [eventId]);
