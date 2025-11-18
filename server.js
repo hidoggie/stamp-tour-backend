@@ -115,7 +115,7 @@ app.post('/api/spin', async (req, res) => {
         if (!userId || !event_id) return res.status(400).json({ error: 'userId와 event_id가 필요합니다.' });
 
         // 2a. 이벤트 정보(총 스탬프 개수) 가져오기
-        const event = await db.getEventInfo(event_id);
+        const event = await db.getEventConfig(event_id);
         if (!event) {
             return res.status(404).json({ error: '존재하지 않는 이벤트입니다.' });
         }
@@ -196,7 +196,7 @@ app.get('/api/check-eligibility/:userId', async (req, res) => {
         if (!event_id) return res.status(400).json({ error: 'event_id가 필요합니다.' });
 
         // 1. 이벤트의 총 스탬프 개수 확인
-        const event = await db.getEventInfo(event_id);
+        const event = await db.getEventConfig(event_id);
         if (!event) return res.status(404).json({ eligible: false, reason: '존재하지 않는 이벤트입니다.' });
         
         // 2. 사용자의 진행 상황 확인
