@@ -97,17 +97,40 @@ app.post('/api/register-user', async (req, res) => {
 // [수정] 룰렛 경품 목록 (event_id 추가)
 app.get('/api/prizes', async (req, res) => {
     try {
+        // 1. URL 쿼리에서 'event_id'를 가져옵니다.
         const { event_id } = req.query;
-        if (!event_id) return res.status(400).json({ error: 'event_id가 필요합니다.' });
+        if (!event_id) {
+            return res.status(400).json({ error: 'event_id가 필요합니다.' });
+        }
         
+        // 2. DB에서 '해당 이벤트'에 속한, 재고가 남은 경품만 조회합니다.
         const prizes = await db.getRemainingPrizes(event_id);
-        // ... (룰렛 segments 계산 로직은 이전과 동일)
+
+        if (!prizes || prizes.length === 0) {
+            return res.json([]); // 재고가 없으면 빈 배열 반환
+        }
+
+        // 3. 룰렛을 그리기 위해, 경품 데이터를 '세그먼트' 정보로 가공합니다.
+        const totalQuantity = prizes.reduce((sum, p) => sum + p.remaining_quantity, 0);
+        if (totalQuantity === 0) {
+             return res.json([]); // 총재고가 0이어도 빈 배열 반환
+        }
+
+        const segments = prizes.map((p, index) => ({
+            'fillStyle': ['#ef4444', '#3b82f6', '#22d3ee'][index % 3],
+            'text': p.name,
+            'size': (p.remaining_quantity / totalQuantity) * 360, // 서버가 각도를 계산
+            'prizeId': p.id
+        }));
+        
+        // 4. 가공된 '세그먼트' 정보를 프론트엔드에 전달합니다.
         res.json(segments);
+
     } catch (err) {
-        res.status(500).json({ error: '경품 정보 조회 오류' });
+        console.error("경품 정보 조회 오류:", err.message);
+        res.status(500).json({ error: '경품 정보를 가져오는 중 오류가 발생했습니다.' });
     }
 });
-
 // 룰렛 돌리기
 app.post('/api/spin', async (req, res) => {
     try {
