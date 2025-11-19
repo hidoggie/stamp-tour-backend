@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이벤트 퀴즈</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background-color: #1a1a2e; color: white; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .quiz-card { background-color: #162447; padding: 20px; border-radius: 15px; margin-top: 20px; }
+        .question { font-size: 1.3em; margin-bottom: 20px; font-weight: bold; }
+        .options button {
+            display: block; width: 100%; padding: 15px; margin: 10px 0;
+            border: 2px solid #1f4068; background-color: #1f4068; color: white;
+            border-radius: 10px; font-size: 1.1em; cursor: pointer; transition: 0.3s;
+        }
+        .options button:hover { background-color: #e43f5a; border-color: #e43f5a; }
+        .hidden { display: none; }
+        #progress { margin-bottom: 10px; color: #aaa; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧩 파이널 퀴즈</h1>
+        <p>경품을 받으려면 퀴즈를 통과해야 합니다!</p>
+        
+        <div id="progress"></div>
+        
+        <div id="quiz-area" class="quiz-card">
+            <div id="question-text" class="question">로딩 중...</div>
+            <div id="options-area" class="options"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const userId = localStorage.getItem('userId');
+            const urlParams = new URLSearchParams(window.location.search);
+            const eventId = urlParams.get('event_id');
+            
+            if (!userId || !eventId) {
+                alert("잘못된 접근입니다.");
+                window.location.href = 'map.html';
+                return;
+            }
+
+            let quizzes = [];
+            let currentQuizIndex = 0;
+
+            try {
+                // 1. 서버에서 퀴즈 데이터 가져오기
+                const response = await fetch(`/api/quiz-config/${eventId}`);
+                if (!response.ok) throw new Error("퀴즈 정보를 불러올 수 없습니다.");
+                quizzes = await response.json(); // JSON 배열 [ {q:..., a:..., options:[]}, ... ]
+
+                if (quizzes.length === 0) {
+                    alert("등록된 퀴즈가 없습니다.");
+                    finishQuiz(); // 퀴즈가 없으면 바로 통과 처리
+                } else {
+                    showQuiz(0);
+                }
+            } catch (e) {
+                alert(e.message);
+            }
+
+            function showQuiz(index) {
+                const quiz = quizzes[index];
+                document.getElementById('progress').textContent = `문제 ${index + 1} / ${quizzes.length}`;
+                document.getElementById('question-text').textContent = quiz.question;
+                
+                const optionsArea = document.getElementById('options-area');
+                optionsArea.innerHTML = '';
+                
+                quiz.options.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.textContent = opt;
+                    btn.onclick = () => checkAnswer(idx);
+                    optionsArea.appendChild(btn);
+                });
+            }
+
+            function checkAnswer(selectedIndex) {
+                const correctIndex = quizzes[currentQuizIndex].answer_index; // 0부터 시작하는 정답 인덱스
+                
+                if (selectedIndex === correctIndex) {
+                    alert("정답입니다! 🎉");
+                    currentQuizIndex++;
+                    
+                    if (currentQuizIndex < quizzes.length) {
+                        showQuiz(currentQuizIndex);
+                    } else {
+                        finishQuiz();
+                    }
+                } else {
+                    alert("오답입니다. 다시 시도해주세요. 😅");
+                }
+            }
+
+            async function finishQuiz() {
+                try {
+                    // 2. 서버에 퀴즈 완료 기록
+                    await fetch('/api/quiz/complete', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId, eventId })
+                    });
+
+                    alert("축하합니다! 모든 퀴즈를 통과했습니다.");
+                    
+                    // 3. 룰렛 페이지로 이동 (이벤트 설정에 따라 다를 수 있음)
+                    // has_roulette 여부는 여기서 알 수 없으므로, 일단 game.html로 보내면
+                    // game.html에서 자격 확인 후 처리하도록 합니다.
+                    window.location.href = `game.html?event_id=${eventId}`;
+
+                } catch (e) {
+                    console.error(e);
+                    alert("처리 중 오류가 발생했습니다.");
+                }
+            }
+        });
+    </script>
+</body>
+</html>

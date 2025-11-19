@@ -221,15 +221,16 @@
                 // --- A. 모든 스탬프를 모았을 때 ---
                     resultTitle.textContent = "🎉 모든 스탬프를 모았습니다!";
 
-                    if (eventConfig.has_roulette) {
+                    if (eventConfig.has_quiz) {
+                    // ✨ 퀴즈가 있는 이벤트라면 퀴즈 페이지로 이동
+                        indexBtn.textContent = "📝 최종 퀴즈 풀기";
+                        indexBtn.onclick = () => {
+                            window.location.href = `quiz.html?event_id=${eventId}`;
+                        };
+                    } else if (eventConfig.has_roulette) {
                         indexBtn.textContent = "🎁 룰렛 돌리기";
                         indexBtn.onclick = () => {
                             window.location.href = `game.html?event_id=${eventId}`;
-                        };
-                    } else if (eventConfig.has_quiz) {
-                        indexBtn.textContent = "📝 퀴즈 풀기";
-                        indexBtn.onclick = () => {
-                            window.location.href = `stamptour.html?planet=final_quiz&event_id=${eventId}`;
                         };
                     } else {
                         indexBtn.textContent = "🗺️ 메인 페이지로 이동";
