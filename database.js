@@ -337,7 +337,7 @@ async function completeQuiz(userId, eventId) {
 async function getQuizConfig(eventId) {
     if (!eventId) return null;
     const res = await pool.query(
-        "SELECT quiz_config FROM Events WHERE event_id = $1",
+        "SELECT quiz_config FROM events WHERE event_id = $1",
         [eventId]
     );
     // quiz_config 컬럼의 값 (JSON)을 반환
