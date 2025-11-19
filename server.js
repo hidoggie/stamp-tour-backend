@@ -352,15 +352,16 @@ app.get('/api/event-config/:event_id', async (req, res) => {
 // ✨ 1. 퀴즈 설정 가져오기 API
 app.get('/api/quiz-config/:event_id', async (req, res) => {
     try {
-        const { event_id } = req.params;
-        const result = await db.pool.query("SELECT quiz_config FROM events WHERE event_id = $1", [event_id]);
+        const quizConfig = await db.getQuizConfig(event_id);
         
-        if (result.rows.length > 0 && result.rows[0].quiz_config) {
-            res.json(result.rows[0].quiz_config);
+        if (quizConfig) {
+            res.json(quizConfig);
         } else {
+            // 데이터는 있지만 quiz_config 컬럼이 비어있거나, 이벤트가 없는 경우
             res.status(404).json({ error: '퀴즈 설정이 없습니다.' });
         }
     } catch (e) {
+        console.error("퀴즈 설정 조회 오류:", e.message);
         res.status(500).json({ error: e.message });
     }
 });

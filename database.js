@@ -334,6 +334,15 @@ async function completeQuiz(userId, eventId) {
     }
 }
 
+async function getQuizConfig(eventId) {
+    if (!eventId) return null;
+    const res = await pool.query(
+        "SELECT quiz_config FROM Events WHERE event_id = $1",
+        [eventId]
+    );
+    // quiz_config 컬럼의 값 (JSON)을 반환
+    return res.rows[0]?.quiz_config; 
+}
 // 서버 시작 시 DB 셋업
 setupDatabase();
 
@@ -352,4 +361,5 @@ module.exports = {
     registerUser,
     getUserProgress,
     completeQuiz,
+    getQuizConfig,
 };
