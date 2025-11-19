@@ -349,6 +349,33 @@ app.get('/api/event-config/:event_id', async (req, res) => {
     }
 });
 
+// ✨ 1. 퀴즈 설정 가져오기 API
+app.get('/api/quiz-config/:event_id', async (req, res) => {
+    try {
+        const { event_id } = req.params;
+        const result = await db.pool.query("SELECT quiz_config FROM events WHERE event_id = $1", [event_id]);
+        
+        if (result.rows.length > 0 && result.rows[0].quiz_config) {
+            res.json(result.rows[0].quiz_config);
+        } else {
+            res.status(404).json({ error: '퀴즈 설정이 없습니다.' });
+        }
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// ✨ 2. 퀴즈 완료 처리 API
+app.post('/api/quiz/complete', async (req, res) => {
+    try {
+        const { userId, eventId } = req.body;
+        await db.completeQuiz(userId, eventId);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // --- 6. 서버 시작 ---
 server.listen(PORT, () => {
     console.log(`🎉 스탬프 투어 서버가 http://localhost:${PORT} 에서 실행 중입니다.`);

@@ -49,7 +49,8 @@ async function setupDatabase() {
                 has_roulette BOOLEAN DEFAULT false,
                 has_ar BOOLEAN DEFAULT false,
                 auto_collect BOOLEAN DEFAULT false,
-                theme_config JSONB
+                theme_config JSONB,
+                quiz_config JSONB
             );
         `);
 
@@ -95,6 +96,7 @@ async function setupDatabase() {
                 prize_won_id INTEGER REFERENCES Prizes(id),
                 is_redeemed INTEGER DEFAULT 0,
                 redeem_code VARCHAR(255),
+                quiz_completed BOOLEAN DEFAULT false,
                 UNIQUE(user_id, event_id)
             );
         `);
@@ -319,6 +321,19 @@ async function registerUser(userId, name, phone, email) {
     await pool.query(sql, [userId, name, phone, email]);
 }
 
+// ✨ 3. 퀴즈 완료 처리를 위한 함수 추가
+async function completeQuiz(userId, eventId) {
+    const client = await pool.connect();
+    try {
+        await client.query(
+            "UPDATE userprogress SET quiz_completed = true WHERE user_id = $1 AND event_id = $2",
+            [userId, eventId]
+        );
+    } finally {
+        client.release();
+    }
+}
+
 // 서버 시작 시 DB 셋업
 setupDatabase();
 
@@ -336,4 +351,5 @@ module.exports = {
     getEventConfig,
     registerUser,
     getUserProgress,
+    completeQuiz,
 };
