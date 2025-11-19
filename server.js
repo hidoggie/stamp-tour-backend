@@ -352,6 +352,8 @@ app.get('/api/event-config/:event_id', async (req, res) => {
 // ✨ 1. 퀴즈 설정 가져오기 API
 app.get('/api/quiz-config/:event_id', async (req, res) => {
     try {
+        const event_id = req.params.event_id;
+        
         const quizConfig = await db.getQuizConfig(event_id);
         
         if (quizConfig) {
