@@ -2,752 +2,448 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, user-scalable=no"
-    />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-
-    <title>Suzisoft_스탬프투어</title>
-      <!-- Pretendard Font -->
-    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
-
-    <script src="./js/aframe150.js"></script>
-    <script src="./js/aframe-ar.js"></script>
-    <script src="./js/aframe-extras.min.js"></script>
-
-    <script>
-        function setScreenHeight() {
-            let vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${vh}px`);
-        }
-        window.addEventListener('resize', setScreenHeight);
-        setScreenHeight(); // 최초 실행
-    </script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>스탬프 미션</title>
     <style>
-        * {
+        /* --- 1. 기본 스타일 (우주 테마) --- */
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: #1a1a2e; /* 깊은 우주색 */
+            color: white;
             margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
 
-        html, body {
+        .container {
+            width: 100%;
+            max-width: 500px; /* 모바일 최적화 */
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        h1 {
+            color: #e94560;
+            margin-bottom: 5px;
+            font-size: 1.8rem;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+        }
+
+        /* --- 2. 비디오 영역 --- */
+        #video-container {
+            width: 100%;
+            background-color: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        video {
+            width: 100%;
+            display: block;
+        }
+
+        /* --- 3. 퀴즈 영역 --- */
+        #quiz-container {
+            background-color: #162447;
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid #1f4068;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        #question {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+        #options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        #options button {
+            padding: 15px;
+            background-color: #1f4068;
+            color: white;
+            border: 2px solid #1f4068;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+        #options button:hover {
+            background-color: #e43f5a;
+            border-color: #e43f5a;
+            transform: translateY(-2px);
+        }
+
+        /* --- 4. 결과 및 메시지 영역 --- */
+        #result-container {
+            background-color: rgba(22, 36, 71, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #4cd137; /* 성공 녹색 */
+        }
+        #result-message {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #4cd137;
             margin: 0;
-            padding: 0;
-            width: 100%;
-            height: calc(var(--vh, 1vh) * 100);
-            overflow: hidden; /* 불필요한 스크롤바 방지 */
         }
 
-        a-scene {
-            width: 100%;
-            height: calc(var(--vh, 1vh) * 100);
+        /* --- 5. 스탬프 카드 (현황판) --- */
+        #stamp-card-container {
+            background-color: #162447;
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 10px;
         }
-        .view-container {
-            width: 100%; height: 100%;
-            position: absolute; top: 0; left: 0;
+        .stamp-card {
+            display: grid;
+            gap: 10px;
+            /* grid-columns는 JS에서 설정됨 */
+            background-size: cover;
+            background-position: center;
+            border-radius: 10px;
+            padding: 10px;
         }
-
-        body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-               text-align: center; background-color: #111827; color: white; margin: 0;  font-size: 14px; line-height: 1.5;}
-        .container { max-width: 448px; margin: 0 auto; padding: 16px; min-height: calc(var(--vh, 1vh) * 100); }
-
-        .modal {
-            position: fixed;
-            z-index: 20;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: calc(var(--vh, 1vh) * 100);
-            background-color: rgba(0,0,0,0.5);
+        .stamp-slot {
+            aspect-ratio: 1/1;
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
         }
-        .modal-content {
-            background-color: white;
-            color: black;
-            padding: 20px 40px;
+        .stamp-slot img {
+            width: 90%;
+            height: 90%;
+            object-fit: contain;
+            opacity: 0.3; /* 기본 흐림 */
+            transition: opacity 0.5s, transform 0.5s;
+        }
+        .stamp-slot.stamped img {
+            opacity: 1; /* 획득 시 선명 */
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.8));
+        }
+
+        /* --- 6. 하단 버튼 --- */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
             border-radius: 10px;
-            font-size: 1.2em;
-            text-align: center;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            transition: background 0.3s;
         }
-        .hidden { display: none; }
-        #video-player { width: 100%; max-width: 640px; border-radius: 10px; margin-bottom: 20px; }
-        
-        /* 퀴즈 섹션 */
-        #quiz-container { background-color: #1f2937; padding: 16px; border-radius: 12px; border: 1px solid #4b5563; margin-top: 30px; margin-bottom: 16px; backdrop-filter: blur(8px);} 
-        #question { font-size: 1.5em; margin-bottom: 20px; }
-        .options { display: grid; grid-template-columns: 1fr; }
-        .options button { margin-bottom: 15px; padding: 15px; font-size: 1.1em; cursor: pointer; border: 2px solid #4b5563;; background-color: #1f4068; color: white; border-radius: 8px; transition: background-color 0.3s; }
-        .options button:hover { background-color: #e43f5a; }
-        
-        /* 스탬프 카드 섹션 */
-        #stamp-card-container { margin-top: 30px; }
-        .stamp-card { 
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 12px; 
-            background-color: #374151; 
-            padding: 15px; 
-            border-radius: 10px; 
-            margin-bottom: 24px; 
-            border: 1px solid #4b5563;}
-        .stamp-slot { 
-            transition: all 0.15s ease-in-out; 
-            background-color: #374151; 
-            border-color: #6b7280; 
-            border-radius: 50%;  
-            align-items: center; 
-            justify-content: center; 
-            display: flex; 
-            position: relative;  
-            margin-bottom: 1.2em;}
-        .stamp-slot img { max-width: 80%; max-height: 80%; opacity: 0.3; }
-        .stamp-slot.stamped img { opacity: 1; transform: scale(1.1); transition: transform 0.5s; }
-        .planet-name { font-size: 1.2em; margin-top: 6.5em; position: absolute; }
-        
-        /* 결과 및 네비게이션 */
-        #result-container { margin-top: 20px; }
-        .nav-buttons {display: flex; }
-        .nav-buttons button { 
-            flex: 1; 
-            align-items: center; 
-            background-color: transparent; 
-            padding: 12px 12px; 
-            font-size: 1.2em; 
-            font-weight: 500; 
-            font-family: inherit;
-            cursor: pointer; 
-            border-radius: 8px; 
-            border: 1px solid #6b7280;
-            color: #d1d5db;
-            margin: 0 8px; }
-        .btn-map { background-color: #0f3460; }
-        .btn-photo { background-color: #1f4068; }
+        .btn-primary { background-color: #007bff; }
+        .btn-secondary { background-color: #6c757d; }
+        .btn:hover { opacity: 0.9; }
 
-        #ar-view, #video-quiz-view { width: 100%; height: 100%; }
+        /* 유틸리티 */
+        .hidden { display: none !important; }
 
-    dialog {
-        top: calc(var(--vh, 1vh) * 15);
-        left: 11vw;
-        width: 80%;
-        padding: 20px 10px;
-        border-radius: 1rem;
-        min-width: 11rem;
-        position: fixed; /* Essential for custom positioning */
-    }
-
-    .AlertInfo {
-        color: #facc15;
-        font-size: 2rem;
-        margin-top: 0;
-        margin-top: 10px;
-    }
-    #info_top {
-        display: flex; 
-        align-items: center;
-        position: fixed; 
-        top: calc(var(--vh, 1vh) * 6);
-        text-align: center; 
-        width: 100%; 
-        color: white; 
-        z-index:10; 
-        background: rgba(0,0,0,0.5); 
-        padding: 20px;
-        gap: 20px;
-     }
-
-    #info {
-        display: flex; 
-        align-items: center;
-        position: fixed; 
-        top: calc(var(--vh, 1vh) * 85);
-        text-align: center; 
-        width: 100%; 
-        color: white; 
-        z-index:10; 
-        background: rgba(0,0,0,0.5); 
-        padding: 20px;
-        gap: 20px;
-     }
-
-     .image-item {
-      margin-left: 1em;
-      margin-right: 1em; /* 이미지와 텍스트 사이 간격 */
-      width: 2em; 
-      height: 2em;
-    }
-
-    .text-item {
-      width: 80vw; /* 텍스트 너비 조정 */
-    }
-
-  .center-wrapper {
-    display: flex;
-    justify-content: center;   /* 수평 가운데 */
-    align-items: center;       /* 수직 가운데 */
-    height: 15rem;             /* 원하는 높이 설정 */
-  }
-
-  .square-image {
-    overflow-x: auto;
-    width: 30rem;
-    border-radius: 15px;         /* 사각형으로 만들기 */
-    overflow: hidden;           /* 이미지가 영역을 넘지 않도록 */
-    border: 2px solid #ccc;     /* 테두리 (선택사항) */
-  }
-
-  .square-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;          /* 이미지 비율 유지하며 채우기 */
-  } 
-
-  .PrizeModal {
-        background-color: #141c2b;
-        color: #5da0f3;
-        top: calc(var(--vh, 1vh) * 28);
-        left: 5.5vw;
-        width: 90vw;
-        padding: 20px 10px;
-        border-radius: 1rem;
-        border: 2px solid #00d3f3;
-        min-width: 11rem;
-        position: fixed; /* Essential for custom positioning */
-  }
-  .prizelocInfo {
-    color: #facc15;
-    font-size: 1.3rem;
-    margin: 10px 25px;
-  }
-  .PrizeCloseBtn {
-    margin: 15px;
-    padding: 10px; 
-    border-radius: 8px;
-    width: 78vw; 
-    font-size: 1rem;
-    background-color: #0088c9;
-    color: #f8fbfe;
-    border: 3px solid #00d3f3;
-  }
+        /* --- 7. 축하 팝업 (Dialog) --- */
+        dialog {
+            background: #1a1a2e;
+            color: white;
+            border: 2px solid #e43f5a;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        dialog::backdrop {
+            background: rgba(0, 0, 0, 0.7);
+        }
+        dialog button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #e43f5a;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
-<body style="margin: 0; overflow: hidden;">
+<body>
 
-<div class="container">
-    <h1 id="planet-title" style="font-size: 2em; margin-top: 16px; margin-bottom: 16px;">스탬프투어</h1>
-
-    <div id="quiz-container" class="hidden">
-        <div id="Planet-Info"></div>
-        <h2 id="question"></h2>
-        <div id="options" class="options"></div>
-    </div>
-
-    <div id="result-container" class="hidden">
-        <p id="result-message" style="font-size: 1.3em; margin-top: 1.2em; margin-bottom: 1.2em; color: #facc15;"></p>
-        <div id="explain" style="background-color: #1e40af; color: #bfdbfe; border: 1px solid #4b5563; border-radius: 8px; padding: 12px; margin-bottom: 1.5em; font-size: 16px;" class="hidden"></div>
-    </div>
-    
-    <div id="stamp-card-container" class="hidden">
-        <h2 style="margin-bottom: 0.5em;">🃏 스탬프 컬렉션</h2>
-        <div id="countinfo" style="color: #e5e7eb; font-size: 1.3em; margin-bottom: 1em; ">수집한 행성 카드를 확인해보세요</div>
-        <div id="stamp-card" class="stamp-card"></div>
-        <div class="nav-buttons">
-            <button id="map-btn" class="btn-map">🗺️ 행성 지도</button>
-            <button id="photo-btn" class="btn-photo">📸 AR 포토존</button>
-        </div>
-    </div>    
-
-</div>
-    <div id="ar-view">
-        <a-scene
-            id="scene"
-            vr-mode-ui="enabled: false"
-            arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
-            renderer="logarithmicDepthBuffer: true"
-            emitevents="true" 
-            cursor="rayOrigin: mouse"
-            raycaster="objects: #joayong-model"
-        >
-
-            <a-entity scale="0 0 0" animation="property: scale; to: 1 1 1; loop: false; dur: 3000">
-              <a-entity
-                id="planet-model"
-                rotation="10 -15 0"
-                animation-mixer
-                selective-click>
-              </a-entity>
-            </a-entity>
-
-            <a-entity rotation="0 0 0" animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
-              <a-entity
-                id="joayong-model"
-                rotation="20 -30 0"
-                animation-mixer
-                selective-click>
-              </a-entity>
-            </a-entity>
-            
-            <a-entity movement-controls="fly: true">
-            <a-entity cursor="rayOrigin: mouse" raycaster="objects: #joayong-model" position="0 1.6 0" camera look-controls="touchEnabled: false; mouseEnabled: false" wasd-controls></a-entity>
-            <!--a-light type="ambient" intensity="2"></a-light-->
-        </a-scene>
-
-        <div id="info_top">
-            <img src="./images/alert.gif" alert="알림 이미지" class="image-item">
-            <p class="text-item">조아용이 행성 주변을 돌며 구조를 기다리고 있습니다.</p>
-            <img src="./images/alert.gif" alert="알림 이미지" class="image-item">
+    <div class="container">
+        <div>
+            <div style="font-size: 0.9rem; color: #aaa;">현재 위치</div>
+            <h1 id="planet-title">행성 로딩 중...</h1>
         </div>
 
-        <div id="info">
-            <img src="./images/alert.gif" alert="알림 이미지" class="image-item">
-            <p class="text-item">휴대폰을 천천히 360도 돌려서 조아용을 찾아 터치하세요. </p>
-            <img src="./images/alert.gif" alert="알림 이미지" class="image-item">
+        <div id="video-container" class="hidden">
+            <video id="video-player" controls playsinline>
+                <source src="" type="video/mp4">
+                브라우저가 비디오를 지원하지 않습니다.
+            </video>
+            <p style="font-size: 0.9em; color: #ccc; margin-top: 5px;">영상을 끝까지 시청하면 퀴즈가 나옵니다!</p>
+        </div>
+
+        <div id="quiz-container" class="hidden">
+            <div style="color: #4cd137; font-weight: bold; margin-bottom: 10px;">Q. 퀴즈를 풀어보세요!</div>
+            <div id="question">문제 로딩 중...</div>
+            <div id="options">
+                </div>
+        </div>
+
+        <div id="result-container" class="hidden">
+            <div id="result-message">결과 메시지</div>
+        </div>
+
+        <div id="stamp-card-container" class="hidden">
+            <div style="text-align: left; margin-bottom: 5px; font-weight: bold;">내 스탬프 현황</div>
+            <div id="stamp-card" class="stamp-card"></div>
+        </div>
+
+        <div class="btn-group">
+            <button id="photo-btn" class="btn btn-secondary hidden">📸 인증샷 찍기</button>
+            <button id="map-btn" class="btn btn-primary">🗺️ 지도 화면으로</button>
         </div>
     </div>
 
-    <div id="quiz-modal" class="modal hidden">
-        <div class="modal-content">
-            <p>퀴즈 화면으로 이동합니다...</p>
-        </div>
-    </div>
-
-    <dialog id="myAlertDialog" class="hidden">
-       <h2  class="AlertInfo">축하합니다!</h2>
-       <p>모든 행성 스탬프를 모았습니다. <br>부스로 이동하여 QR코드 스캔 후 경품을 수령하세요!</p>
-       <button onclick="myAlertDialog.close()" style="width: 10vw; height: 2rem;">확인</button>
+    <dialog id="completion-dialog">
+        <h3>🎉 축하합니다!</h3>
+        <p>모든 스탬프를 모았습니다.</p>
+        <button onclick="this.closest('dialog').close()">확인</button>
     </dialog>
 
-    <div id="prizemodal" class="PrizeModal hidden">
-       <h2  class="prizelocInfo">📱 기념품 수령 안내</h2>
-       <div class="center-wrapper"> 
-          <div class="square-image">
-            <img src="./images/prizeloc.png" alt="경품수령 위치 이미지">
-          </div>
-       </div> 
-       <button onclick="closeModal()" class="PrizeCloseBtn">확인</button>
-
-    </div>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-// --- 1. 전역 변수 및 요소 선언 ---
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- 1. 전역 변수 및 요소 선언 ---
         const userId = localStorage.getItem('userId');
         const urlParams = new URLSearchParams(window.location.search);
         const eventId = urlParams.get('event_id');
-        const stampId = urlParams.get('stamp_id');
+        const planetId = urlParams.get('planet');
         
-        let currentTheme = {}; // 서버에서 받을 테마 정보
-        let currentPlanetData = {}; // 현재 행성의 상세 정보 (퀴즈, 모델 등)
-        let currentQuiz = {};
-         
-    const sceneEl = document.querySelector('a-scene');
-    const arView = document.getElementById('ar-view');
-    const planetModel = document.getElementById('planet-model');
-    const joayongModel = document.getElementById('joayong-model');
-    const InfoView = document.getElementById('info');
-    const InfoViewTop = document.getElementById('info_top');
-    const quizModal = document.getElementById('quiz-modal');
-    const PrizeLoc = document.getElementById('prizemodal');
+        let currentTheme = {};
+        let currentStampData = {}; 
+        
+        const videoContainer = document.getElementById('video-container');
+        const videoPlayer = document.getElementById('video-player');
+        const quizContainer = document.getElementById('quiz-container');
+        const questionEl = document.getElementById('question');
+        const optionsEl = document.getElementById('options');
+        const resultContainer = document.getElementById('result-container');
+        const resultMessage = document.getElementById('result-message');
+        const stampCardContainer = document.getElementById('stamp-card-container');
+        const mapBtn = document.getElementById('map-btn');
+        const photoBtn = document.getElementById('photo-btn');
+        const Dialog = document.getElementById('completion-dialog'); // ID 수정됨
 
-// --- 2. 요소 가져오기 ---
-    const planetTitle = document.getElementById('planet-title');
-    const quizContainer = document.getElementById('quiz-container');
-    const questionEl = document.getElementById('question');
-    const optionsEl = document.getElementById('options');
-    const stampCardEl = document.getElementById('stamp-card');
-    const resultContainer = document.getElementById('result-container');
-    const resultMessage = document.getElementById('result-message');
-    const mapBtn = document.getElementById('map-btn');
-    const photoBtn = document.getElementById('photo-btn');
-    const PlanetCount = Object.keys(planetData).length;
-    const StampCard = document.getElementById('stamp-card-container');
-    
-    let currentPlanetId;
-    let currentPlanet;
+        // --- 2. 유령 사용자 방지 ---
+        if (!userId) {
+            alert("사용자 정보가 없습니다. 메인 지도 화면으로 돌아가주세요.");
+            window.location.href = 'map.html';
+            return;
+        }
 
-    if (!userId) {
-        alert("사용자 정보가 없습니다. 메인 화면으로 돌아가 이벤트를 시작해주세요.");
-        window.location.href = 'incex.html';
-        return;
-    }
-
-    // --- 3. A-Frame 컴포넌트 등록 (페이지 로드 시 딱 한 번) ---
-        AFRAME.registerComponent('selective-click', {
-            init: function () {
-                this.el.addEventListener('click', (event) => {
-                    console.log("AR 객체 클릭됨!");
-                    arView.style.display = 'none';
-                    videoQuizView.classList.remove('hidden');
-                    // 퀴즈/비디오 로직 시작
-                    startVideoAndQuiz(); 
-                });
-            }
-        });
-
-    // --- 3. 페이지 초기화 ---
-    async function initPage() {
-        if (!eventId || !stampId) {
-                alert("필수 정보(이벤트)가 없습니다.");
+        // --- 3. 메인 초기화 함수 ---
+        async function initPage() {
+            if (!eventId || !planetId) {
+                alert("잘못된 접근입니다.");
+                window.location.href = 'map.html';
                 return;
-        }
+            }
 
-        try {
-                // 1. 서버에서 현재 이벤트의 테마 정보를 가져옵니다.
+            try {
+                // 이벤트 테마 설정 가져오기
                 const response = await fetch(`/api/event-theme/${eventId}`);
+                if (!response.ok) throw new Error("이벤트 정보를 불러올 수 없습니다.");
                 currentTheme = await response.json();
-                
-                // 2. 현재 행성의 상세 정보를 설정합니다.
-                currentPlanetData = currentTheme.planet_details[stampId];
-                if (!currentPlanetData) throw new Error("현재 행성의 상세 정보를 찾을 수 없습니다.");
 
-                // 3. 퀴즈/스탬프 UI를 위한 기본 설정
-                document.getElementById('planet-title').textContent = currentPlanetData.name;
-                renderStampCard();
+                // 현재 행성 데이터 찾기
+                currentStampData = currentTheme.stamp_card_layout.stamps.find(s => s.id === planetId);
                 
-                // 4. 서버에 사용자의 현재 상태를 확인합니다.
-                const statusResponse = await fetch(`/api/check-eligibility/${userId}?event_id=${eventId}`);
-                const status = await statusResponse.json();
-
-                if (status.hasRedeemed) {
-                    showCompletionMessage("경품을 이미 수령하셨습니다.", true);
-                } else if (status.eligible) {
-                    showCompletionMessage("축하합니다! 모든 스탬프를 모았습니다.", false);
-                } else {
-                    const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};
-                    if (collectedStamps[stampId]) {
-                        resultMessage.textContent = "이미 이 행성의 스탬프를 획득했습니다!";
-                        resultContainer.classList.remove('hidden');
-                    } else {
-                        // 5. 모든 조건에 해당하지 않으면, 테마에 맞는 레이아웃 시작
-                        setupPageLayout(currentTheme.page_layout);
-                    }
+                if (!currentStampData) {
+                    alert("해당 스탬프 정보를 찾을 수 없습니다.");
+                    window.location.href = 'map.html';
+                    return;
                 }
+
+                document.getElementById('planet-title').textContent = currentStampData.name;
+                
+                // 현재 사용자의 획득 상태 확인
+                const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};
+                
+                if (collectedStamps[planetId]) {
+                    showAlreadyCollectedScreen();
+                } else {
+                    startQuizProcess();
+                }
+
+                renderStampCard();
+                stampCardContainer.classList.remove('hidden');
+
             } catch (e) {
-                alert("이벤트 설정 정보를 불러오는 데 실패했습니다: " + e.message);
+                console.error(e);
+                alert("오류가 발생했습니다: " + e.message);
             }
         }
-        
-        // --- 6. 프로그램 시작 ---
-        initPage();
-  
 
-        // ✨ 3. 클릭/터치 시 실행될 새로운 함수
-    function onSceneClick(event) {
-
-        event.stopPropagation();
-        event.preventDefault();
-        
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
-
-        // 클릭한 화면 좌표를 3D 공간 좌표로 변환합니다.
-        if (event.type === 'touchstart') {
-            mouse.x = (event.touches[0].clientX / window.innerWidth) * 2 - 1;
-            mouse.y = - (event.touches[0].clientY / window.innerHeight) * 2 + 1;
-        } else {
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+        // --- 4. 퀴즈 프로세스 시작 ---
+        function startQuizProcess() {
+            if (currentStampData.video) {
+                videoContainer.classList.remove('hidden');
+                videoPlayer.src = currentStampData.video;
+                videoPlayer.load(); // 비디오 로드
+                
+                // 비디오 종료 이벤트
+                videoPlayer.onended = () => {
+                    videoContainer.classList.add('hidden');
+                    showQuiz();
+                };
+            } else {
+                videoContainer.classList.add('hidden');
+                showQuiz();
+            }
         }
 
-        // 카메라 위치에서 클릭한 방향으로 광선을 쏩니다.
-        raycaster.setFromCamera(mouse, sceneEl.camera);
-        
-        // 광선이 3D 모델(planetModelEntity)과 충돌했는지 확인합니다.
-        const intersects = raycaster.intersectObject(joayongModel.object3D, true);
+        // --- 5. 퀴즈 화면 표시 ---
+        function showQuiz() {
+            quizContainer.classList.remove('hidden');
+            
+            const quiz = currentStampData.quiz;
+            if (!quiz) {
+                // 퀴즈 데이터가 없으면 바로 정답 처리 (예외 방지)
+                processCorrectAnswer(); 
+                return;
+            }
 
-        if (intersects.length > 0) {
-            // ✨ 2. 충돌한 첫 번째 객체가 'planet-model'의 자식인지 확인합니다.
-           //     console.log(`${currentPlanet.name} 획득!`);
-           quizModal.classList.remove('hidden');
-
-           joayongModel.setAttribute('animation', {
-                property: 'position',
-                to: '0 0.5 -2', // 카메라 앞으로 이동
-                dur: 1500,      // 1.5초 동안
-                easing: 'easeInOutQuad'
+            questionEl.textContent = quiz.question;
+            optionsEl.innerHTML = '';
+            
+            quiz.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.textContent = opt;
+                btn.onclick = () => checkAnswer(index, quiz.answer_index);
+                optionsEl.appendChild(btn);
             });
-            
-            // 기본 브라우저 동작(스크롤 등)을 막습니다.
-   //             event.preventDefault();
-            setTimeout(() => {
-                sceneEl.classList.add('hidden');
-                InfoView.style.display='none';
-                InfoViewTop.style.display='none';
-//          videoQuizView.classList.remove('hidden');
-                startVideoAndQuiz(currentPlanetId);
-                quizModal.classList.add('hidden');
-                joayongModel.removeAttribute('animation');
-
-            }, 2000);
         }
 
-    }
-    // --- 4. 퀴즈 표시 ---
-    function showQuiz() {
-  //      videoContainer.classList.add('hidden');
-        quizContainer.classList.remove('hidden');   
-  //      const currentPlanet = planetData[currentPlanetId];
-        // 5문제 중 랜덤으로 하나 선택
-        currentQuiz = currentPlanet.quizPool[Math.floor(Math.random() * currentPlanet.quizPool.length)];    
-        questionEl.textContent = currentQuiz.q;
-        optionsEl.innerHTML = '';
-        
-        currentQuiz.o.forEach((optionText, index) => {
-            const button = document.createElement('button');
-            button.textContent = optionText;
-            button.onclick = () => checkAnswer(index + 1);
-            optionsEl.appendChild(button);
-        });
-    }
-    // --- 5. 정답 확인 및 스탬프 획득 ---
-    async function checkAnswer(selectedIndex) {
-        quizContainer.classList.add('hidden');
-        Explain = document.getElementById('explain');
-        Explain.innerHTML = '';
+        // --- 6. 정답 체크 ---
+        async function checkAnswer(selectedIndex, correctIndex) {
+            if (selectedIndex === correctIndex) {
+                await processCorrectAnswer();
+            } else {
+                alert("아쉬워요! 오답입니다. 다시 시도해보세요. 😅");
+            }
+        }
 
-        if (selectedIndex === currentQuiz.a) {
-            const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};
-            collectedStamps[currentPlanetId] = true;
-            localStorage.setItem('stamps', JSON.stringify(collectedStamps));
+        // --- 7. 정답 처리 및 서버 기록 ---
+        async function processCorrectAnswer() {
+            quizContainer.classList.add('hidden');
+            resultContainer.classList.remove('hidden');
             
+            // 로컬 스토리지 저장
+            const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};
+            collectedStamps[planetId] = true;
+            localStorage.setItem('stamps', JSON.stringify(collectedStamps));
+
+            // 서버 DB 저장
             try {
                 await fetch('/api/collect-stamp', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId, eventId, stampId })
+                    body: JSON.stringify({ userId, eventId, planetId })
                 });
-            } catch (error) {
-                console.error("서버에 스탬프를 기록하는 데 실패했습니다:", error);
+            } catch (e) {
+                console.error("서버 기록 실패:", e);
             }
 
-            resultMessage.textContent = "정답입니다! 🏆 스탬프를 획득하셨습니다!";
-            Explain.innerHTML = currentQuiz.e;
-            Explain.classList.remove('hidden');
-            // 2. 스탬프 카드 UI를 즉시 갱신합니다.
-            renderStampCard();
-            StampCard.classList.remove('hidden');
-            resultContainer.classList.remove('hidden');
+            resultMessage.textContent = `🎉 축하합니다! '${currentStampData.name}' 스탬프 획득!`;
+            renderStampCard(); 
+            checkFinalCompletion();
+        }
 
-            // 10개 모두 모았는지 확인
-            const PlaneLength = Object.keys(planetData).length;
-//            const totalStamps = Object.keys(collectedStamps).length;
-            const validStamps = Object.keys(collectedStamps).filter(key => planetData.hasOwnProperty(key));
-            const totalStamps = validStamps.length;
+        // --- 8. 전체 완료 여부 확인 ---
+        function checkFinalCompletion() {
+            const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};
+            
+            // 현재 테마에 포함된 스탬프들 중 획득한 것의 개수
+            const validCount = currentTheme.stamp_card_layout.stamps.filter(s => collectedStamps[s.id]).length;
+            const totalRequired = currentTheme.stamp_card_layout.stamps.length;
 
-            console.log(`전체 행성 수: ${PlaneLength}, 획득한 유효 스탬프 수: ${totalStamps}`);
-
-            if (totalStamps >= PlaneLength) {
-          //      alert("축하합니다! 모든 행성 스탬프를 모았습니다. 경품 룰렛 페이지로 이동합니다!");
-                const Dialog = document.querySelector('dialog');
-                Dialog.classList.remove('hidden');
-                Dialog.showModal();
-                mapBtn.textContent = "🎁 QR코드 찍기";
-                mapBtn.onclick = () => { window.location.href = 'scanner.html'; };
-                photoBtn.textContent = "경품 수령처 위치"
-                photoBtn.onclick = () => { PrizeLoc.classList.remove('hidden'); };
-     //           photoBtn.classList.add('hidden');
-     //           resultContainer.classList.remove('hidden'); 
-                return;
+            if (validCount >= totalRequired) {
+                // 1. 전체 완료 시
+                mapBtn.className = "btn btn-primary"; // 스타일 강조
+                mapBtn.textContent = "🎁 룰렛 돌리러 가기";
+                
+                // 설문조사가 있으면 설문으로, 아니면 룰렛으로 (이벤트 설정에 따름)
+                // 여기서는 편의상 룰렛으로 연결하되, 상위 로직에 따라 설문으로 갈 수도 있음
+                // (이전 대화의 collect.html 로직 참조하여 필요시 수정 가능)
+                mapBtn.onclick = () => { window.location.href = `game.html?event_id=${eventId}`; };
+                
+                showCompletionDialog();
+            } else {
+                // 2. 미완료 시
+                mapBtn.textContent = "🗺️ 지도 화면으로";
+                // DB의 main_page_url이 있으면 거기로, 없으면 map.html
+                mapBtn.onclick = () => { window.location.href = currentTheme.main_page_url || 'map.html'; };
             }
-        } else {
-            resultMessage.textContent = "아쉬워요, 정답이 아닙니다. 다시 도전해보세요!";
+        }
+
+        // --- 9. 이미 획득 화면 ---
+        function showAlreadyCollectedScreen() {
+            videoContainer.classList.add('hidden');
             quizContainer.classList.add('hidden');
             resultContainer.classList.remove('hidden');
-            // 오답 시에는 2초 후 다시 퀴즈 화면으로
-            setTimeout(() => {
-                resultContainer.classList.add('hidden');
-                showQuiz();
-                return; // 아래 resultContainer를 다시 보이게 하는 코드를 실행하지 않음
-            }, 2000);
+            resultMessage.textContent = "👌 이미 획득한 스탬프입니다.";
+            checkFinalCompletion();
         }
-        resultContainer.classList.remove('hidden');
-    }
-    
-    // --- 6. 스탬프 카드 렌더링 ---
-    function renderStampCard() {
-        var Count = 0;
-        stampCardEl.innerHTML = '';
-        const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};
-        const layout = currentTheme.stamp_card_layout;
-        if (!layout || !layout.stamps) return;
 
-        stampCardEl.style.backgroundImage = `url(${layout.background_image})`;
-        stampCardEl.style.gridTemplateColumns = `repeat(${layout.grid_columns || 5}, 1fr)`;
+        // --- 10. 스탬프 카드 렌더링 ---
+        function renderStampCard() {
+            const stampCardEl = document.getElementById('stamp-card');
+            stampCardEl.innerHTML = '';
+            const layout = currentTheme.stamp_card_layout;
+            const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};
 
-        layout.stamps.forEach(stamp => {
-                const slot = document.createElement('div'); /* ... */
-                const img = document.createElement('img'); /* ... */
-                img.src = stamp.image;
+            stampCardEl.style.backgroundImage = `url(${layout.background_image})`;
+            stampCardEl.style.gridTemplateColumns = `repeat(${layout.grid_columns || 5}, 1fr)`;
+
+            layout.stamps.forEach(stamp => {
+                const slot = document.createElement('div');
+                slot.className = 'stamp-slot';
+                const img = document.createElement('img');
+                
                 if (collectedStamps[stamp.id]) {
+                    img.src = stamp.image_acquired;
                     slot.classList.add('stamped');
+                } else {
+                    img.src = stamp.image_unacquired;
                 }
+                
                 slot.appendChild(img);
                 stampCardEl.appendChild(slot);
             });
-      
-        const CountInfo = document.getElementById('countinfo');
-        CountInfo.textContent = "총 " + Count + " 개의 스탬프를 획득하셨습니다!";
-    }
-
-    // --- 7. 네비게이션 버튼 ---
-    mapBtn.onclick = () => { window.location.href = './joayong-map.html'; };
-    photoBtn.onclick = () => { window.location.href = `photozone.html?planet=${currentPlanetId}`; };
-
-       // --- 3. 이벤트 핸들러를 연결합니다. ---
-    
-    function startVideoAndQuiz(stampId) {
-//        console.log(`${planetId}의 비디오와 퀴즈를 시작합니다.`);
-        planetTitle.textContent = `${currentPlanet.name} 퀴즈`;
-        renderStampCard();
-
-        // 이미 획득한 스탬프인지 확인
-        const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};
-        const userId = localStorage.getItem('userId');  
-
-   //     if (Object.keys(collectedStamps).length >= PlanetCount) {
-        // ✨ 1. 가장 먼저 전체 스탬프 개수부터 확인합니다.
-    
-        fetch(`/api/check-eligibility/${userId}`)
-            .then(res => res.json())
-            .then(status => {
-                console.log("서버 응답 (경품 수령 여부):", status.hasRedeemed);
-                console.log("현재 로컬 스탬프 개수:", Object.keys(collectedStamps).length);
-
-            if (status.hasRedeemed) {
-                // 1. 최종 경품까지 받은 유저
-    //            videoContainer.classList.add('hidden');
-                quizContainer.classList.add('hidden');
-                resultMessage.textContent = "모든 이벤트에 참여해주셔서 감사합니다! 경품을 이미 수령하셨습니다.";
-                mapBtn.textContent = "🗺️ 메인 지도로";
-                mapBtn.onclick = () => { window.location.href = 'joayong-map.html'; };
-                photoBtn.classList.add('hidden');
-                resultContainer.classList.remove('hidden');
-                return; // 여기서 로직 종료
-            } 
-            
-            else if (Object.keys(collectedStamps).length >= PlanetCount) {
-                // 2. 스탬프는 다 모았지만 아직 QR을 안 찍은 유저
-    //            videoContainer.classList.add('hidden');
-                quizContainer.classList.add('hidden');                
-                resultMessage.innerHTML = "축하합니다! <br>모든 스탬프를 모았습니다. <br>부스에서 QR코드를 찍어 경품을 받으세요!";
-                mapBtn.textContent = "🎁 QR코드 찍기";
-                mapBtn.onclick = () => { window.location.href = './scanner.html'; };
-                photoBtn.textContent = "경품 수령처 위치"
-                photoBtn.onclick = () => { PrizeLoc.classList.remove('hidden'); };
-
-    //            photoBtn.classList.add('hidden');
-                resultContainer.classList.remove('hidden'); 
-                renderStampCard();    //9월 9일 추가
-                StampCard.classList.remove('hidden');  //9월 9일 추가
-                return; // 여기서 로직 종료
-            }             
-            
-            else if (collectedStamps[currentPlanetId]) {
-                // 3. 현재 스탬프를 이미 획득한 유저
-    //            videoContainer.classList.add('hidden');
-                quizContainer.classList.add('hidden');
-                resultMessage.textContent = "이미 이 행성의 스탬프를 획득했습니다!";
-                resultContainer.classList.remove('hidden'); 
-                renderStampCard();   // 9월 9일 추가
-                StampCard.classList.remove('hidden'); // 9월 9일 추가
-                return; // 여기서 로직 종료
-            } 
-            
-            else {
-            // 4. 새로운 스탬프에 도전하는 유저
-    //            videoContainer.classList.remove('hidden');
-                quizContainer.classList.remove('hidden');
-                resultContainer.classList.add('hidden');
-    //            videoPlayer.src = currentPlanet.video;
-    //            videoPlayer.onended = showQuiz;
-                PlanetInfo = document.getElementById('Planet-Info');
-        
-                const img = new Image();
-                img.src = currentPlanet.stamp;
-                img.style.objectFit = 'cover';
-                img.style.height= '60px';
-                img.style.width= '60px';
-
-                PlanetInfo.appendChild(img);
-
-                const span = document.createElement('span');
-                span.innerText = currentPlanet.name +  " 발견";
-                span.setAttribute('style', 'display: inline-block; padding: 4px 12px; font-size: 12px; font-weight: 500; border-radius: 20px; margin-bottom: 16px; background-color: #2563eb; color: white; text-align: center;');
-                PlanetInfo.appendChild(span);
-                showQuiz();
-            }
-            
-        })
-    
-        .catch(err => {
-            console.error("자격 확인 API 호출 오류:", err);
-            alert("사용자 정보를 확인하는 중 오류가 발생했습니다.");
-        });
-    }
-
-function closeModal() {
-  document.getElementById("prizemodal").style.display = "none";
-}
-
-// 페이지 UI 상태를 업데이트하는 '전용' 함수 (스탬프 완료/경품 수령 확인)
-        function updateUI() {
-            const collectedStamps = JSON.parse(localStorage.getItem('stamps')) || {};
-            const totalStamps = currentTheme.stamp_card_layout.stamps.length;
-
-            fetch(`/api/check-eligibility/${userId}?event_id=${eventId}`)
-                .then(res => res.json())
-                .then(status => {
-                    if (status.hasRedeemed) {
-                        showCompletionMessage("경품을 이미 수령하셨습니다.", true);
-                    } else if (Object.keys(collectedStamps).length >= totalStamps) {
-                        showCompletionMessage("축하합니다! 모든 스탬프를 모았습니다.", false);
-                    }
-                });
         }
 
-        // 페이지 레이아웃 설정
-        function setupPageLayout(layout) {
-            currentPlanetData = currentTheme.planet_details[stampId];
-            if (!currentPlanetData) {
-                alert("현재 행성의 상세 정보를 찾을 수 없습니다.");
-                return;
-            }
-
-            if (layout === 'ar_catch') {
-                arView.classList.remove('hidden');
-                // A-Frame 엔티티에 모델 및 GPS 정보 설정
-                const planetModel = document.getElementById('planet-model');
-                const joayongModel = document.getElementById('joayong-model');
-                
-                planetModel.setAttribute('gps-entity-place', `latitude: ${currentPlanetData.lat}; longitude: ${currentPlanetData.lng};`);
-                planetModel.setAttribute('gltf-model', `url(${currentPlanetData.model})`);
-                planetModel.setAttribute('scale', currentPlanetData.scale);
-                // joayong-model도 동일하게 설정
-                
-            } else if (layout === 'simple_quiz') {
-                videoQuizView.classList.remove('hidden');
-                startVideoAndQuiz();
-            }
-        }
-        
-        // 비디오/퀴즈 시작 로직
-        function startVideoAndQuiz() {
-            videoPlayer.src = currentPlanetData.video;
-            videoPlayer.onended = showQuiz;
-        }
-// 완료 메시지 표시
-        function showCompletionMessage(message, isRedeemed) {
-            Dialog.querySelector('p').textContent = message;
-            Dialog.classList.remove('hidden');
+        function showCompletionDialog() {
             Dialog.showModal();
-            // ... (버튼 설정 로직)
         }
-});
-</script>
 
+        initPage();
+    });
+    </script>
 </body>
 </html>
