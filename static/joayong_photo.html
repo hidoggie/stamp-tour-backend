@@ -34,7 +34,7 @@
         scale: "1 1 1",
         position: "0 0 0",
         rotation: "0 0 0",
-        animation: "clip: Animation; loop: repeat; timeScale: 1"
+        animation: ""
       },
       "type2": {
         name: "✨ UFO를 타고있는 조아용 포토존",
@@ -45,7 +45,7 @@
         scale: "1 1 1", 
         position: "0 0 0", 
         rotation: "0 -45 0",  
-        animation: "clip: Animation; loop: repeat; timeScale: 1"
+        animation: ""
       },
       "type3": {
         name: "✨ 드럼치는 조아용 포토존",
@@ -56,7 +56,7 @@
         scale: "1 1 1",
         position: "0 0 0",
         rotation: "0 0 0",
-        animation: "clip: Animation; loop: repeat; timeScale: 1" 
+        animation: "" 
       },
       "type4": {
         name: "✨ 꽃과 함께 조아용 포토존",
@@ -67,7 +67,7 @@
         scale: "1 1 1",
         position: "0 0 0",
         rotation: "0 0 0",
-        animation: "clip: Animation; loop: repeat; timeScale: 1"
+        animation: ""
       },
       "type5": {
         name: "✨ 기타 치는 조아용 포토존",
@@ -78,7 +78,7 @@
         scale: "1 1 1",
         position: "0 0 0",
         rotation: "0 0 0",
-        animation: "clip: Object_0; loop: repeat; timeScale: 1" 
+        animation: "" 
       },
       "type6": {
         name: "✨ 사랑꾼 조아용 포토존",
@@ -89,7 +89,7 @@
         scale: "1 1 1",
         position: "0 0 0",
         rotation: "0 0 0",
-        animation: "clip: Animation; loop: repeat; timeScale: 1" 
+        animation: "" 
       },
       "type7": {
         name: "✨ 보드 타는 조아용 포토존",
@@ -100,7 +100,7 @@
         scale: "1 1 1",
         position: "0 0 0",
         rotation: "0 0 0",
-        animation: "clip: Object_0; loop: repeat; timeScale: 1" 
+        animation: "" 
       },
       "type8": {
         name: "✨ 탐사중인 조아용 포토존",
@@ -111,7 +111,7 @@
         scale: "1 1 1",
         position: "0 0 0",
         rotation: "0 0 0",
-        animation: "clip: Take 001; loop: repeat; timeScale: 1" 
+        animation: "" 
       },
       "type9": {
         name: "✨ 로봇 조아용 포토존",
@@ -122,7 +122,7 @@
         scale: "1 1 1",
         position: "0 0 0",
         rotation: "0 0 0",
-        animation: "clip: Take 001; loop: repeat; timeScale: 1" 
+        animation: "" 
       },
       "type10": {
         name: "✨ 로켓 타는 조아용 포토존",
@@ -133,7 +133,7 @@
         scale: "1 1 1",
         position: "0 0 0",
         rotation: "0 0 0",
-        animation: "clip: Animation; loop: repeat; timeScale: 1" 
+        animation: "" 
       },
       "type11": {
         name: "✨ 기차 타는 조아용 포토존",
@@ -144,7 +144,7 @@
         scale: "1 1 1",
         position: "0 0 0",
         rotation: "0 0 0",
-        animation: "clip: Take 001; loop: repeat; timeScale: 1" 
+        animation: "" 
       },
     };
 
@@ -279,10 +279,13 @@
           const mesh = this.el.getObject3D('mesh');
           if (mesh) {
             mesh.traverse((node) => {
-              if (node.isMesh && node.material) {
-                node.material.flatShading = false;
-                node.material.roughness = 0.7; 
-                node.material.needsUpdate = true;
+              if (node.isMesh) {
+                node.frustumCulled = false;
+                if (node.material) {
+                  node.material.flatShading = false;
+                  node.material.roughness = 0.7; 
+                  node.material.needsUpdate = true;
+                }
                 if (node.geometry) {
                   node.geometry.computeVertexNormals();
                 }
