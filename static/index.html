@@ -150,7 +150,7 @@
         }
 
         .screen.on {
-            padding: 5vh 10px;
+            padding: 5vh 10px 1vh 10px;
             display: flex;
             animation: sc .32s cubic-bezier(.2, .8, .3, 1)
         }
@@ -681,6 +681,7 @@
                 display: none
             }
         }
+
         /* ==================== 카드북 전용 스타일 ==================== */
         .cardbook-grid {
             display: grid;
@@ -694,7 +695,7 @@
             background: #fff;
             border-radius: 16px;
             text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
             border: 2px dashed #D6E9F7;
             min-height: 160px;
             display: flex;
@@ -708,7 +709,8 @@
         .card-slot.collected {
             border: none;
             background: linear-gradient(145deg, #FFF6B0, #05FB73 24%, #00B3FF 46%, #FE73F3 68%, #FFD429 88%, #3457F1);
-            padding: 4px; /* 그라데이션 테두리 두께 */
+            padding: 4px;
+            /* 그라데이션 테두리 두께 */
             box-shadow: 0 10px 20px -10px rgba(20, 50, 110, .4);
         }
 
@@ -804,7 +806,7 @@
                     <p style="text-align:center; font-size:14px; margin-bottom: 20px; color: #5A6579; font-weight:600;">
                         지금까지 모은 조아용 카드입니다.<br>남은 카드를 모두 찾아주세요!
                     </p>
-                    
+
                     <!-- 카드 그리드 영역 -->
                     <div id="cardbook-grid" class="cardbook-grid">
                         <!-- 자바스크립트로 5개의 슬롯이 그려집니다 -->
@@ -814,7 +816,7 @@
                         <button class="btn btn-ghost" onclick="showScreen('screen-map')">지도로 돌아가기</button>
                     </div>
                 </div>
-            </section>            
+            </section>
 
             <!-- 🌟 화면 3: 카드 섞기 화면 -->
             <section class="screen" id="screen-shuffle">
@@ -950,12 +952,12 @@
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         async function (position) {
-            //                const lat = position.coords.latitude;
-            //                const lng = position.coords.longitude;
+                            //                const lat = position.coords.latitude;
+                            //                const lng = position.coords.longitude;
 
-            // 테스트용 행사장 중심 좌표 강제 할당
-                              const lat = 37.249746;
-                              const lng = 127.165157;
+                            // 테스트용 행사장 중심 좌표 강제 할당
+                            const lat = 37.249746;
+                            const lng = 127.165157;
 
                             try {
                                 // 1. [추가된 부분] 먼저 세션(쿠키)을 발급받거나 확인합니다.
@@ -998,13 +1000,13 @@
                                         alert("이미 경품 수령을 완료하셨습니다.\n참여해 주셔서 감사합니다!");
                                         if (typeof loadUserStamps === "function") await loadUserStamps();
                                         openCardbook(); // 스탬프 카드북 화면으로 이동
-                                    } 
+                                    }
                                     // ★ 2순위: 경품은 안 받았지만 해당 장소 스탬프는 이미 찍은 경우
                                     else if (data.status === "PHOTO_SUBMITTED") {
                                         alert("이미 스탬프를 획득한 장소입니다. 다른 곳에 숨어있는 조아용을 찾아주세요!");
                                         if (typeof loadUserStamps === "function") await loadUserStamps();
-                                        showScreen('screen-map'); 
-                                    } 
+                                        showScreen('screen-map');
+                                    }
                                     // ★ 3순위: 새로운 장소인 경우 정상 진행
                                     else {
                                         localStorage.setItem("return_joa_id", scannedJoaId);
@@ -1166,7 +1168,7 @@
         // 🌟 사용자 QR 스캐너 제어 로직
         let html5QrcodeScanner = null;
 
-// ★ 매개변수 mode 추가 (기본값은 'stamp', 완주 화면에서 부를 땐 'prize')
+        // ★ 매개변수 mode 추가 (기본값은 'stamp', 완주 화면에서 부를 땐 'prize')
         function startScanner(mode = 'stamp') {
             showScreen('screen-scanner');
 
@@ -1178,7 +1180,7 @@
             const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
             html5QrcodeScanner.start(
-                { facingMode: "environment" }, 
+                { facingMode: "environment" },
                 config,
                 (decodedText) => {
                     html5QrcodeScanner.stop().then(() => {
@@ -1191,25 +1193,25 @@
                                 alert("올바른 경품 QR 코드가 아닙니다. 행사장에 비치된 QR을 스캔해주세요.");
                                 showScreen('screen-complete');
                             }
-                        } 
+                        }
                         // ★ 분기 처리: 일반 스탬프 스캔 모드일 때
                         else {
-                            if (decodedText.includes("joa_id=")) {
-                               window.location.href = decodedText;
+                            if (decodedText.includes("joa_id=") || decodedText.includes("m.site.naver.com")) {
+                                window.location.href = decodedText;
                             } else {
-                               alert("유효하지 않은 스탬프 QR 코드입니다.");
-                               if (typeof loadUserStamps === "function") loadUserStamps();
-                               showScreen('screen-map');
+                                alert("유효하지 않은 스탬프 QR 코드입니다. 행사장에 비치된 조아용 QR을 스캔해주세요.");
+                                if (typeof loadUserStamps === "function") loadUserStamps();
+                                showScreen('screen-map');
                             }
                         }
                     }).catch((err) => {
                         console.error("스캐너 정지 중 오류", err);
                     });
                 },
-                (errorMessage) => {}
+                (errorMessage) => { }
             ).catch((err) => {
                 alert("카메라 권한을 허용해야 QR 스캔이 가능합니다.");
-                showScreen(mode === 'prize' ? 'screen-complete' : 'screen-map'); 
+                showScreen(mode === 'prize' ? 'screen-complete' : 'screen-map');
             });
         }
 
@@ -1231,22 +1233,22 @@
         function openCardbook() {
             // 전체 조아용 카드 정보
             const CARDS_INFO = {
-              "type1": { name: "불뿜는 조아용", img: "./img/card-joa-angry.png" },
-              "type2": { name: "UFO 조아용", img: "./img/card-joa-ufo.png" },
-              "type3": { name: "드럼치는 조아용", img: "./img/card-joa-drum.png" },
-              "type4": { name: "꽃과 함께 조아용", img: "./img/card-joa-flower.png" },
-              "type5": { name: "기타 치는 조아용", img: "./img/card-joa-guitar.png" },
-              "type6": { name: "사랑꾼 조아용", img: "./img/card-joa-heart.png" },
-              "type7": { name: "보드 타는 조아용", img: "./img/card-joa-board.png" },
-              "type8": { name: "탐사중인 조아용", img: "./img/card-joa-probe.png" },
-              "type9": { name: "로봇 조아용", img: "./img/card-joa-robot.png" },
-              "type10": { name: "로켓 타는 조아용", img: "./img/card-joa-rocket.png" },
-              "type11": { name: "기차 타는 조아용", img: "./img/card-joa-train.png" }
+                "type1": { name: "불뿜는 조아용", img: "./img/card-joa-angry.png" },
+                "type2": { name: "UFO 조아용", img: "./img/card-joa-ufo.png" },
+                "type3": { name: "드럼치는 조아용", img: "./img/card-joa-drum.png" },
+                "type4": { name: "꽃과 함께 조아용", img: "./img/card-joa-flower.png" },
+                "type5": { name: "기타 치는 조아용", img: "./img/card-joa-guitar.png" },
+                "type6": { name: "사랑꾼 조아용", img: "./img/card-joa-heart.png" },
+                "type7": { name: "보드 타는 조아용", img: "./img/card-joa-board.png" },
+                "type8": { name: "탐사중인 조아용", img: "./img/card-joa-probe.png" },
+                "type9": { name: "로봇 조아용", img: "./img/card-joa-robot.png" },
+                "type10": { name: "로켓 타는 조아용", img: "./img/card-joa-rocket.png" },
+                "type11": { name: "기차 타는 조아용", img: "./img/card-joa-train.png" }
             };
 
             // 1. 지금까지 모은 카드 키값 가져오기
             const collectedModels = JSON.parse(localStorage.getItem("collected_models") || "[]");
-            
+
             // 2. 서버에서 인증 완료된 스탬프 개수 가져오기 (joayong.js의 userStamps 활용)
             let acquiredCount = 0;
             if (typeof userStamps !== 'undefined') {
