@@ -779,7 +779,7 @@
                     <span class="prog" id="mapProg">0 / 5</span>
                 </div>
                 <div class="pad" style="padding-top:0">
-                    <p class="mapnote">지도에 숨겨진 QR을 찾아 조아용 카드를 획득하세요. <b style="color:var(--blue-d)">안내 마커</b>가 목적지입니다.
+                    <p class="mapnote">지도에 숨겨진 QR을 찾아 조아용 카드를 획득하세요. <br><b style="color:var(--blue-d)">안내 마커</b>가 목적지입니다.
                     </p>
 
                     <div id="mapBox">
@@ -1140,7 +1140,7 @@
             const infoMarkerPosition = new naver.maps.LatLng(37.2491227, 127.1656997);
             const infoMarker = new naver.maps.Marker({
                 position: infoMarkerPosition, map: window.map, title: 'ℹ️ 경품 수령처',
-                icon: { url: './img/gift-n2-85.png', size: new naver.maps.Size(200, 150), anchor: new naver.maps.Point(40, 44) }
+                icon: { url: './img/present_place-80.png', size: new naver.maps.Size(200, 150), anchor: new naver.maps.Point(40, 44) }
             });
 
             const infoWindow = new naver.maps.InfoWindow({ content: `<div style="padding:5px;font-size:12px;text-align:center; color: black">ℹ️ 경품 수령처</div>` });
@@ -1150,10 +1150,10 @@
             let isMarkerEnlarged = false;
             naver.maps.Event.addListener(infoMarker, 'click', () => {
                 if (isMarkerEnlarged) {
-                    infoMarker.setIcon({ url: './img/gift-n2-85.png', size: new naver.maps.Size(200, 150), anchor: new naver.maps.Point(40, 44) });
+                    infoMarker.setIcon({ url: './img/present_place-80.png', size: new naver.maps.Size(200, 150), anchor: new naver.maps.Point(40, 44) });
                     isMarkerEnlarged = false;
                 } else {
-                    infoMarker.setIcon({ url: './img/gift-n2-85.png', size: new naver.maps.Size(105, 105), anchor: new naver.maps.Point(40, 44) });
+                    infoMarker.setIcon({ url: './img/present_place-80.png', size: new naver.maps.Size(105, 105), anchor: new naver.maps.Point(40, 44) });
                     isMarkerEnlarged = true;
                 }
             });
