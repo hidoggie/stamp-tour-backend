@@ -105,7 +105,7 @@
 /* === 팝업 공통 === */
 .arNavi-popup-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, .7); justify-content: center; align-items: center; z-index: 9999999; }
 .arNavi-popup-box { 
-  position: relative; width: 340px; height: 520px; max-width: 90vw; margin: 0 auto; 
+  position: relative; width: 65vw; height: 50vh; max-width: 90vw; margin: 0 auto; 
   background: #FAF8FF;
   background-image:
     radial-gradient(760px 500px at 88% -4%, rgba(147, 51, 234, .16), transparent 62%),
@@ -114,13 +114,13 @@
   background-attachment: fixed;
   padding: 35px 20px 80px 20px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); border-radius: 15px; pointer-events: auto !important; }
 .arNavi-popup-title { margin: 0 0 15px 0; color: #3b5f5f; font-size: 20px; font-weight: 700; text-align: center; }
-.arNavi-content-img { width: 40%; border-radius: 8px; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1); margin-bottom: 15px; max-height: 180px; object-fit: contain; }
+.arNavi-content-img { width: 97%; border-radius: 8px; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1); margin-top: 2vh; margin-bottom: 2vh; max-height: 180px; object-fit: contain; }
 .arNavi-info-list { list-style-type: disc; padding-left: 1rem; margin: 0; color: #3b5f5f; font-size: 16px; line-height: 1.6; width: 100%; box-sizing: border-box; }
 .arNavi-info-list li { margin-bottom: 8px; word-break: keep-all; }
 
 .arNavi-btn-transparent { position: absolute; background: transparent; border: none; cursor: pointer; outline: none; }
 .arNavi-close-btn { color: white; top: 2rem; right: 15px; width: 35px; height: 35px; border-radius: 50%; font-size: 26px; font-weight: bold; background-color: #3B2A1E; display: flex; align-items: center; justify-content: center; padding-bottom: 4px; transition: opacity 0.2s; }
-.arNavi-ok-btn {  background: linear-gradient(to right, rgba(44,62,80,1) 0%, rgba(28,40,51,0.8) 50%, rgba(11,12,16,1) 100%); color: white; bottom: 1.2rem; left: 50%; transform: translateX(-50%); width: 200px; height: 45px; border-radius: 25px; font-size: 1.2rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s;}
+.arNavi-ok-btn {  background: linear-gradient(to right, rgba(44,62,80,1) 0%, rgba(28,40,51,0.8) 50%, rgba(11,12,16,1) 100%); color: white; bottom: 2rem; left: 50%; transform: translateX(-50%); width: 200px; height: 45px; border-radius: 25px; font-size: 1.2rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s;}
 
 /* 오디오 및 리셋 버튼 공통 스타일 */
 #audio-toggle-btn
@@ -144,7 +144,7 @@
 
 /* 각각의 버튼 위치 지정 */
 #audio-toggle-btn {
-  bottom: 6rem;
+  bottom: 8rem;
   left: 1.5rem;
 }
 #ar-reset-btn
