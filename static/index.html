@@ -950,8 +950,12 @@
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         async function (position) {
-                            const lat = position.coords.latitude;
-                            const lng = position.coords.longitude;
+            //                const lat = position.coords.latitude;
+            //                const lng = position.coords.longitude;
+
+            // 테스트용 행사장 중심 좌표 강제 할당
+                              const lat = 37.249746;
+                              const lng = 127.165157;
 
                             try {
                                 // 1. [추가된 부분] 먼저 세션(쿠키)을 발급받거나 확인합니다.
