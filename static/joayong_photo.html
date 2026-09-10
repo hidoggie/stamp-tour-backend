@@ -16,7 +16,13 @@
   <script>
     // 현재 접속한 키 가져오기
     const currentjoaId = localStorage.getItem("return_joa_id") || "default";
-    const selectedKey = localStorage.getItem("selected_model_key") || "type1"; // 기본값 방어코드
+  //  const selectedKey = localStorage.getItem("selected_model_key") || "type1"; // 기본값 방어코드
+// URL에서 'type' 파라미터 추출
+    const urlParams = new URLSearchParams(window.location.search);
+    const testType = urlParams.get('type');
+
+// 1순위: URL 파라미터, 2순위: 로컬 스토리지, 3순위: 기본값(type1)
+    const selectedKey = testType || localStorage.getItem("selected_model_key") || "type1";
 
     const MODEL_SPECS = {
       "type1": {
@@ -25,10 +31,10 @@
         bgm: "./audio/Where_the_White_Petals_Fall.mp3",
         guideText: "불뿜는 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
         url: "./models/joayong_angry.glb",
-        scale: "3 3 3",
-        position: "0 -1 0",
+        scale: "1 1 1",
+        position: "0 0 0",
         rotation: "0 0 0",
-        animation: "clip: idle_01; loop: repeat; timeScale: 1"
+        animation: "clip: Animation; loop: repeat; timeScale: 1"
       },
       "type2": {
         name: "✨ UFO를 타고있는 조아용 포토존",
@@ -36,10 +42,10 @@
         bgm: "./audio/Chasing_the_Morning_Sun.mp3",
         guideText: "UFO를 타고있는 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
         url: "./models/joayong_ufo.glb",
-        scale: "1.5 1.5 1.5", 
-        position: "1.5 0 -1", 
+        scale: "1 1 1", 
+        position: "0 0 0", 
         rotation: "0 -45 0",  
-        animation: "clip: jump; loop: repeat; timeScale: 1.2"
+        animation: "clip: Animation; loop: repeat; timeScale: 1"
       },
       "type3": {
         name: "✨ 드럼치는 조아용 포토존",
@@ -47,10 +53,10 @@
         bgm: "./audio/The_Final_Lap_of_Grace.mp3",
         guideText: "드럼치는 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
         url: "./models/joayong_drum.glb",
-        scale: "4 4 4",
-        position: "-1 0 0",
+        scale: "1 1 1",
+        position: "0 0 0",
         rotation: "0 0 0",
-        animation: false 
+        animation: "clip: Animation; loop: repeat; timeScale: 1" 
       },
       "type4": {
         name: "✨ 꽃과 함께 조아용 포토존",
@@ -58,10 +64,10 @@
         bgm: "./audio/The_Final_Lap_of_Grace.mp3",
         guideText: "꽃과 함께 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
         url: "./models/joayong_flower.glb",
-        scale: "4 4 4",
-        position: "-1 0 0",
+        scale: "1 1 1",
+        position: "0 0 0",
         rotation: "0 0 0",
-        animation: false
+        animation: "clip: Animation; loop: repeat; timeScale: 1"
       },
       "type5": {
         name: "✨ 기타 치는 조아용 포토존",
@@ -69,10 +75,10 @@
         bgm: "./audio/The_Final_Lap_of_Grace.mp3",
         guideText: "기타 치는 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
         url: "./models/joayong_guitar.glb",
-        scale: "4 4 4",
-        position: "-1 0 0",
+        scale: "1 1 1",
+        position: "0 0 0",
         rotation: "0 0 0",
-        animation: false 
+        animation: "clip: Object_0; loop: repeat; timeScale: 1" 
       },
       "type6": {
         name: "✨ 사랑꾼 조아용 포토존",
@@ -80,10 +86,10 @@
         bgm: "./audio/The_Final_Lap_of_Grace.mp3",
         guideText: "사랑꾼 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
         url: "./models/joayong_heart.glb",
-        scale: "4 4 4",
-        position: "-1 0 0",
+        scale: "1 1 1",
+        position: "0 0 0",
         rotation: "0 0 0",
-        animation: false 
+        animation: "clip: Animation; loop: repeat; timeScale: 1" 
       },
       "type7": {
         name: "✨ 보드 타는 조아용 포토존",
@@ -91,10 +97,10 @@
         bgm: "./audio/The_Final_Lap_of_Grace.mp3",
         guideText: "보드 타는 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
         url: "./models/joayong_board.glb",
-        scale: "4 4 4",
-        position: "-1 0 0",
+        scale: "1 1 1",
+        position: "0 0 0",
         rotation: "0 0 0",
-        animation: false 
+        animation: "clip: Object_0; loop: repeat; timeScale: 1" 
       },
       "type8": {
         name: "✨ 탐사중인 조아용 포토존",
@@ -102,21 +108,21 @@
         bgm: "./audio/The_Final_Lap_of_Grace.mp3",
         guideText: "탐사중인 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
         url: "./models/joayong_probe.glb",
-        scale: "4 4 4",
-        position: "-1 0 0",
+        scale: "1 1 1",
+        position: "0 0 0",
         rotation: "0 0 0",
-        animation: false 
+        animation: "clip: Take 001; loop: repeat; timeScale: 1" 
       },
       "type9": {
         name: "✨ 로봇 조아용 포토존",
         previewImg: "./img/card-joa-robot.png",
         bgm: "./audio/The_Final_Lap_of_Grace.mp3",
         guideText: "로봇 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
-        url: "./models/joayong_robot.glb",
-        scale: "4 4 4",
-        position: "-1 0 0",
+        url: "./models/joayong_mecha.glb",
+        scale: "1 1 1",
+        position: "0 0 0",
         rotation: "0 0 0",
-        animation: false 
+        animation: "clip: Take 001; loop: repeat; timeScale: 1" 
       },
       "type10": {
         name: "✨ 로켓 타는 조아용 포토존",
@@ -124,10 +130,10 @@
         bgm: "./audio/The_Final_Lap_of_Grace.mp3",
         guideText: "로켓 타는 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
         url: "./models/joayong_rocket.glb",
-        scale: "4 4 4",
-        position: "-1 0 0",
+        scale: "1 1 1",
+        position: "0 0 0",
         rotation: "0 0 0",
-        animation: false 
+        animation: "clip: Animation; loop: repeat; timeScale: 1" 
       },
       "type11": {
         name: "✨ 기차 타는 조아용 포토존",
@@ -135,10 +141,10 @@
         bgm: "./audio/The_Final_Lap_of_Grace.mp3",
         guideText: "기차 타는 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
         url: "./models/joayong_train.glb",
-        scale: "4 4 4",
-        position: "-1 0 0",
+        scale: "1 1 1",
+        position: "0 0 0",
         rotation: "0 0 0",
-        animation: false 
+        animation: "clip: Take 001; loop: repeat; timeScale: 1" 
       },
     };
 
