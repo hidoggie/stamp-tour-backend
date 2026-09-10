@@ -113,7 +113,7 @@
     radial-gradient(700px 620px at 60% 106%, rgba(120, 87, 255, .14), transparent 62%);
   background-attachment: fixed;
   padding: 35px 20px 80px 20px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); border-radius: 15px; pointer-events: auto !important; }
-.arNavi-popup-title { margin: 0 0 15px 0; color: #3b5f5f; font-size: 20px; font-weight: 700; text-align: center; }
+.arNavi-popup-title { margin: 25px 0 15px 0; color: #3b5f5f; font-size: 20px; font-weight: 700; text-align: center; }
 .arNavi-content-img { width: 97%; border-radius: 8px; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1); margin-top: 2vh; margin-bottom: 2vh; max-height: 180px; object-fit: contain; }
 .arNavi-info-list { list-style-type: disc; padding-left: 1rem; margin: 0; color: #3b5f5f; font-size: 16px; line-height: 1.6; width: 100%; box-sizing: border-box; }
 .arNavi-info-list li { margin-bottom: 8px; word-break: keep-all; }
