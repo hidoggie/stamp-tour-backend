@@ -328,34 +328,6 @@ app.post("/api/tour/arrive", authenticate, async (req, res) => {
           error: `이벤트 장소 ${target.radius_m.toLocaleString()}m 이내에 접근해야 합니다. (현재 거리: ${Math.round(distToTarget).toLocaleString()}m)`,
         });
       }
-
-      // 2) 비정상적인 이동 속도 검증 (스푸핑 방지)
-      const lastStampRes = await pool.query(
-        "SELECT acquired_lat, acquired_lng, acquired_at FROM joa_stamps WHERE user_id = $1 ORDER BY acquired_at DESC LIMIT 1",
-        [user_id],
-      );
-
-      if (lastStampRes.rowCount > 0) {
-        const lastStamp = lastStampRes.rows[0];
-        if (lastStamp.acquired_lat && lastStamp.acquired_lng) {
-          const distKm = getDistanceFromLatLonInKm(
-            lat,
-            lng,
-            lastStamp.acquired_lat,
-            lastStamp.acquired_lng,
-          );
-          const timeDiffMs = new Date() - new Date(lastStamp.acquired_at);
-          const timeDiffHours = timeDiffMs / (1000 * 60 * 60);
-
-          // 이동 속도 (km/h). KTX 최고속도인 300km/h를 초과하면 조작으로 간주
-          const speedKmh = timeDiffHours > 0 ? distKm / timeDiffHours : 9999;
-          if (speedKmh > 300) {
-            return res.status(403).json({
-              error: "비정상적인 이동 속도가 감지되어 위치 인증을 거부합니다.",
-            });
-          }
-        }
-      }
     }
 
     // --- 검증 통과 시 상태 업데이트 (도착 완료) ---
