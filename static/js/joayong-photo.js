@@ -39,9 +39,23 @@ window.addEventListener("mediarecorder-previewclosed", () => {
 window.openPopup = function () {
   document.getElementById("popup").style.display = "flex";
 };
+
 window.closePopup = function () {
   document.getElementById("popup").style.display = "none";
+  const bgm = document.getElementById("bgm");
+  const audioBtn = document.getElementById("audio-toggle-btn");
+  
+  if (bgm && bgm.paused) {
+    bgm.play().then(() => {
+      // 재생 성공 시 음표 버튼 UI 동기화
+      if (audioBtn) {
+        audioBtn.innerText = "🎵";
+        audioBtn.style.backgroundColor = "#ffffff";
+      }
+    }).catch(err => console.log("오디오 재생 실패:", err));
+  }
 };
+
 window.goBackToMain = function () {
   releaseCamera(); // 뒤로 갈 때 무조건 카메라 끄기
   const currentjoaId = localStorage.getItem("return_joa_id");
@@ -94,10 +108,10 @@ window.startNavigation = function (zoneType) {
   });
 
   // 사운드 시퀀스 강제 스타트
-  const bgm = document.getElementById("bgm");
-  if (bgm) {
-    bgm.play().catch((err) => console.log("BGM 오토 플레이 정책 핸들링:", err));
-  }
+ // const bgm = document.getElementById("bgm");
+ // if (bgm) {
+ //   bgm.play().catch((err) => console.log("BGM 오토 플레이 정책 핸들링:", err));
+ // }
 };
 
 // 5. 사진 촬영 및 전송/공유 핵심 로직
@@ -123,28 +137,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 오디오 음성 제어 토글 리스너
   if (audioBtn && bgm) {
-    ["click", "touchstart"].forEach((eventType) => {
-      audioBtn.addEventListener(
-        eventType,
-        (e) => {
-          e.preventDefault();
-          e.stopPropagation();
+    // 기존의 복잡한 touchstart, click 다중 바인딩을 제거하고 onclick 하나로 통합합니다.
+    audioBtn.onclick = function (e) {
+      e.preventDefault();
+      e.stopPropagation();
 
-          if (bgm.paused) {
-            bgm.play().catch((err) => console.log("Play failed: ", err));
-            audioBtn.innerText = "🎵";
-            audioBtn.style.backgroundColor = "#ffffff";
-          } else {
-            bgm.pause();
-            audioBtn.innerText = "🔇";
-            audioBtn.style.backgroundColor = "#f1f3f2";
-          }
-        },
-        { passive: false },
-      );
-    });
+      if (bgm.paused) {
+        // 음악이 멈춰있을 때 -> 재생
+        bgm.play().then(() => {
+          audioBtn.innerText = "🎵";
+          audioBtn.style.backgroundColor = "#ffffff";
+        }).catch((err) => console.log("Play failed: ", err));
+      } else {
+        // 음악이 재생 중일 때 -> 정지
+        bgm.pause();
+        audioBtn.innerText = "🔇";
+        audioBtn.style.backgroundColor = "#f1f3f2";
+      }
+    };
   }
-
 // 🔄 3D 모델 위치/크기/회전 초기화 버튼 제어
 if (resetBtn) {
   ["click", "touchstart"].forEach((eventType) => {
