@@ -105,7 +105,7 @@
 /* === 팝업 공통 === */
 .arNavi-popup-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, .7); justify-content: center; align-items: center; z-index: 9999999; }
 .arNavi-popup-box { 
-  position: relative; width: 65vw; height: 50vh; max-width: 90vw; margin: 0 auto; 
+  position: relative; width: 65vw; height: 55vh; max-width: 90vw; margin: 0 auto; 
   background: #FAF8FF;
   background-image:
     radial-gradient(760px 500px at 88% -4%, rgba(147, 51, 234, .16), transparent 62%),
@@ -120,7 +120,7 @@
 
 .arNavi-btn-transparent { position: absolute; background: transparent; border: none; cursor: pointer; outline: none; }
 .arNavi-close-btn { color: white; top: 2rem; right: 15px; width: 35px; height: 35px; border-radius: 50%; font-size: 26px; font-weight: bold; background-color: #3B2A1E; display: flex; align-items: center; justify-content: center; padding-bottom: 4px; transition: opacity 0.2s; }
-.arNavi-ok-btn {  background: linear-gradient(to right, rgba(44,62,80,1) 0%, rgba(28,40,51,0.8) 50%, rgba(11,12,16,1) 100%); color: white; bottom: 2rem; left: 50%; transform: translateX(-50%); width: 200px; height: 45px; border-radius: 25px; font-size: 1.2rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s;}
+.arNavi-ok-btn {  background: linear-gradient(to right, rgba(44,62,80,1) 0%, rgba(28,40,51,0.8) 50%, rgba(11,12,16,1) 100%); color: white; bottom: 1rem; left: 50%; transform: translateX(-50%); width: 200px; height: 45px; border-radius: 25px; font-size: 1.2rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s;}
 
 /* 오디오 및 리셋 버튼 공통 스타일 */
 #audio-toggle-btn
