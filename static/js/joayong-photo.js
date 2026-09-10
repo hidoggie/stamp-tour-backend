@@ -65,6 +65,9 @@ window.startNavigation = function (zoneType) {
     const audioBtn = document.getElementById("audio-toggle-btn");
     if (audioBtn) audioBtn.style.display = "flex";
 
+    const resetBtn = document.getElementById("ar-reset-btn"); 
+    if (resetBtn) resetBtn.style.display = "flex";             
+
     // 2. 선택된 3D 모델 가시성 활성화 및 애니메이션 시작!
     const zones = window.PHOTO_ZONE_IDS || [];
     zones.forEach((id) => {
@@ -115,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const audioBtn = document.getElementById("audio-toggle-btn");
   const resetBtn = document.getElementById("ar-reset-btn");
   const bgm = document.getElementById("bgm");
-  const uiContainer = document.getElementById("container");
+ // const uiContainer = document.getElementById("container");
   //  const startArea = document.getElementById("start_area");
 
   // 오디오 음성 제어 토글 리스너
@@ -142,53 +145,31 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 초기화(🔄) 버튼 상호작용 및 복구 통합 제어
-  if (resetBtn && uiContainer && bgm) {
-    ["click", "touchstart"].forEach((eventType) => {
-      resetBtn.addEventListener(
-        eventType,
-        (e) => {
-          e.preventDefault();
-          e.stopPropagation();
+// 🔄 3D 모델 위치/크기/회전 초기화 버튼 제어
+if (resetBtn) {
+  ["click", "touchstart"].forEach((eventType) => {
+    resetBtn.addEventListener(
+      eventType,
+      (e) => {
+        e.preventDefault();
+        e.stopPropagation();
 
-          console.log("메인 분기 화면으로 안전하게 초기화 복귀합니다.");
+        // 1. 8th Wall AR 트래킹 기준점 리센터링 (카메라 정면 재설정)
+        if (window.XR8 && window.XR8.XrController) {
+          window.XR8.XrController.recenter();
+        }
 
-          // 1. 사운드 리셋 조치
-          bgm.pause();
-          bgm.currentTime = 0;
-          if (audioBtn) {
-            audioBtn.innerText = "🎵";
-            audioBtn.style.backgroundColor = "#ffffff";
-          }
-          const zones = window.PHOTO_ZONE_IDS || []; // 💡 이 줄을 꼭 추가하세요!
-          zones.forEach((id) => {
-            const entity = document.getElementById(id);
-            if (entity) {
-              entity.setAttribute("visible", "false");
-              entity.setAttribute("scale", "0 0 0");
-            }
-          });
-
-          // 3. 인게임 버튼 세트 임시 언로드
-          if (audioBtn) audioBtn.style.display = "none";
-          resetBtn.style.display = "none";
-
-          const modelSelector = document.getElementById("model-selector");
-          if (modelSelector) modelSelector.style.display = "none";
-
-          // 4. 🛠️ 수정: 복귀 시 display를 block이 아니라 flex로 선언해야 레이아웃 왜곡 차단됨
-          document.getElementById("resume-hide-style")?.remove();
-          //        if (startArea) startArea.style.display = "block";
-          uiContainer.style.display = "flex";
-          uiContainer.style.visibility = "visible";
-          setTimeout(() => {
-            uiContainer.style.opacity = "1";
-          }, 15);
-        },
-        { passive: false },
-      );
-    });
-  }
+        // 2. 3D 모델(ar_target_zone)을 처음 떴을 때의 위치, 크기, 회전값으로 복원
+        const targetEntity = document.getElementById("ar_target_zone");
+        if (targetEntity) {
+          targetEntity.emit("ar-start"); // joayong_photo.html에 정의된 초기화 이벤트 실행
+          console.log("🔄 3D 모델 위치 및 크기 리셋 완료");
+        }
+      },
+      { passive: false }
+    );
+  });
+}
 
   document.addEventListener("visibilitychange", () => {
     const bgm = document.getElementById("bgm");
@@ -353,32 +334,66 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-// 📸 [기기 저장] 버튼 클릭 시
+  // 📸 [기기 저장] 버튼 클릭 시
   document.getElementById("btn-save-device")?.addEventListener("click", async () => {
-    if (!capturedDataUrl) return;
-    
-    // 1. 서버에 파라미터 없이 완료 신호만 전송
-    const isUploaded = await uploadPhotoToServer();
-    if (!isUploaded) return;
+      if (!capturedDataUrl || !capturedFile) return;
 
-    // ★ 다운로드 파일명 동적 생성 (예: 불뿜는 조아용_인증샷_169422...jpg)
-    // localStorage에서 뽑힌 조아용 카드의 이름을 가져옵니다.
-    const joaTitle = localStorage.getItem("return_joa_title") || "조아용";
-    const timeStamp = new Date().getTime(); // 덮어쓰기 방지용 타임스탬프
-    const fileName = `${joaTitle}_인증샷_${timeStamp}.jpg`;
+      // 1. 서버에 완료 신호 전송
+      const isUploaded = await uploadPhotoToServer();
+      if (!isUploaded) return;
 
-    // 2. 기기에 이미지 직접 다운로드 저장
-    const link = document.createElement("a");
-    link.href = capturedDataUrl;
-    link.download = fileName; // ★ 동적으로 만든 파일명 적용
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      // iOS(아이폰/아이패드) 환경 체크
+      const isIOS =
+        /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
-    alert("사진이 저장되어 스탬프가 발급되었습니다! 🎁");
-    goBackToMain();
-  });
+      // 2-A. iOS(아이폰)인 경우: iOS 시스템 공유창 호출 (사진 앱 앨범 저장 유도)
+      if (
+        isIOS &&
+        navigator.canShare &&
+        navigator.canShare({ files: [capturedFile] })
+      ) {
+        try {
+          await navigator.share({
+            files: [capturedFile],
+            title: "조아용 인증샷",
+            text: "하단의 [이미지 저장]을 눌러 사진 앨범에 보관하세요!",
+          });
+          alert("스탬프가 발급되었습니다! 🎁");
+        } catch (error) {
+          console.log("iOS 공유/저장 취소 또는 에러:", error);
+          alert("스탬프가 발급되었습니다! 🎁");
+        } finally {
+          // 공유창이 닫힌 후 안전하게 메인으로 복귀
+          goBackToMain();
+        }
+        return;
+      }
 
+      // 2-B. 안드로이드 및 일반 브라우저: Blob ObjectURL 기반 다운로드 처리
+      const joaTitle = localStorage.getItem("return_joa_title") || "조아용";
+      const timeStamp = new Date().getTime();
+      const fileName = `${joaTitle}_인증샷_${timeStamp}.jpg`;
+
+      // Base64 대신 Blob URL을 사용하여 다운로드 안정성 확보
+      const blobUrl = URL.createObjectURL(capturedFile);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // 사용한 Blob URL 메모리 해제
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+
+      alert("사진이 저장되어 스탬프가 발급되었습니다! 🎁");
+
+      // 3. 다운로드가 완전히 시작될 수 있도록 약간의 시차(0.5초)를 주고 페이지 이동
+      setTimeout(() => {
+        goBackToMain();
+      }, 500);
+    });
   // 🌐 [SNS 공유] 버튼 클릭 시
   document
     .getElementById("btn-share-sns")
