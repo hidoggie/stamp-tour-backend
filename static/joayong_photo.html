@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>조아용 포토존</title>
+
+  <script src="./js/8frame-1.5.0.min.js"></script>
+  <script src="./js/xrextras.js"></script>
+  <script src="./js/landing-page.js"></script>
+  <script async src="./js/xr.js" data-preload-chunks="slam"></script>
+  <script src="./js/aframe-extras-7.2.0.min.js"></script>
+
+  <link rel="stylesheet" href="./css/joayong-photo-common.css">
+  <script>
+    // 현재 접속한 키 가져오기
+    const currentjoaId = localStorage.getItem("return_joa_id") || "default";
+    const selectedKey = localStorage.getItem("selected_model_key") || "type1"; // 기본값 방어코드
+
+    const MODEL_SPECS = {
+      "type1": {
+        name: "✨ 불뿜는 조아용 포토존",
+        previewImg: "./img/card-joa-angry.png",
+        bgm: "./audio/Where_the_White_Petals_Fall.mp3",
+        guideText: "불뿜는 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
+        url: "./models/joayong_angry.glb",
+        scale: "3 3 3",
+        position: "0 -1 0",
+        rotation: "0 0 0",
+        animation: "clip: idle_01; loop: repeat; timeScale: 1"
+      },
+      "type2": {
+        name: "✨ UFO를 타고있는 조아용 포토존",
+        previewImg: "./img/card-joa-ufo.png",
+        bgm: "./audio/Chasing_the_Morning_Sun.mp3",
+        guideText: "UFO를 타고있는 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
+        url: "./models/joayong_ufo.glb",
+        scale: "1.5 1.5 1.5", 
+        position: "1.5 0 -1", 
+        rotation: "0 -45 0",  
+        animation: "clip: jump; loop: repeat; timeScale: 1.2"
+      },
+      "type3": {
+        name: "✨ 드럼치는 조아용 포토존",
+        previewImg: "./img/card-joa-drum.png",
+        bgm: "./audio/The_Final_Lap_of_Grace.mp3",
+        guideText: "드럼치는 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
+        url: "./models/joayong_drum.glb",
+        scale: "4 4 4",
+        position: "-1 0 0",
+        rotation: "0 0 0",
+        animation: false 
+      },
+      "type4": {
+        name: "✨ 꽃과 함께 조아용 포토존",
+        previewImg: "./img/card-joa-flower.png",
+        bgm: "./audio/The_Final_Lap_of_Grace.mp3",
+        guideText: "꽃과 함께 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
+        url: "./models/joayong_flower.glb",
+        scale: "4 4 4",
+        position: "-1 0 0",
+        rotation: "0 0 0",
+        animation: false
+      },
+      "type5": {
+        name: "✨ 기타 치는 조아용 포토존",
+        previewImg: "./img/card-joa-guitar.png",
+        bgm: "./audio/The_Final_Lap_of_Grace.mp3",
+        guideText: "기타 치는 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
+        url: "./models/joayong_guitar.glb",
+        scale: "4 4 4",
+        position: "-1 0 0",
+        rotation: "0 0 0",
+        animation: false 
+      },
+      "type6": {
+        name: "✨ 사랑꾼 조아용 포토존",
+        previewImg: "./img/card-joa-heart.png",
+        bgm: "./audio/The_Final_Lap_of_Grace.mp3",
+        guideText: "사랑꾼 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
+        url: "./models/joayong_heart.glb",
+        scale: "4 4 4",
+        position: "-1 0 0",
+        rotation: "0 0 0",
+        animation: false 
+      },
+      "type7": {
+        name: "✨ 보드 타는 조아용 포토존",
+        previewImg: "./img/card-joa-board.png",
+        bgm: "./audio/The_Final_Lap_of_Grace.mp3",
+        guideText: "보드 타는 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
+        url: "./models/joayong_board.glb",
+        scale: "4 4 4",
+        position: "-1 0 0",
+        rotation: "0 0 0",
+        animation: false 
+      },
+      "type8": {
+        name: "✨ 탐사중인 조아용 포토존",
+        previewImg: "./img/card-joa-probe.png",
+        bgm: "./audio/The_Final_Lap_of_Grace.mp3",
+        guideText: "탐사중인 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
+        url: "./models/joayong_probe.glb",
+        scale: "4 4 4",
+        position: "-1 0 0",
+        rotation: "0 0 0",
+        animation: false 
+      },
+      "type9": {
+        name: "✨ 로봇 조아용 포토존",
+        previewImg: "./img/card-joa-robot.png",
+        bgm: "./audio/The_Final_Lap_of_Grace.mp3",
+        guideText: "로봇 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
+        url: "./models/joayong_robot.glb",
+        scale: "4 4 4",
+        position: "-1 0 0",
+        rotation: "0 0 0",
+        animation: false 
+      },
+      "type10": {
+        name: "✨ 로켓 타는 조아용 포토존",
+        previewImg: "./img/card-joa-rocket.png",
+        bgm: "./audio/The_Final_Lap_of_Grace.mp3",
+        guideText: "로켓 타는 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
+        url: "./models/joayong_rocket.glb",
+        scale: "4 4 4",
+        position: "-1 0 0",
+        rotation: "0 0 0",
+        animation: false 
+      },
+      "type11": {
+        name: "✨ 기차 타는 조아용 포토존",
+        previewImg: "./img/card-joa-train.png",
+        bgm: "./audio/The_Final_Lap_of_Grace.mp3",
+        guideText: "기차 타는 조아용과 사진을 찍은 후 저장 혹은 공유하시면 최종 인증이 완료됩니다.",
+        url: "./models/joayong_train.glb",
+        scale: "4 4 4",
+        position: "-1 0 0",
+        rotation: "0 0 0",
+        animation: false 
+      },
+    };
+
+    const currentModel = MODEL_SPECS[selectedKey] || MODEL_SPECS["type1"];
+
+    // AR 씬에 부여할 고정 그룹 ID
+    window.PHOTO_ZONE_IDS = ["ar_target_zone"];
+
+    // A-Frame에 렌더링할 모델 배열 (메인 캐릭터 + 공통 바닥 이펙트)
+    const modelsToRender = [
+      {
+        url: currentModel.url,
+        scale: currentModel.scale,
+        position: currentModel.position,
+        rotation: currentModel.rotation,
+        animation: currentModel.animation
+      },
+      // (선택) 모든 캐릭터에 공통으로 바닥에 깔아줄 이펙트
+      {
+        url: "./models/common-shadow-or-effect.glb",
+        scale: "2 2 2", position: "0 0 -1", rotation: "0 0 0", animation: false
+      }
+    ];
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const isSeparateControl = true; // 개별 컨트롤 활성화 플래그
+      const startArea = document.getElementById('start_area');
+      const aScene = document.querySelector('a-scene');
+
+      const bgmEl = document.getElementById("bgm");
+      if (bgmEl && currentModel.bgm) {
+        bgmEl.src = currentModel.bgm; // 통합된 스펙에서 BGM 가져오기
+      }
+
+      // 부모 엔티티 생성
+      const parentGroup = document.createElement('a-entity');
+      parentGroup.setAttribute('id', "ar_target_zone");
+      parentGroup.setAttribute('visible', 'false');
+      parentGroup.setAttribute('scale', '1 1 1');
+      parentGroup.setAttribute('xrextras-hold-drag', '');
+      parentGroup.setAttribute('xrextras-two-finger-rotate', '');
+      parentGroup.setAttribute('xrextras-pinch-scale', '');
+
+      // 자식 모델들 부착
+      modelsToRender.forEach((modelData) => {
+        const childEntity = document.createElement('a-entity');
+        childEntity.setAttribute('gltf-model', modelData.url);
+        childEntity.setAttribute('class', 'cantap');
+        childEntity.setAttribute('position', modelData.position || '0 0 0');
+        childEntity.setAttribute('rotation', modelData.rotation || '0 0 0');
+        childEntity.setAttribute('scale', modelData.scale || '1 1 1');
+
+        if (modelData.animation !== false) {
+          childEntity.setAttribute('animation-mixer', modelData.animation || '');
+        }
+        childEntity.setAttribute('shadow', 'receive: false');
+        childEntity.setAttribute('fix-metal-material', '');
+        childEntity.setAttribute('smooth-model', '');
+
+        parentGroup.appendChild(childEntity);
+      });
+
+      if (aScene) aScene.appendChild(parentGroup);
+
+      // ★ 조명이 현재 생성된 포토존 모델 그룹(parentGroup)을 따라가도록 타겟 재설정
+      const dirLight = document.querySelector('a-entity[light][xrextras-attach]');
+      if (dirLight) {
+        dirLight.setAttribute('light', 'target', `#ar_target_zone`);
+        dirLight.setAttribute('xrextras-attach', `target: ar_target_zone; offset: 1 15 3;`);
+      }
+
+      parentGroup.addEventListener('ar-start', () => {
+        // 1. 부모 그룹 초기화
+        parentGroup.setAttribute('position', '0 0 0');
+        parentGroup.setAttribute('rotation', '0 0 0');
+        parentGroup.setAttribute('scale', '1 1 1');
+
+        // 2. 자식 모델들 원상복구
+        const childModels = parentGroup.querySelectorAll('.cantap');
+        childModels.forEach((child, index) => {
+          const originalData = modelsToRender[index]; // currentZone.models 대신 사용
+          if (originalData) {
+            child.setAttribute('position', originalData.position || '0 0 0');
+            child.setAttribute('rotation', originalData.rotation || '0 0 0');
+            child.setAttribute('scale', originalData.scale || '1 1 1');
+          }
+        });
+
+        // 3. 제어 권한 초기화
+        if (isSeparateControl) {
+          childModels.forEach(child => {
+            child.removeAttribute('xrextras-pinch-scale');
+            child.removeAttribute('xrextras-two-finger-rotate');
+          });
+          if (childModels.length > 0) {
+            childModels[0].setAttribute('xrextras-pinch-scale', '');
+            childModels[0].setAttribute('xrextras-two-finger-rotate', '');
+          }
+        }
+      });
+
+      if (aScene) {
+        aScene.addEventListener('loaded', () => {
+          setTimeout(() => {
+            if (typeof startNavigation === 'function') {
+              startNavigation('ar_target_zone');
+            }
+          }, 300); // 로딩 화면이 부드럽게 걷히도록 0.3초 대기 후 즉시 시작
+        });
+      }
+      });  // 🌟 DOMContentLoaded 블록이 여기서 안전하게 닫힙니다!
+
+    // 터치한 모델에게만 크기/회전 권한을 주는 마법의 컴포넌트
+    AFRAME.registerComponent('select-to-control', {
+      init: function () {
+        this.el.addEventListener('mousedown', () => {
+          const siblings = this.el.parentEl.children;
+          for (let i = 0; i < siblings.length; i++) {
+            siblings[i].removeAttribute('xrextras-pinch-scale');
+            siblings[i].removeAttribute('xrextras-two-finger-rotate');
+          }
+          this.el.setAttribute('xrextras-pinch-scale', '');
+          this.el.setAttribute('xrextras-two-finger-rotate', '');
+        });
+      }
+    });
+
+    // 🌟 각진 로우폴리 모델을 둥글고 부드럽게 렌더링해주는 마법의 컴포넌트
+    AFRAME.registerComponent('smooth-model', {
+      init: function () {
+        this.el.addEventListener('model-loaded', () => {
+          const mesh = this.el.getObject3D('mesh');
+          if (mesh) {
+            mesh.traverse((node) => {
+              if (node.isMesh && node.material) {
+                node.material.flatShading = false;
+                node.material.roughness = 0.7; 
+                node.material.needsUpdate = true;
+                if (node.geometry) {
+                  node.geometry.computeVertexNormals();
+                }
+              }
+            });
+          }
+        });
+      }
+    });
+
+    // 카메라 금속성 반사 보정
+    AFRAME.registerComponent('fix-metal-material', {
+      init() {
+        this.el.addEventListener('model-loaded', () => {
+          const mesh = this.el.getObject3D('mesh');
+          if (!mesh) return;
+          mesh.traverse((node) => {
+            if (node.isMesh && node.material) {
+              node.material.metalness = 0.1;  
+              node.material.roughness = 0.35; 
+              node.material.needsUpdate = true;
+            }
+          });
+        });
+      }
+    });
+
+    // 자식 창 (yw_photozone.html) 내부 로직
+    let capturedImageBase64 = null;
+
+    function onCaptureClick() {
+      capturedImageBase64 = takeScreenshot();
+      document.getElementById("preview-ui").style.display = "block";
+    }
+
+    function onSaveOrShareClick(actionType) {
+      if (actionType === 'SAVE') {
+        saveToDevice(capturedImageBase64); 
+      } else {
+        shareToSNS(capturedImageBase64); 
+      }
+      window.parent.postMessage({
+        type: "PHOTO_CAPTURED",
+        image: capturedImageBase64
+      }, "*");
+    }
+  </script>
+  
+  <script src="./js/joayong-photo.js"></script>
+</head>
+
+<body>
+  <button id="arNavi-back-btn" class="arNavi-back-btn" onclick="goBackToMain()">
+    <img src="./img/back-btn.png" alt="뒤로가기">
+  </button>
+  <button id="arNavi-info-btn" class="arNavi-info-btn" onclick="openPopup()">
+    <img src="./img/info-s.png" alt="이용안내">
+  </button>
+
+  <audio id="bgm" src="" loop></audio>
+  <button id="audio-toggle-btn" aria-label="음악 끄기 및 켜기">🎵</button>
+  <!--button id="ar-reset-btn" aria-label="처음으로 돌아가기">🔄</button-->
+
+  <!--div id="container">
+    <div id="start_area"></div>
+  </div-->
+
+  <div class="arNavi-popup-overlay" id="popup">
+    <div class="arNavi-popup-box">
+      <button class="arNavi-btn-transparent arNavi-close-btn" aria-label="닫기" onclick="closePopup()">×</button>
+      <h2 class="arNavi-popup-title">AR 포토존 이용 안내</h2>
+      <img src="./img/djgo-photo-auth.png" alt="AR 포토 미션 안내" class="arNavi-content-img">
+      <ul class="arNavi-info-list">
+        <li>바닥을 터치하면 캐릭터가 나타나요.</li>
+        <li>캐릭터와 함께 찍은 사진을 업로드하면 스탬프가 발행되요.</li>
+        <li>사진이 업로드 되면 스탬프북에서 확인하실 수 있어요.</li>
+      </ul>
+      <button class="arNavi-btn-transparent arNavi-ok-btn" aria-label="확인" onclick="closePopup()">OK</button>
+    </div>
+  </div>
+
+  <a-scene xrextras-gesture-detector xrextras-loading xrextras-runtime-error renderer="colorManagement: true"
+    xrweb="allowedDevices: any" postprocessing="bloomStrength: 0.2" xrextras-capture-config="requestMic: none">
+
+    <xrextras-capture-button capture-mode="photo"></xrextras-capture-button>
+
+    <a-camera id="camera" position="0 4 8" raycaster="objects: .cantap" cursor="fuse: false; rayOrigin: mouse;">
+    </a-camera>
+
+    <a-light type="hemisphere" color="#ffffff" groundColor="#aaaaaa" intensity="0.7"></a-light>
+
+    <a-entity light="
+        type: directional;
+        intensity: 0.6;
+        castShadow: true;
+        shadowMapHeight:2048;
+        shadowMapWidth:2048;
+        shadowCameraTop: 10;
+        target: #model;" xrextras-attach="target: model; offset: 1 15 3;" shadow>
+    </a-entity>
+
+    <a-light type="ambient" intensity="0.5"></a-light>
+
+    <a-plane id="ground" rotation="-90 0 0" width="1000" height="1000" material="shader: shadow" shadow>
+    </a-plane>
+  </a-scene>
+
+  <div id="custom-ui-layer" class="hidden">
+    <div id="preview-screen" class="screen hidden">
+      <div class="media-container">
+        <img id="preview-image" class="media-content hidden" />
+      </div>
+      <div class="bottom-action">
+        <div class="btn-row">
+          <button id="btn-cancel" class="btm-button" onclick="resetUI()">다시 촬영</button>
+          <button id="btn-share-sns" class="btm-button" style="background: #FE73F3;">SNS 공유</button>
+        </div>
+        <button id="btn-save-device" class="btm-button" style="background: #4A90E2; color: white">사진 저장하고 스탬프 받기</button>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

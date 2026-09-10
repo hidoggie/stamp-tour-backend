@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>단종GO 스탬프 투어 - 통합 관리자 시스템</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            display: flex;
+            margin: 0;
+            font-family: 'Noto Sans KR', sans-serif;
+            background: #f4f7f6;
+            color: #333;
+        }
+
+        /* 사이드바 */
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            background: #245752;
+            color: white;
+            padding: 25px 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+        }
+
+        .sidebar h3 {
+            text-align: center;
+            border-bottom: 1px solid #357a72;
+            padding-bottom: 20px;
+            margin-top: 0;
+            font-size: 20px;
+            letter-spacing: 1px;
+        }
+
+        .menu-item {
+            padding: 14px 16px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 15px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .menu-item:hover,
+        .menu-item.active {
+            background: #3ca89e;
+        }
+
+        .menu-bottom {
+            margin-top: auto;
+        }
+
+        /* 메인 컨텐츠 영역 */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            height: 100vh;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #1e4743;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* 요약 카드 (대시보드) */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+            text-align: center;
+            border-bottom: 4px solid #3ca89e;
+        }
+
+        .summary-title {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .summary-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #245752;
+        }
+
+        /* 필터링 바 (검색 영역) */
+        .filter-bar {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .filter-bar input,
+        .filter-bar select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .filter-bar input:focus,
+        .filter-bar select:focus {
+            border-color: #3ca89e;
+        }
+
+        /* 테이블 및 페이지네이션 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        }
+
+        th,
+        td {
+            padding: 13px 18px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+        }
+
+        th {
+            background: #eef5f4;
+            color: #245752;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: #fafcfc;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 20px;
+        }
+
+        .page-btn {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .page-btn:hover {
+            background: #f4f7f6;
+        }
+
+        .page-btn.active {
+            background: #3ca89e;
+            color: white;
+            border-color: #3ca89e;
+        }
+
+        /* 대시보드 스크롤 박스 (일자별 길어짐 대비) */
+        .dashboard-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .dashboard-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .dashboard-box h3 {
+            margin-top: 0;
+            color: #245752;
+            font-size: 16px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            position: sticky;
+            top: -20px;
+            background: white;
+        }
+
+        /* 뱃지 및 버튼 */
+        .badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .badge.wait {
+            background: #ffeeba;
+            color: #856404;
+        }
+
+        .badge.complete {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge.type-badge {
+            background: #e2eefe;
+            color: #1a56db;
+        }
+
+        .badge.type-comp {
+            background: #fdf6b2;
+            color: #723b13;
+        }
+
+        .btn-action {
+            background: #3ca89e;
+            color: white;
+            border: none;
+            padding: 7px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .clickable-link {
+            color: #2e8b82;
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* 팝업 모달 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #888;
+            border: none;
+            background: none;
+        }
+
+        .modal-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0 0 0;
+        }
+
+        .modal-list li {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+
+        .super-only {
+            display: none;
+        }
+
+        .loading-text {
+            font-size: 14px;
+            color: #777;
+            font-weight: normal;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <h3>단종GO 스탬프 투어 Admin</h3>
+        <div class="menu-item active" onclick="switchView('dashboard')">📊 종합 대시보드</div>
+        <div class="menu-item" onclick="switchView('users')">👤 참가자 인증 현황</div>
+        <div class="menu-item" onclick="switchView('tickets')">🎁 경품 발급 내역</div>
+        <div class="menu-item super-only" id="menu-super" onclick="switchView('managers')">👥 부관리자 계정 생성</div>
+        <div class="menu-bottom">
+            <a href="admin_scanner.html" target="_blank" style="text-decoration: none; color: inherit;"
+                id="menu-scanner">
+                <div class="menu-item"
+                    style="background: #e74c3c; color: white; text-align: center; margin-bottom: 15px;">📷 현장 QR 스캐너 열기
+                </div>
+            </a>
+            <div class="menu-item" onclick="executeLogout(true)"
+                style="background: #666; color: white; text-align: center;">🚪 로그아웃</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <section id="section-dashboard">
+            <h2>📊 실시간 종합 대시보드</h2>
+            <div class="filter-bar" style="background:#eef5f4; border:1px solid #c2deda;">
+                <span style="font-weight:bold; color:#245752;">조회 기간 :</span>
+                <input type="date" id="dashStartDate"> ~ <input type="date" id="dashEndDate">
+                <button class="btn-action" onclick="fetchDashboardData()">조회</button>
+                <span class="loading-text" style="margin-left:auto;">기본값: 이벤트 전체 기간</span>
+            </div>
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <div class="summary-title">경품 현장 발급자 수</div>
+                    <div class="summary-value" style="color:#cc5a5a" id="sum-pending">0</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-title">발송 완료 건수</div>
+                    <div class="summary-value" id="sum-completed">0</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-title">총 인증 완료(포토)</div>
+                    <div class="summary-value" id="sum-total-stamps">0</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-title">오늘 인증 수</div>
+                    <div class="summary-value" id="sum-today-stamps">0</div>
+                </div>
+            </div>
+            <div class="dashboard-split">
+                <div class="dashboard-box">
+                    <h3>📍 관광지 거점별 실시간 통계</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>관광지명</th>
+                                <th>도착(진입)</th>
+                                <th>인증 완료</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dash-lighthouse-body"></tbody>
+                    </table>
+                </div>
+                <div class="dashboard-box">
+                    <h3>📅 일자별 전체 참가 트렌드</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>일자</th>
+                                <th>활동 유저수</th>
+                                <th>획득 스탬프 수</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dash-daily-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="section-users" style="display:none;">
+            <h2>👤 참가자 인증 현황</h2>
+            <div class="filter-bar">
+                <input type="text" id="filterUserId" placeholder="스탬프 번호(ID) 검색..."
+                    onkeyup="if(event.keyCode==13) renderUsersPage(1)" style="width: 250px;">
+                <button class="btn-action" onclick="renderUsersPage(1)">검색</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>스탬프 번호 (ID)</th>
+                        <th>방문/진입 관광지 수</th>
+                        <th>최종 획득 완료 스탬프수 (상세보기)</th>
+                        <th>최근 활동 일시</th>
+                    </tr>
+                </thead>
+                <tbody id="user-table-body"></tbody>
+            </table>
+            <div id="user-pagination" class="pagination"></div>
+        </section>
+
+        <section id="section-managers" style="display:none;">
+            <h2>👥 관리자 계정 관리</h2>
+            <div style="display: flex; gap: 20px;">
+                <!-- 좌측: 생성 폼 -->
+                <div style="background:white; padding:30px; border-radius:10px; width:350px; height: fit-content;">
+                    <h3 style="margin-top:0;">신규 계정 생성</h3>
+                    <input type="text" id="newAdminId" placeholder="아이디"
+                        style="width:100%; height:40px; margin-bottom:15px; border:1px solid #ddd; padding-left:10px; box-sizing:border-box;"><br>
+                    <input type="text" id="newAdminPw" placeholder="비밀번호"
+                        style="width:100%; height:40px; margin-bottom:15px; border:1px solid #ddd; padding-left:10px; box-sizing:border-box;"><br>
+                    <select id="newAdminRole"
+                        style="width:100%; height:40px; margin-bottom:20px; border:1px solid #ddd; padding-left:10px; box-sizing:border-box;">
+                        <option value="SCAN_ADMIN">📷 현장 스탭 (스캐너만 사용 가능)</option>
+                        <option value="STAT_ADMIN">📊 군청 담당자 (통계만 조회 가능)</option>
+                    </select><br>
+                    <button class="btn-action" style="width:100%; height:45px; font-size:14px;"
+                        onclick="registerManager()">계정 생성 완료</button>
+                </div>
+                <!-- 우측: 목록 테이블 -->
+                <div style="flex: 1; background:white; padding:30px; border-radius:10px;">
+                    <h3 style="margin-top:0;">등록된 관리자 목록</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>아이디</th>
+                                <th>권한 역할</th>
+                                <th>생성 일자</th>
+                            </tr>
+                        </thead>
+                        <tbody id="manager-list-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="section-tickets" style="display:none;">
+            <h2>🎁 현장 경품 발급 내역 (부정 발급 모니터링)</h2>
+            <div class="filter-bar">
+                <span style="font-weight:bold;">발급 기간 :</span>
+                <input type="date" id="ticketStartDate"> ~ <input type="date" id="ticketEndDate">
+                <button class="btn-action" onclick="fetchTicketsData()">기간 조회</button>
+
+                <span style="margin-left:20px; font-weight:bold;">권종 필터 :</span>
+                <select id="filterTicketType" onchange="renderTicketsPage(1)">
+                    <option value="ALL">전체 권종</option>
+                    <option value="이용권_A">영상관 무료이용권</option>
+                    <option value="이용권_B">전시관 무료이용권</option>
+                    <option value="이용권_C">레이저서바이벌관 무료이용권</option>
+                    <option value="이용권_D">관광열차 무료이용권</option>
+                </select>
+
+                <button class="btn-action" onclick="downloadExcel()" style="margin-left:auto; background:#2e8b82;">엑셀
+                    다운로드</button>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>발급일시</th>
+                        <th>스탬프북 번호</th>
+                        <th>이용권 종류</th>
+                        <th>발급 담당자 (Admin ID)</th>
+                    </tr>
+                </thead>
+                <tbody id="ticket-table-body"></tbody>
+            </table>
+            <!-- 👇 페이징 처리 영역 추가 -->
+            <div id="ticket-pagination" class="pagination"></div>
+        </section>
+    </div>
+
+    <div id="stampModal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content">
+            <button class="modal-close"
+                onclick="document.getElementById('stampModal').style.display='none'">&times;</button>
+            <h3 id="modalTitle" style="margin-top:0; color:#245752;">인증 내역 상세</h3>
+            <ul id="modalList" class="modal-list"></ul>
+        </div>
+    </div>
+
+    <script>
+        // 전역 상태 (페이징 데이터 보존)
+        let globalUsers = [];
+        let globalTickets = [];
+        const PAGE_SIZE = 15;
+        let currentUserPage = 1;
+        let currentTicketPage = 1;
+
+        // 보안 타이머
+        let lastActivityTime = Date.now();
+        let pollingTimer = null, idleCheckTimer = null;
+
+        function resetIdleTimer() { lastActivityTime = Date.now(); }
+        window.addEventListener('mousemove', resetIdleTimer);
+        window.addEventListener('keydown', resetIdleTimer);
+        window.addEventListener('click', resetIdleTimer);
+
+        function startSystem() {
+            idleCheckTimer = setInterval(() => {
+                if (Date.now() - lastActivityTime > 30 * 60 * 1000) executeLogout(false, "자동 로그아웃 되었습니다.");
+            }, 10000);
+            pollingTimer = setInterval(fetchDashboardData, 10000);
+            fetchDashboardData();
+        }
+
+        async function executeLogout(isManual = false, msg = "") {
+            clearInterval(pollingTimer); clearInterval(idleCheckTimer);
+            try { await fetch("/api/admin/logout", { method: "POST" }); } catch (e) { }
+            if (msg) alert(msg);
+            localStorage.removeItem("admin_role");
+            window.location.href = "admin_login.html";
+        }
+
+        // 데이터 갱신
+        async function fetchDashboardData() {
+            try {
+                const sDate = document.getElementById('dashStartDate') ? document.getElementById('dashStartDate').value : '';
+                const eDate = document.getElementById('dashEndDate') ? document.getElementById('dashEndDate').value : '';
+                let query = '';
+                if (sDate && eDate) query = `?start_date=${sDate}&end_date=${eDate}`;
+
+                const statRes = await fetch(`/api/admin/dashboard-stats${query}`);
+                if (statRes.status === 401) return executeLogout(false, "세션 만료");
+                const statData = await statRes.json();
+                if (statData.success) renderDashboard(statData);
+
+                const userRes = await fetch("/api/admin/users");
+                const userData = await userRes.json();
+                if (userData.success) { globalUsers = userData.users; renderUsersPage(currentUserPage); }
+            } catch (err) { }
+        }
+
+        async function fetchTicketsData() {
+            try {
+                const sDate = document.getElementById('ticketStartDate') ? document.getElementById('ticketStartDate').value : '';
+                const eDate = document.getElementById('ticketEndDate') ? document.getElementById('ticketEndDate').value : '';
+                let query = '';
+                if (sDate && eDate) query = `?start_date=${sDate}&end_date=${eDate}`;
+
+                const ticketRes = await fetch(`/api/admin/tickets${query}`);
+                const ticketData = await ticketRes.json();
+                if (ticketData.success) {
+                    globalTickets = ticketData.tickets;
+                    renderTicketsPage(1);
+                }
+            } catch (e) { }
+        }
+
+        async function fetchManagerList() {
+            try {
+                const res = await fetch('/api/admin/managers');
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('manager-list-body').innerHTML = data.managers.map(m => {
+                        let roleName = m.role === 'SUPER_ADMIN' ? '👑 최고 관리자' : (m.role === 'SCAN_ADMIN' ? '📷 현장 스탭' : '📊 군청 담당자');
+                        return `<tr><td><b>${m.login_id}</b></td><td>${roleName}</td><td style="color:#666;">${new Date(m.created_at).toLocaleString()}</td></tr>`;
+                    }).join('');
+                }
+            } catch (e) { }
+        }
+
+        // [대시보드]
+        function renderDashboard(data) {
+            document.getElementById('sum-pending').innerText = "0"; // 발송 대기 개념 제거
+            const totalIssued = data.tickets ? data.tickets.reduce((sum, t) => sum + parseInt(t.issue_count), 0) : 0;
+            document.getElementById('sum-completed').innerText = totalIssued;
+
+            let totalStamps = 0;
+            document.getElementById('dash-lighthouse-body').innerHTML = data.stampspot.map(lh => {
+                totalStamps += parseInt(lh.total_completions || 0);
+                return `<tr><td><b>${lh.name}</b></td><td>${lh.total_arrivals || 0}</td><td><b>${lh.total_completions || 0}</b></td></tr>`;
+            }).join('');
+            document.getElementById('sum-total-stamps').innerText = totalStamps;
+
+            const todayStr = new Date().toISOString().split('T')[0];
+            let todayStamps = 0;
+            document.getElementById('dash-daily-body').innerHTML = data.daily.map(d => {
+                if (d.date === todayStr) todayStamps = d.daily_completions;
+                return `<tr><td>${d.date}</td><td>${d.daily_active_users || 0}</td><td style="color:#cc5a5a; font-weight:bold;">${d.daily_completions || 0}</td></tr>`;
+            }).join('') || '<tr><td colspan="3">데이터가 없습니다.</td></tr>';
+            document.getElementById('sum-today-stamps').innerText = todayStamps;
+        }
+
+        // [유저 탭 - 페이징 & 검색]
+        function renderUsersPage(pageNum) {
+            currentUserPage = pageNum;
+            const searchId = document.getElementById('filterUserId').value.trim().toLowerCase();
+
+            // 검색 필터링
+            const filtered = globalUsers.filter(u => u.passport_id.toLowerCase().includes(searchId));
+
+            // 페이징 처리
+            const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+            if (currentUserPage > totalPages) currentUserPage = totalPages;
+            const startIdx = (currentUserPage - 1) * PAGE_SIZE;
+            const sliced = filtered.slice(startIdx, startIdx + PAGE_SIZE);
+
+            // 렌더링
+            document.getElementById("user-table-body").innerHTML = sliced.map(u => `
+                <tr>
+                    <td><span style="font-family:monospace; font-weight:bold;">${u.passport_id}</span></td>
+                    <td>${u.total_visits || 0} 곳</td>
+                    <td><span class="clickable-link" onclick="openStampModal('${u.passport_id}')">${u.completed_stamps || 0} 개</span></td>
+                    <td style="color:#666;">${u.last_activity ? new Date(u.last_activity).toLocaleString() : '-'}</td>
+                </tr>
+            `).join('');
+
+            renderPagination('user-pagination', totalPages, currentUserPage, 'renderUsersPage');
+        }
+
+        function renderTicketsPage(pageNum) {
+            currentTicketPage = pageNum;
+            const fDate = document.getElementById('filterTicketDate') ? document.getElementById('filterTicketDate').value : '';
+            const fType = document.getElementById('filterTicketType') ? document.getElementById('filterTicketType').value : 'ALL';
+
+            // 필터링 적용
+            let filtered = globalTickets;
+            if (fDate) {
+                filtered = filtered.filter(t => {
+                    // 시간대 차이 방지를 위해 로컬 날짜 문자열 비교
+                    const d = new Date(t.issued_at);
+                    const localDate = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+                    return localDate === fDate;
+                });
+            }
+            if (fType !== 'ALL') {
+                filtered = filtered.filter(t => t.ticket_type === fType);
+            }
+
+            // 페이징 처리
+            const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+            if (currentTicketPage > totalPages) currentTicketPage = totalPages;
+            const startIdx = (currentTicketPage - 1) * PAGE_SIZE;
+            const sliced = filtered.slice(startIdx, startIdx + PAGE_SIZE);
+
+            // 렌더링 (admin_id 및 ticket_type 표시)
+            document.getElementById("ticket-table-body").innerHTML = sliced.map(t => {
+                const dateStr = new Date(t.issued_at).toLocaleString();
+                const typeName = t.ticket_type.replace('_', ' '); // 예: 이용권_A -> 이용권 A
+
+                return `<tr>
+            <td style="color:#666;">${dateStr}</td>
+            <td><b>${t.passport_id}</b></td>
+            <td><span class="badge type-badge">${typeName}</span></td>
+            <td style="color:#2e8b82; font-weight:bold;">${t.admin_id}</td>
+        </tr>`;
+            }).join('');
+
+            renderPagination('ticket-pagination', totalPages, currentTicketPage, 'renderTicketsPage');
+        }
+
+        // 공통 페이징 버튼 생성기
+        function renderPagination(elementId, totalPages, currentPage, funcName) {
+            let html = '';
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="${funcName}(${i})">${i}</button>`;
+            }
+            document.getElementById(elementId).innerHTML = html;
+        }
+
+        // [팝업 로직] 상세 인증 내역 조회
+        async function openStampModal(passport_id) {
+            document.getElementById('modalTitle').innerText = `${passport_id}님의 인증 내역`;
+            document.getElementById('modalList').innerHTML = '<li style="text-align:center;">데이터를 불러오는 중입니다...</li>';
+            document.getElementById('stampModal').style.display = 'flex';
+
+            try {
+                const res = await fetch(`/api/admin/user-stamps/${passport_id}`);
+                const data = await res.json();
+                if (data.success) {
+                    if (data.stamps.length === 0) {
+                        document.getElementById('modalList').innerHTML = '<li>획득한 스탬프가 없습니다.</li>';
+                    } else {
+                        document.getElementById('modalList').innerHTML = data.stamps.map(s =>
+                            `<li><b>${s.name}</b> <span style="color:#777;">${new Date(s.acquired_at).toLocaleString()}</span></li>`
+                        ).join('');
+                    }
+                }
+            } catch (e) { document.getElementById('modalList').innerHTML = '<li>데이터 로드 실패</li>'; }
+        }
+
+        function closeModal(e) {
+            if (e.target.id === 'stampModal') document.getElementById('stampModal').style.display = 'none';
+        }
+
+        async function registerManager() {
+            const idInput = document.getElementById("newAdminId");
+            const pwInput = document.getElementById("newAdminPw");
+            const roleSelect = document.getElementById("newAdminRole"); // 추가
+
+            const login_id = idInput.value.trim();
+            const login_pw = pwInput.value.trim();
+            const target_role = roleSelect.value; // 추가
+
+            if (!login_id || !login_pw) return alert("아이디와 비밀번호를 모두 입력해주세요.");
+
+            try {
+                const res = await fetch("/api/admin/register-manager", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    // target_role 도 함께 보냅니다.
+                    body: JSON.stringify({ login_id, login_pw, target_role })
+                });
+                const data = await res.json();
+
+                alert(data.message || data.error);
+
+                if (data.success) {
+                    idInput.value = "";
+                    pwInput.value = "";
+                }
+            } catch (e) { alert("서버 통신 오류"); }
+        }
+
+        // [페이지 로드 시 권한 제어 수정]
+        document.addEventListener("DOMContentLoaded", () => {
+            const role = localStorage.getItem("admin_role");
+            if (!role) return window.location.href = "admin_login.html";
+
+            // 현장 스탭(SCAN_ADMIN)이 URL을 치고 대시보드에 들어오면 스캐너로 강제 쫓아냄
+            if (role === "SCAN_ADMIN") {
+                alert("현장 스탭은 대시보드에 접근할 수 없습니다. 스캐너 화면으로 이동합니다.");
+                window.location.href = "admin_scanner.html";
+                return;
+            }
+
+            // 최고 관리자(SUPER_ADMIN)일 때만 계정 생성 메뉴 표시
+            if (role === "SUPER_ADMIN") {
+                document.getElementById("menu-super").style.display = "block";
+            }
+
+            // 군청 담당자(STAT_ADMIN)일 때는 QR 스캐너 버튼 숨기기
+            if (role === "STAT_ADMIN") {
+                const scannerMenu = document.getElementById("menu-scanner");
+                if (scannerMenu) scannerMenu.style.display = "none";
+            }
+
+            startSystem();
+        });
+
+        // ====================================================
+        // 엑셀(.xlsx) 파일 다운로드 기능 (현장 발급 내역용으로 개편)
+        // ====================================================
+        function downloadExcel() {
+            // 1. 현재 화면에 적용된 필터 조건 가져오기
+            const fDate = document.getElementById('filterTicketDate').value;
+            const fType = document.getElementById('filterTicketType').value;
+
+            // 2. 필터링된 데이터 추출
+            let filtered = globalTickets;
+            if (fDate) {
+                filtered = filtered.filter(t => new Date(t.issued_at).toISOString().split('T')[0] === fDate);
+            }
+            if (fType !== 'ALL') {
+                filtered = filtered.filter(t => t.ticket_type === fType);
+            }
+
+            if (filtered.length === 0) {
+                alert("다운로드할 데이터가 없습니다.");
+                return;
+            }
+
+            // 3. 엑셀에 들어갈 데이터 배열로 깔끔하게 매핑 (기존 연락처, 주소 등 삭제)
+            const excelData = filtered.map(t => ({
+                "스탬프북 번호": t.passport_id,
+                "지급 관리자 ID": t.admin_id,
+                "이용권 종류": t.ticket_type.replace('_', ' '),
+                "발급일시": new Date(t.issued_at).toLocaleString()
+            }));
+
+            // 4. SheetJS 라이브러리를 사용하여 워크시트 생성
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+            // 5. 엑셀 열(칸) 너비 보기 좋게 세팅
+            worksheet['!cols'] = [
+                { wch: 20 }, // 스탬프북 번호
+                { wch: 20 }, // 지급 관리자 ID
+                { wch: 15 }, // 이용권 종류
+                { wch: 25 }  // 발급일시
+            ];
+
+            // 6. 워크북 만들어 시트 붙이기
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "현장발급내역");
+
+            // 7. 파일 다운로드
+            const today = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(workbook, `단종GO_현장발급내역_${today}.xlsx`);
+        }
+
+        // UI 탭 제어
+        function switchView(viewName) {
+            document.querySelectorAll(".main-content section").forEach(s => s.style.display = "none");
+            document.querySelectorAll(".sidebar .menu-item").forEach(m => m.classList.remove("active"));
+            document.getElementById(`section-${viewName}`).style.display = "block";
+            event.currentTarget.classList.add("active");
+
+            // 해당 탭 열릴 때 데이터 로드
+            if (viewName === 'tickets') fetchTicketsData();
+            if (viewName === 'managers') fetchManagerList();
+        }
+
+        // 5. 초기 구동(startSystem) 시 tickets도 로드되도록 추가
+        function startSystem() {
+            idleCheckTimer = setInterval(() => {
+                if (Date.now() - lastActivityTime > 30 * 60 * 1000) executeLogout(false, "자동 로그아웃 되었습니다.");
+            }, 10000);
+            fetchDashboardData();
+            fetchTicketsData(); // 시작할 때 티켓 내역도 한 번 불러옴
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const role = localStorage.getItem("admin_role");
+            if (!role) return window.location.href = "admin_login.html";
+            if (role === "SUPER_ADMIN") document.getElementById("menu-super").style.display = "block";
+            startSystem();
+        });
+    </script>
+</body>
+
+</html>

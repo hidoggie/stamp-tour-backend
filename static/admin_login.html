@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- ★ 수정: 타이틀 변경 -->
+    <title>단종GO 스탬프투어 - 관리자 로그인</title>
+    <style>
+        body { 
+            background: #f0f4f3; 
+            font-family: 'Noto Sans KR', sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        .login-container { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08); 
+            width: 100%; 
+            max-width: 320px; 
+            text-align: center; 
+        }
+        h2 { 
+            color: #245752; 
+            margin-top: 0;
+            margin-bottom: 24px; 
+            font-size: 22px;
+        }
+        input { 
+            width: 100%; 
+            height: 48px; 
+            padding: 0 14px; 
+            box-sizing: border-box; 
+            margin-bottom: 16px; 
+            border: 1px solid #c2deda; 
+            border-radius: 8px; 
+            font-size: 15px;
+            background-color: #fafdfd;
+        }
+        input:focus {
+            outline: none;
+            border-color: #3ca89e;
+        }
+        button { 
+            width: 100%; 
+            height: 50px; 
+            background: #3ca89e; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            font-size: 16px;
+            cursor: pointer; 
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #2e8b82;
+        }
+        .error-msg {
+            color: #cc5a5a;
+            font-size: 13px;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- ★ 수정: 시스템명 변경 -->
+        <h2>단종GO 관리자 시스템</h2>
+        <input type="text" id="adminId" placeholder="관리자 아이디" autocomplete="off">
+        <input type="password" id="adminPw" placeholder="비밀번호" onkeypress="if(event.keyCode==13) handleLogin()">
+        <button onclick="handleLogin()">로그인</button>
+        <div id="errorMsg" class="error-msg"></div>
+    </div>
+
+    <script>
+        async function handleLogin() {
+            const login_id = document.getElementById('adminId').value.trim();
+            const login_pw = document.getElementById('adminPw').value.trim();
+            const errorMsg = document.getElementById('errorMsg');
+            
+            if(!login_id || !login_pw) {
+                errorMsg.innerText = "아이디와 비밀번호를 모두 입력해주세요.";
+                errorMsg.style.display = "block";
+                return;
+            }
+
+            try {
+                const res = await fetch("/api/admin/login", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({ login_id, login_pw })
+                });
+                
+                const data = await res.json();
+                
+                if(data.success) {
+                    // 권한(role)을 로컬스토리지에 저장
+                    localStorage.setItem("admin_role", data.role);
+                    
+                    // ★ 핵심 수정: 권한별로 첫 접속 페이지를 완벽하게 분기 처리
+                    if (data.role === "SCAN_ADMIN") {
+                        // 현장 스탭(스캐너 전용) -> 즉시 스캐너 화면으로 이동
+                        window.location.href = "admin_scanner.html";
+                    } else {
+                        // 최고 관리자 & 군청 담당자(통계 전용) -> 대시보드 화면으로 이동
+                        window.location.href = "admin.html";
+                    }
+                } else {
+                    errorMsg.innerText = data.error || "로그인에 실패했습니다.";
+                    errorMsg.style.display = "block";
+                }
+            } catch(e) {
+                errorMsg.innerText = "서버와 통신 중 오류가 발생했습니다.";
+                errorMsg.style.display = "block";
+            }
+        }
+    </script>
+</body>
+</html>

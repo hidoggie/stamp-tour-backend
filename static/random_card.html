@@ -1,0 +1,35 @@
+function shuffleAndPickCard() {
+    document.getElementById('card-ui').classList.add('shuffling');
+    
+    setTimeout(() => {
+        document.getElementById('card-ui').classList.remove('shuffling');
+        
+        // 1. 전체 11개 키값 정의
+        const allKeys = [
+            "type1", "type2", "type3", "type4", "type5", "type6", 
+            "type7", "type8", "type9", "type10", "type11"
+        ];
+
+        // 2. 이전에 획득 완료한 모델 목록 불러오기 (배열)
+        const collectedModels = JSON.parse(localStorage.getItem("collected_models") || "[]");
+
+        // 3. 전체에서 이미 획득한 것 제외 (중복 방지 필터링!)
+        let availableKeys = allKeys.filter(key => !collectedModels.includes(key));
+
+        // (예외 처리: 혹시나 에러로 다 모았는데 또 진입한 경우 방어)
+        if (availableKeys.length === 0) availableKeys = allKeys;
+
+        // 4. 남은 녀석들 중에서만 랜덤 뽑기
+        const randomIndex = Math.floor(Math.random() * availableKeys.length); 
+        const selectedKey = availableKeys[randomIndex];
+        
+        // 5. 뽑힌 모델 저장 후 포토존으로 이동
+        localStorage.setItem("selected_model_key", selectedKey);
+        
+        showCardFlipAnimation(); 
+        setTimeout(() => {
+             window.location.href = "joayong_photo.html"; 
+        }, 1500);
+        
+    }, 1500); 
+}
