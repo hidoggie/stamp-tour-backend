@@ -176,6 +176,10 @@ if (resetBtn) {
           targetEntity.emit("ar-start"); // joayong_photo.html에 정의된 초기화 이벤트 실행
           console.log("🔄 3D 모델 위치 및 크기 리셋 완료");
         }
+        const tooltip = document.getElementById('reset-tooltip');
+        if (tooltip) {
+          tooltip.style.display = 'none'; // 리셋 버튼을 누르면 말풍선 숨김
+        }
       },
       { passive: false }
     );
