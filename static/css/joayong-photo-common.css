@@ -117,7 +117,7 @@
     background-color: rgba(0, 0, 0, 0.6) !important;
   }
 .arNavi-popup-box { 
-  position: relative; width: 65vw; height: 55vh; max-width: 90vw; margin: 0 auto; 
+  position: relative; width: 85vw; height: 68vh; max-width: 90vw; margin: 0 auto; 
   background: #FAF8FF;
   background-image:
     radial-gradient(760px 500px at 88% -4%, rgba(147, 51, 234, .16), transparent 62%),
