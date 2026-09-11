@@ -1154,10 +1154,11 @@
 
             // 2. 스탬프 아이콘 이미지 경로 지정
             const stampImageUrl = ['./img/joa_id_1.png', './img/joa_id_2.png', './img/joa_id_3.png', './img/joa_id_4.png', './img/joa_id_5.png']; // 실제 준비하신 스탬프 이미지 경로로 변경하세요.
+            window.stampMarkers = [];           
 
             // 3. 반복문을 통해 지도에 5개의 스탬프 마커를 배치합니다.
             for (let i = 0; i < stampPositions.length; i++) {
-                new naver.maps.Marker({
+                let marker = new naver.maps.Marker({
                     position: stampPositions[i],
                     map: window.map, // index.html에 선언된 지도 객체 변수
                     title: '스탬프 QR 위치 ' + (i + 1),
@@ -1166,8 +1167,10 @@
                         size: new naver.maps.Size(100, 100), // 화면에 표시될 아이콘 크기
                         scaledSize: new naver.maps.Size(50, 50), // 원본 이미지를 해당 크기로 리사이징
                         anchor: new naver.maps.Point(25, 50) // 이미지의 중심점을 좌표에 맞추기 위한 기준점
-                    }
+                    },
+                    opacity: 1.0
                 });
+                window.stampMarkers.push(marker);
             }
 
             // 경품 수령처 마커
@@ -1181,6 +1184,23 @@
                     anchor: new naver.maps.Point(30, 60)
                 }
             });
+
+        window.updateMarkersOpacity = function() {
+          if (!window.stampMarkers || typeof userStamps === 'undefined') return;
+        
+        // userStamps 배열을 순회하며 획득 완료(PHOTO_SUBMITTED)된 스탬프 확인
+            userStamps.forEach(stamp => {
+              if (stamp.status === "PHOTO_SUBMITTED") {
+                // DB에서 넘어오는 joa_id가 1~5라고 가정하고 인덱스(0~4) 매칭
+                let markerIndex = parseInt(stamp.joa_id) - 1; 
+                
+                // 해당 마커가 존재하면 투명도를 0.4(흐리게)로 변경
+                if (window.stampMarkers[markerIndex]) {
+                    window.stampMarkers[markerIndex].setOpacity(0.4); 
+                }
+              }
+            });
+        };            
 
             const infoWindow = new naver.maps.InfoWindow({ content: `<div style="padding:5px;font-size:12px;text-align:center; color: black">ℹ️ 경품 수령처</div>` });
             naver.maps.Event.addListener(infoMarker, 'mouseover', () => infoWindow.open(window.map, infoMarker));
