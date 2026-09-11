@@ -4,7 +4,6 @@ let pollingInterval = null;
 // 1. 내 스탬프 내역 가져오기
 async function loadUserStamps() {
   try {
-    // ★ 수정: URL 끝에 타임스탬프(?t=시간)를 붙여 브라우저 캐시를 100% 무력화합니다.
     const timestamp = new Date().getTime();
     const response = await fetch(`/api/tour/my_stamps?t=${timestamp}`, { 
         cache: "no-store" 
@@ -18,6 +17,9 @@ async function loadUserStamps() {
         
         // 데이터 로드 후 5개 달성 여부 체크
         checkPrizeCondition();
+        if (typeof window.updateMarkersOpacity === 'function') {
+            window.updateMarkersOpacity();
+        }
       }
     }
   } catch (err) {
