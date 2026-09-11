@@ -247,6 +247,13 @@
             color: #3D4759
         }
 
+        #cardbook-back-btn {
+            margin-top: 3vh;
+            margin-bottom: 3vh;
+            background: var(--gray-l);
+            color: #3D4759
+        }
+
         .btn-sm {
             padding: 13px 10px;
             border-radius: 13px
@@ -803,18 +810,19 @@
                     <span class="prog" id="cardbookProg">0 / 5</span>
                 </div>
                 <div class="pad" style="padding-top:0; overflow-y: auto;">
-                    <p style="text-align:center; font-size:14px; margin-bottom: 20px; color: #5A6579; font-weight:600;">
+                    <!--p style="text-align:center; font-size:14px; margin-bottom: 20px; color: #5A6579; font-weight:600;">
                         지금까지 모은 조아용 카드입니다.<br>남은 카드를 모두 찾아주세요!
-                    </p>
+                    </p-->
+                    <!--div class="stack" style="margin-top: auto;"-->
+                    <button class="btn btn-ghost" id="cardbook-back-btn" onclick="showScreen('screen-map')">이벤트 장소
+                        확인</button>
+                    <!--/div-->
 
                     <!-- 카드 그리드 영역 -->
                     <div id="cardbook-grid" class="cardbook-grid">
                         <!-- 자바스크립트로 5개의 슬롯이 그려집니다 -->
                     </div>
 
-                    <div class="stack" style="margin-top: auto;">
-                        <button class="btn btn-ghost" onclick="showScreen('screen-map')">지도로 돌아가기</button>
-                    </div>
                 </div>
             </section>
 
@@ -1146,15 +1154,15 @@
             // (아래 좌표들은 임의로 넣은 것이니 실제 위치 좌표로 수정해 주세요)
             const stampPositions = [
                 new naver.maps.LatLng(37.2500978, 127.1646161),
-                new naver.maps.LatLng(37.2496836,127.1647082),
-                new naver.maps.LatLng(37.2491335,127.1648911),
-                new naver.maps.LatLng(37.2502435,127.1654148),
-                new naver.maps.LatLng(37.2498069,127.1655542)
+                new naver.maps.LatLng(37.2496836, 127.1647082),
+                new naver.maps.LatLng(37.2491335, 127.1648911),
+                new naver.maps.LatLng(37.2502435, 127.1654148),
+                new naver.maps.LatLng(37.2498069, 127.1655542)
             ];
 
             // 2. 스탬프 아이콘 이미지 경로 지정
             const stampImageUrl = ['./img/joa_id_1.png', './img/joa_id_2.png', './img/joa_id_3.png', './img/joa_id_4.png', './img/joa_id_5.png']; // 실제 준비하신 스탬프 이미지 경로로 변경하세요.
-            window.stampMarkers = [];           
+            window.stampMarkers = [];
 
             // 3. 반복문을 통해 지도에 5개의 스탬프 마커를 배치합니다.
             for (let i = 0; i < stampPositions.length; i++) {
@@ -1168,7 +1176,6 @@
                         scaledSize: new naver.maps.Size(50, 50), // 원본 이미지를 해당 크기로 리사이징
                         anchor: new naver.maps.Point(25, 50) // 이미지의 중심점을 좌표에 맞추기 위한 기준점
                     },
-                    opacity: 1.0
                 });
                 window.stampMarkers.push(marker);
             }
@@ -1185,22 +1192,25 @@
                 }
             });
 
-        window.updateMarkersOpacity = function() {
-          if (!window.stampMarkers || typeof userStamps === 'undefined') return;
-        
-        // userStamps 배열을 순회하며 획득 완료(PHOTO_SUBMITTED)된 스탬프 확인
-            userStamps.forEach(stamp => {
-              if (stamp.status === "PHOTO_SUBMITTED") {
-                // DB에서 넘어오는 joa_id가 1~5라고 가정하고 인덱스(0~4) 매칭
-                let markerIndex = parseInt(stamp.joa_id) - 1; 
-                
-                // 해당 마커가 존재하면 투명도를 0.4(흐리게)로 변경
-                if (window.stampMarkers[markerIndex]) {
-                    window.stampMarkers[markerIndex].setOpacity(0.4); 
-                }
-              }
-            });
-        };            
+            window.updateMarkersOpacity = function () {
+                if (!window.stampMarkers || typeof userStamps === 'undefined') return;
+
+                userStamps.forEach(stamp => {
+                    if (stamp.status === "PHOTO_SUBMITTED") {
+                        let markerIndex = parseInt(stamp.joa_id) - 1;
+                        let marker = window.stampMarkers[markerIndex];
+
+                        // 마커가 존재하면 setIcon을 통해 투명도가 적용된 HTML 아이콘으로 완전히 덮어씌웁니다.
+                        if (marker) {
+                            marker.setIcon({
+                                content: `<div style="width: 50px; height: 50px; opacity: 0.4;"><img src="${stampImageUrl[markerIndex]}" style="width: 100%; height: 100%; display: block;"></div>`,
+                                size: new naver.maps.Size(50, 50),
+                                anchor: new naver.maps.Point(25, 50)
+                            });
+                        }
+                    }
+                });
+            };
 
             const infoWindow = new naver.maps.InfoWindow({ content: `<div style="padding:5px;font-size:12px;text-align:center; color: black">ℹ️ 경품 수령처</div>` });
             naver.maps.Event.addListener(infoMarker, 'mouseover', () => infoWindow.open(window.map, infoMarker));
@@ -1216,6 +1226,10 @@
                     isMarkerEnlarged = true;
                 }
             });
+
+            if (typeof loadUserStamps === "function") {
+                loadUserStamps();
+            }
         }
 
         // 🌟 사용자 QR 스캐너 제어 로직
