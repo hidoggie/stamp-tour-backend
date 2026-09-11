@@ -188,11 +188,11 @@
     /* 버튼 위치에 따라 bottom과 left 수치를 살짝씩 조절해 주세요 */
     bottom: 7rem; 
     left: 1.8rem;   
-    background: rgba(0, 0, 0, 0.7);
-    color: #fff;
+    background: white;
+    color: black;
     padding: 8px 14px;
     border-radius: 20px;
-    font-size: 13px;
+    font-size: 1rem;
     font-weight: bold;
     pointer-events: none; /* 터치 방해 금지 */
     z-index: 100;
@@ -207,7 +207,7 @@
     left: 20px; 
     border-width: 6px;
     border-style: solid;
-    border-color: rgba(0, 0, 0, 0.7) transparent transparent transparent;
+    border-color: white transparent transparent transparent;
   }
 
   /* 둥둥 애니메이션 */
