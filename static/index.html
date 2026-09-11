@@ -1200,10 +1200,10 @@
                         let markerIndex = parseInt(stamp.joa_id) - 1;
                         let marker = window.stampMarkers[markerIndex];
 
-                        // 마커가 존재하면 setIcon을 통해 투명도가 적용된 HTML 아이콘으로 완전히 덮어씌웁니다.
                         if (marker) {
+                            // opacity 대신 filter: grayscale(100%)를 적용하여 완전한 흑백으로 만듭니다.
                             marker.setIcon({
-                                content: `<div style="width: 50px; height: 50px; opacity: 0.4;"><img src="${stampImageUrl[markerIndex]}" style="width: 100%; height: 100%; display: block;"></div>`,
+                                content: `<div style="width: 50px; height: 50px; filter: grayscale(100%);"><img src="${stampImageUrl[markerIndex]}" style="width: 100%; height: 100%; display: block;"></div>`,
                                 size: new naver.maps.Size(50, 50),
                                 anchor: new naver.maps.Point(25, 50)
                             });
