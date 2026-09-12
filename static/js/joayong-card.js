@@ -107,7 +107,7 @@ async function processScannedQR(scannedJoaId) {
       alert("위치 정보(GPS) 접근을 허용해야 이벤트에 참여할 수 있습니다!");
       showScreen("screen-map");
     },
-    { enableHighAccuracy: true, timeout: 5000 },
+    { enableHighAccuracy: true, timeout: 15000 },
   );
 }
 
