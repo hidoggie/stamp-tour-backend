@@ -238,8 +238,23 @@
               <!-- AR 엔진(a-scene)이 주입될 빈 껍데기 -->
               <div id="ar-container" style="width: 100%; height: 100%;"></div>
             </section>
+
+            <div id="card-enlarge-modal" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:999999; flex-direction:column; align-items:center; justify-content:center; backdrop-filter: blur(5px);">
+                <!-- 닫기 버튼 -->
+                <button onclick="closeEnlargeModal()" style="position:absolute; top:30px; right:20px; color:white; font-size:40px; background:none; border:none; cursor:pointer; font-weight:100; line-height:1;">&times;</button>
+                
+                <!-- 무지개 테두리 효과 -->
+                <div style="width: 80%; max-width: 320px; text-align: center; background: linear-gradient(145deg, #FFF6B0, #05FB73 24%, #00B3FF 46%, #FE73F3 68%, #FFD429 88%, #3457F1); padding: 8px; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.5);">
+                    <!-- 실제 카드 내용 -->
+                    <div style="background: white; border-radius: 14px; padding: 25px 20px; display: flex; flex-direction: column; align-items: center;">
+                        <h3 id="card-enlarge-name" style="margin: 0 0 15px 0; font-family: var(--display); color: var(--ink); font-size: 1.6rem;">조아용</h3>
+                        <img id="card-enlarge-img" src="" style="width: 100%; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    </div>
+                </div>
+                <p style="color: white; margin-top: 20px; font-size: 15px; opacity: 0.8;">화면을 터치하면 닫힙니다</p>
+            </div>
             
-        </div>
+        </div>        
     </div>
 
     <script type="text/javascript" src="./js/joayong-card.js"></script>
