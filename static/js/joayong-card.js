@@ -119,14 +119,18 @@ window.addEventListener("pageshow", function (event) {
     }
   }
 });
-
 function shuffleAndPickCard() {
   showScreen("screen-shuffle");
 }
-
-// 🌟 사용자가 '카드 뽑기' 버튼을 클릭했을 때 실행
+// 🌟 디버깅용: 사용자가 '카드 뽑기' 버튼을 클릭했을 때 실행
 function pickCard() {
-  // 1. 각 타입에 맞는 카드 이름과 이미지 경로 세팅
+  const pickBtn = document.querySelector("#screen-shuffle .btn-primary");
+  if (pickBtn) {
+    if (pickBtn.disabled) return;
+    pickBtn.disabled = true;
+    pickBtn.innerText = "확인 중...";
+  }
+
   const CARDS_INFO = {
     type1: { name: "불뿜는 조아용", img: "./img/card-joa-angry.png" },
     type2: { name: "UFO 조아용", img: "./img/card-joa-ufo.png" },
@@ -142,38 +146,56 @@ function pickCard() {
   };
 
   const allKeys = Object.keys(CARDS_INFO);
-  const collectedModels = JSON.parse(
-    localStorage.getItem("collected_models") || "[]",
-  );
+  const collectedModels = JSON.parse(localStorage.getItem("collected_models") || "[]");
 
   let availableKeys = allKeys.filter((key) => !collectedModels.includes(key));
-  if (availableKeys.length === 0) availableKeys = allKeys; // 만약 11개를 다 모았다면 다시 전체에서 랜덤
+  if (availableKeys.length === 0) availableKeys = allKeys;
 
-  // 2. 랜덤으로 카드 하나 뽑기
   const randomIndex = Math.floor(Math.random() * availableKeys.length);
   const selectedKey = availableKeys[randomIndex];
 
-  // 3. 뽑힌 키값 저장 (joayong_photo.html에서 꺼내서 3D 모델을 띄울 때 사용)
+  // LocalStorage 저장
   localStorage.setItem("selected_model_key", selectedKey);
   localStorage.setItem("return_joa_title", CARDS_INFO[selectedKey].name);
 
-  // ★ 4. 화면의 카드 이름과 이미지를 진짜 뽑힌 카드의 정보로 교체
-  document.getElementById("picked-card-name").textContent =
-    CARDS_INFO[selectedKey].name;
-  document.getElementById("picked-card-img").src = CARDS_INFO[selectedKey].img;
+  // UI 엘리먼트 가져오기
+  const nameEl = document.getElementById("picked-card-name");
+  const imgEl = document.getElementById("picked-card-img");
 
-  // 5. 결과 화면 띄우기 (애니메이션과 함께 뽑힌 카드가 짠! 하고 나타남)
-  showScreen("screen-card");
+  // 타이틀 변경
+  nameEl.textContent = CARDS_INFO[selectedKey].name;
+  imgEl.style.opacity = "0"; // 깜빡임 방지용 투명화
 
-  // 6. 카드를 보여주고 2초(2000ms) 뒤 AR 포토존으로 자동 이동
-  setTimeout(() => {
-    // 🌟 페이지 이동 없이 동적으로 AR 화면 진입 함수 호출
-    if (typeof enterAR === "function") {
-      enterAR();
-    } else {
-      console.error("enterAR 함수가 없습니다.");
-    }
-  }, 2000);
+  // 이미지 로드 성공 이벤트
+  imgEl.onload = function() {
+    imgEl.style.opacity = "1";     
+    showScreen("screen-card");
+
+    setTimeout(() => {
+      if (typeof enterAR === "function") enterAR();
+      
+      if (pickBtn) {
+        pickBtn.disabled = false;
+        pickBtn.innerText = "카드 뽑기";
+      }
+    }, 2000);
+  };
+
+// 만약 네트워크 에러 등으로 이미지를 못 불러올 경우의 방어 코드
+  imgEl.onerror = function() {
+    imgEl.style.opacity = "1"; 
+    showScreen("screen-card");
+    setTimeout(() => {
+      if (typeof enterAR === "function") enterAR();
+      if (pickBtn) {
+        pickBtn.disabled = false;
+        pickBtn.innerText = "카드 뽑기";
+      }
+    }, 2000);
+  };
+
+  // 브라우저에 이미지 다운로드 요청
+  imgEl.src = CARDS_INFO[selectedKey].img;
 }
 
 // 🌟 네이버 지도 초기화 (오버레이 & 수령처 마커)
