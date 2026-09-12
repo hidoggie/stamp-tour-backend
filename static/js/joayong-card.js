@@ -132,17 +132,17 @@ function pickCard() {
   }
 
   const CARDS_INFO = {
-    type1: { name: "불뿜는 조아용", img: "./img/card-joa-angry.png" },
-    type2: { name: "UFO 조아용", img: "./img/card-joa-ufo.png" },
-    type3: { name: "드럼치는 조아용", img: "./img/card-joa-drum.png" },
-    type4: { name: "꽃과 함께 조아용", img: "./img/card-joa-flower.png" },
-    type5: { name: "기타 치는 조아용", img: "./img/card-joa-guitar.png" },
-    type6: { name: "사랑꾼 조아용", img: "./img/card-joa-heart.png" },
-    type7: { name: "보드 타는 조아용", img: "./img/card-joa-board.png" },
-    type8: { name: "탐사중인 조아용", img: "./img/card-joa-probe.png" },
-    type9: { name: "로봇 조아용", img: "./img/card-joa-robot.png" },
-    type10: { name: "로켓 타는 조아용", img: "./img/card-joa-rocket.png" },
-    type11: { name: "기차 타는 조아용", img: "./img/card-joa-train.png" },
+    type1: { name: "불뿜는 조아용", img: "./img/card-joa-angry.jpg" },
+    type2: { name: "UFO 조아용", img: "./img/card-joa-ufo.jpg" },
+    type3: { name: "드럼치는 조아용", img: "./img/card-joa-drum.jpg" },
+    type4: { name: "꽃과 함께 조아용", img: "./img/card-joa-flower.jpg" },
+    type5: { name: "기타 치는 조아용", img: "./img/card-joa-guitar.jpg" },
+    type6: { name: "사랑꾼 조아용", img: "./img/card-joa-heart.jpg" },
+    type7: { name: "보드 타는 조아용", img: "./img/card-joa-board.jpg" },
+    type8: { name: "탐사중인 조아용", img: "./img/card-joa-probe.jpg" },
+    type9: { name: "로봇 조아용", img: "./img/card-joa-robot.jpg" },
+    type10: { name: "로켓 타는 조아용", img: "./img/card-joa-rocket.jpg" },
+    type11: { name: "기차 타는 조아용", img: "./img/card-joa-train.jpg" },
   };
 
   const allKeys = Object.keys(CARDS_INFO);
@@ -437,17 +437,17 @@ async function stopScannerSafe() {
 function openCardbook() {
   // 전체 조아용 카드 정보
   const CARDS_INFO = {
-    type1: { name: "불뿜는 조아용", img: "./img/card-joa-angry.png" },
-    type2: { name: "UFO 조아용", img: "./img/card-joa-ufo.png" },
-    type3: { name: "드럼치는 조아용", img: "./img/card-joa-drum.png" },
-    type4: { name: "꽃과 함께 조아용", img: "./img/card-joa-flower.png" },
-    type5: { name: "기타 치는 조아용", img: "./img/card-joa-guitar.png" },
-    type6: { name: "사랑꾼 조아용", img: "./img/card-joa-heart.png" },
-    type7: { name: "보드 타는 조아용", img: "./img/card-joa-board.png" },
-    type8: { name: "탐사중인 조아용", img: "./img/card-joa-probe.png" },
-    type9: { name: "로봇 조아용", img: "./img/card-joa-robot.png" },
-    type10: { name: "로켓 타는 조아용", img: "./img/card-joa-rocket.png" },
-    type11: { name: "기차 타는 조아용", img: "./img/card-joa-train.png" },
+    type1: { name: "불뿜는 조아용", img: "./img/card-joa-angry.jpg" },
+    type2: { name: "UFO 조아용", img: "./img/card-joa-ufo.jpg" },
+    type3: { name: "드럼치는 조아용", img: "./img/card-joa-drum.jpg" },
+    type4: { name: "꽃과 함께 조아용", img: "./img/card-joa-flower.jpg" },
+    type5: { name: "기타 치는 조아용", img: "./img/card-joa-guitar.jpg" },
+    type6: { name: "사랑꾼 조아용", img: "./img/card-joa-heart.jpg" },
+    type7: { name: "보드 타는 조아용", img: "./img/card-joa-board.jpg" },
+    type8: { name: "탐사중인 조아용", img: "./img/card-joa-probe.jpg" },
+    type9: { name: "로봇 조아용", img: "./img/card-joa-robot.jpg" },
+    type10: { name: "로켓 타는 조아용", img: "./img/card-joa-rocket.jpg" },
+    type11: { name: "기차 타는 조아용", img: "./img/card-joa-train.jpg" },
   };
 
   // 1. 지금까지 모은 카드 키값 가져오기
@@ -483,7 +483,7 @@ function openCardbook() {
         const key = collectedModels[i];
         const card = CARDS_INFO[key] || {
           name: "조아용",
-          img: "./img/card-joa-angry.png",
+          img: "./img/card-joa-angry.jpg",
         };
         grid.innerHTML += `
                             <div class="card-slot collected">
