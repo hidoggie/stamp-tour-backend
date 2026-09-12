@@ -350,79 +350,66 @@ async function stopScannerSafe() {
   }
 }
 
-function startScanner(mode = "stamp") {
-  showScreen("screen-scanner");
+        function startScanner(mode = 'stamp') {
+            showScreen('screen-scanner');
 
-  if (html5QrcodeScanner) {
-    html5QrcodeScanner.clear();
-  }
-
-  html5QrcodeScanner = new Html5Qrcode("qr-reader");
-  const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-
-  html5QrcodeScanner
-    .start(
-      { facingMode: "environment" },
-      config,
-      async (decodedText) => {
-        // ★ async 콜백으로 변경
-
-        // ★ 1. 스캔 성공 즉시 카메라 하드웨어를 먼저 완벽히 끕니다 (바톤 터치 준비)
-        await stopScannerSafe();
-
-        // ★ 2. 분기 처리 (SPA 방식 적용)
-        if (mode === "prize") {
-          if (decodedText.trim() === "SECRET_PRIZE_QR_2026") {
-            window.location.href = "roulette.html";
-          } else {
-            alert(
-              "올바른 경품 QR 코드가 아닙니다. 행사장에 비치된 QR을 스캔해주세요.",
-            );
-            showScreen("screen-complete");
-          }
-        } else {
-          if (decodedText.includes("joa_id=")) {
-            try {
-              // 페이지 새로고침 없이 URL에서 파라미터만 쏙 뽑아냅니다.
-              const urlObj = new URL(decodedText);
-              const extractedJoaId = urlObj.searchParams.get("joa_id");
-
-              if (extractedJoaId) {
-                // 앞서 만든 위치 인증 함수 직접 호출!
-                processScannedQR(extractedJoaId);
-              } else {
-                throw new Error("QR 코드에 joa_id가 없습니다.");
-              }
-            } catch (e) {
-              alert("잘못된 형식의 스탬프 QR 코드입니다.");
-              showScreen("screen-map");
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear();
             }
-          } else {
-            alert(
-              "유효하지 않은 스탬프 QR 코드입니다. 행사장에 비치된 조아용 QR을 스캔해주세요.",
-            );
-            if (typeof loadUserStamps === "function") loadUserStamps();
-            showScreen("screen-map");
-          }
-        }
-      },
-      (errorMessage) => {
-        /* 스캔 중 에러는 무시 */
-      },
-    )
-    .catch((err) => {
-      alert("카메라 권한을 허용해야 QR 스캔이 가능합니다.");
-      showScreen(mode === "prize" ? "screen-complete" : "screen-map");
-    });
-}
 
-// 스캐너 닫기 (취소) 버튼을 눌렀을 때
-async function stopScanner() {
-  // async 추가
-  await stopScannerSafe(); // 안전 종료 대기
-  if (typeof loadUserStamps === "function") loadUserStamps();
-  showScreen("screen-map");
-}
+            html5QrcodeScanner = new Html5Qrcode("qr-reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                config,
+                (decodedText) => {
+                    html5QrcodeScanner.stop().then(() => {
+                        // ★ 분기 처리: 경품 스캔 모드일 때
+                        if (mode === 'prize') {
+                            // 행사장에 비치할 QR 코드 내용은 딱 이 텍스트로 만들어주세요!
+                            if (decodedText.trim() === "SECRET_PRIZE_QR_2026") {
+                                window.location.href = "roulette.html";
+                            } else {
+                                alert("올바른 경품 QR 코드가 아닙니다. 행사장에 비치된 QR을 스캔해주세요.");
+                                showScreen('screen-complete');
+                            }
+                        }
+                        // ★ 분기 처리: 일반 스탬프 스캔 모드일 때
+                        else {
+                            if (decodedText.includes("joa_id=") || decodedText.includes("m.site.naver.com")) {
+                                window.location.href = decodedText;
+                            } else {
+                                alert("유효하지 않은 스탬프 QR 코드입니다. 행사장에 비치된 조아용 QR을 스캔해주세요.");
+                                if (typeof loadUserStamps === "function") loadUserStamps();
+                                showScreen('screen-map');
+                            }
+                        }
+                    }).catch((err) => {
+                        console.error("스캐너 정지 중 오류", err);
+                    });
+                },
+                (errorMessage) => { }
+            ).catch((err) => {
+                alert("카메라 권한을 허용해야 QR 스캔이 가능합니다.");
+                showScreen(mode === 'prize' ? 'screen-complete' : 'screen-map');
+            });
+        }
+
+        // 스캐너 닫기 (취소) 함수
+        function stopScanner() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then((ignore) => {
+                    html5QrcodeScanner.clear();
+                }).catch((err) => {
+                    console.error("스캐너 정지 실패", err);
+                });
+            }
+            // 스캐너를 끄고 지도 화면으로 돌아감
+            if (typeof loadUserStamps === "function") loadUserStamps(); // ★ 추가
+            showScreen('screen-map');
+        }
+
 
 // 🌟 스탬프 카드북 렌더링 함수
 function openCardbook() {
