@@ -1,0 +1,695 @@
+        /* ==========================================================================
+   조아용샷 GO - UI 가이드라인 스타일 (joayong-sample.html 기반)
+   ========================================================================== */
+        :root {
+            --white: #FFFFFF;
+            --sky: #00B3FF;
+            --sky-l: #DCF1FF;
+            --sky-xl: #F0F9FF;
+            --blue: #3457F1;
+            --blue-d: #0441E6;
+            --green: #05FB73;
+            --green-d: #00C957;
+            --pink: #FE73F3;
+            --yellow: #FFD429;
+            --ink: #0B1020;
+            --gray: #7A8496;
+            --gray-l: #EEF1F6;
+            --display: "Bagel Fat One", "Noto Sans KR", sans-serif;
+            --ui: "Pretendard Variable", Pretendard, "Noto Sans KR", -apple-system, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html {
+            -webkit-text-size-adjust: 100%;
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            color: var(--ink);
+            font-family: var(--ui);
+            font-size: 16px;
+            line-height: 1.65;
+            letter-spacing: -.015em;
+            background: #F7FBFF;
+            background-image:
+                radial-gradient(760px 500px at 88% -4%, rgba(0, 179, 255, .18), transparent 62%),
+                radial-gradient(620px 500px at 2% 30%, rgba(254, 115, 243, .14), transparent 60%),
+                radial-gradient(700px 620px at 60% 106%, rgba(5, 251, 115, .16), transparent 62%);
+            background-attachment: fixed;
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        img {
+            max-width: 100%;
+            display: block
+        }
+
+        button {
+            font: inherit;
+            color: inherit;
+            border: 0;
+            background: none;
+            cursor: pointer
+        }
+
+        :focus-visible {
+            outline: 3px solid var(--blue);
+            outline-offset: 3px;
+            border-radius: 8px
+        }
+
+        .app-container {
+            height: calc(var(--vh, 1vh) * 100);
+            display: flex;
+            flex-direction: column;
+            max-width: 448px;
+            margin: 0 auto;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .screenwin {
+            position: relative;
+            overflow: hidden;
+            flex: 1;
+            display: flex;
+            flex-direction: column
+        }
+
+        .screen {
+            display: none !important;
+            flex: 1;
+            min-height: 0;
+            flex-direction: column;
+            position: relative;
+            height: 100%;
+        }
+
+        .screen.on {
+            padding: 5vh 10px 1vh 10px;
+            display: flex !important;
+            animation: sc .32s cubic-bezier(.2, .8, .3, 1)
+        }
+
+        @keyframes sc {
+            from {
+                opacity: 0;
+                transform: translateY(10px)
+            }
+        }
+
+        .pad {
+            position: relative;
+            margin: 0.8rem 0;
+            z-index: 2;
+            padding: 14px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0
+        }
+
+        .appbar {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 2px 20px 10px;
+            flex: 0 0 auto
+        }
+
+        .appbar .back {
+            width: 32px;
+            height: 32px;
+            border-radius: 11px;
+            background: var(--gray-l);
+            display: grid;
+            place-items: center;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .appbar h2 {
+            font-size: 1.4rem;
+            margin: 0;
+            font-weight: 800;
+            letter-spacing: -.03em
+        }
+
+        .appbar .prog {
+            margin-left: auto;
+            font-size: 0.9rem;
+            font-weight: 900;
+            color: #fff;
+            background: var(--blue);
+            padding: 4px 11px;
+            border-radius: 999px
+        }
+
+        .btn {
+            display: block;
+            width: 90%;
+            text-align: center;
+            padding: 16px 18px;
+            border-radius: 15px;
+            font-weight: 800;
+            font-size: 1rem;
+            transition: transform .12s, filter .18s
+        }
+
+        .btn:active {
+            transform: scale(.975)
+        }
+
+        .btn-primary {
+            background: var(--blue);
+            color: #fff
+        }
+
+        .btn-primary:hover {
+            background: var(--blue-d)
+        }
+
+        .btn-green {
+            background: var(--green);
+            color: #053A1D
+        }
+
+        .btn-ghost {
+            background: var(--gray-l);
+            color: #3D4759
+        }
+
+        #cardbook-back-btn {
+            margin-top: 3vh;
+            margin-bottom: 3vh;
+            background: var(--gray-l);
+            color: #3D4759
+        }
+
+        .btn-sm {
+            padding: 13px 10px;
+            border-radius: 13px
+        }
+
+        .stack {
+            display: grid;
+            gap: 9px;
+            margin-top: auto;
+            flex: 0 0 auto
+        }
+
+        /* 공통 배경/효과 */
+        .skybg {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, #BEE7FF 0%, #E4F5FF 46%, #FFFFFF 100%);
+            overflow: hidden
+        }
+
+        .cloud {
+            position: absolute;
+            background: #fff;
+            border-radius: 999px;
+            filter: blur(.4px);
+            opacity: .95
+        }
+
+        .cloud::before,
+        .cloud::after {
+            content: "";
+            position: absolute;
+            background: #fff;
+            border-radius: 50%
+        }
+
+        /* 인트로 */
+        .intro-body {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 1;
+            padding: 4px 24px 22px
+        }
+
+        .intro-body h3 {
+            font-size: 1.8rem;
+            line-height: 1.28;
+            margin: 5vh 0 2vh;
+            font-weight: 900;
+            letter-spacing: -.045em;
+            color: var(--ink)
+        }
+
+        .intro-body h3 mark {
+            background: linear-gradient(180deg, transparent 58%, var(--green) 58%);
+            color: inherit;
+            padding: 0 2px
+        }
+
+        .fan {
+            position: relative;
+            height: 20vh;
+            width: 100%;
+            margin: 10px 0 4px
+        }
+
+        .fan img {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            width: 30vw;
+            border-radius: 11px;
+            box-shadow: 0 14px 26px -10px rgba(20, 50, 110, .45);
+            transform-origin: 50% 100%
+        }
+
+        .fan img:nth-child(1) {
+            transform: translateX(-50%) rotate(-15deg) translateY(14px) scale(.93)
+        }
+
+        .fan img:nth-child(3) {
+            transform: translateX(-50%) rotate(15deg) translateY(14px) scale(.93)
+        }
+
+        .fan img:nth-child(2) {
+            transform: translateX(-50%);
+            z-index: 2;
+            animation: bob 3.4s ease-in-out infinite
+        }
+
+        @keyframes bob {
+            50% {
+                transform: translateX(-50%) translateY(-9px)
+            }
+        }
+
+        /* 지도 */
+        #mapBox {
+            position: relative;
+            flex: 1;
+            border-radius: 22px;
+            overflow: hidden;
+            border: 2px solid #D6E9F7;
+            margin-bottom: 15px;
+            height: calc(var(--vh, 1vh) * 65);
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .mapnote {
+            font-size: 1rem;
+            color: #5A6579;
+            margin: 1rem 0.8rem;
+            line-height: 1.5;
+            font-weight: 500
+        }
+
+        .overlay-image {
+            position: absolute;
+            opacity: 0.8;
+            pointer-events: none;
+            max-width: none !important;
+        }
+
+        /* 카드 섞기 & 뽑기 (random_card 추가분) */
+        .shufflearea {
+            flex: 1;
+            display: flex;
+            /* grid 대신 flex 사용 */
+            flex-direction: column;
+            /* 세로 정렬 */
+            justify-content: center;
+            /* 수직 중앙 정렬 */
+            align-items: center;
+            /* 수평 중앙 정렬 */
+            position: relative;
+            width: 100%;
+            /* 부모 너비를 100% 채움 */
+        }
+
+        .deck {
+            position: relative;
+            width: 168px;
+            height: 240px;
+            margin: 0 auto;
+        }
+
+        .deck img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 12px 24px -10px rgba(20, 50, 110, .5)
+        }
+
+        .deck img:nth-child(1) {
+            animation: sh1 1.5s ease-in-out infinite
+        }
+
+        .deck img:nth-child(2) {
+            animation: sh2 1.5s ease-in-out infinite
+        }
+
+        .deck img:nth-child(3) {
+            animation: sh3 1.5s ease-in-out infinite
+        }
+
+        @keyframes sh1 {
+
+            0%,
+            100% {
+                transform: none;
+                z-index: 3
+            }
+
+            33% {
+                transform: translate(-46px, -16px) rotate(-13deg);
+                z-index: 1
+            }
+
+            66% {
+                transform: translate(30px, 10px) rotate(9deg);
+                z-index: 2
+            }
+        }
+
+        @keyframes sh2 {
+
+            0%,
+            100% {
+                transform: none;
+                z-index: 2
+            }
+
+            33% {
+                transform: translate(42px, 12px) rotate(11deg);
+                z-index: 3
+            }
+
+            66% {
+                transform: translate(-36px, -14px) rotate(-10deg);
+                z-index: 1
+            }
+        }
+
+        @keyframes sh3 {
+
+            0%,
+            100% {
+                transform: none;
+                z-index: 1
+            }
+
+            33% {
+                transform: translate(6px, 20px) rotate(4deg);
+                z-index: 2
+            }
+
+            66% {
+                transform: translate(10px, -18px) rotate(-5deg);
+                z-index: 3
+            }
+        }
+
+        .card {
+            width: 206px;
+            border-radius: 16px;
+            padding: 8px;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(145deg, #FFF6B0, #05FB73 24%, #00B3FF 46%, #FE73F3 68%, #FFD429 88%, #3457F1);
+            box-shadow: 0 18px 34px -14px rgba(20, 50, 110, .5)
+        }
+
+        .card-in {
+            position: relative;
+            z-index: 1;
+            border-radius: 11px;
+            background: #fff;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .reveal .card {
+            animation: pop .6s cubic-bezier(.2, 1.5, .4, 1)
+        }
+
+        @keyframes pop {
+            from {
+                transform: scale(.3) rotate(-18deg);
+                opacity: 0
+            }
+        }
+
+        /* 완료 및 경품 QR */
+        .done-hero {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            padding-bottom: 6px
+        }
+
+        .done-hero h3 {
+            font-family: var(--display);
+            font-size: 31px;
+            font-weight: 400;
+            margin: 14px 0 0;
+            color: var(--blue-d);
+            text-shadow: 3px 3px 0 var(--green)
+        }
+
+        .scanframe {
+            position: absolute;
+            left: 50%;
+            top: 42%;
+            transform: translate(-50%, -50%);
+            width: 212px;
+            height: 212px;
+            border-radius: 26px;
+            background: rgba(255, 255, 255, .28);
+            backdrop-filter: blur(1px)
+        }
+
+        .scanframe i {
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            border: 5px solid var(--blue);
+            border-radius: 9px
+        }
+
+        .scanframe i:nth-child(1) {
+            top: -3px;
+            left: -3px;
+            border-right: 0;
+            border-bottom: 0
+        }
+
+        .scanframe i:nth-child(2) {
+            top: -3px;
+            right: -3px;
+            border-left: 0;
+            border-bottom: 0
+        }
+
+        .scanframe i:nth-child(3) {
+            bottom: -3px;
+            left: -3px;
+            border-right: 0;
+            border-top: 0
+        }
+
+        .scanframe i:nth-child(4) {
+            bottom: -3px;
+            right: -3px;
+            border-left: 0;
+            border-top: 0
+        }
+
+        .camtext {
+            position: absolute;
+            left: 18px;
+            right: 18px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--ink);
+            background: rgba(255, 255, 255, .85);
+            border-radius: 14px;
+            padding: 9px 12px;
+            letter-spacing: -.03em
+        }
+
+        @media (max-width:1080px) {
+            .layout {
+                grid-template-columns: 1fr;
+                gap: 0
+            }
+
+            .stage {
+                position: sticky;
+                top: 0;
+                z-index: 40;
+                padding: 10px 0 14px;
+                margin: 0 -24px;
+                background: linear-gradient(180deg, rgba(247, 251, 255, .97) 74%, rgba(247, 251, 255, 0));
+                backdrop-filter: blur(8px)
+            }
+
+            .screenwin {
+                height: 100%;
+                border-radius: 27px
+            }
+
+            .pad {
+                padding: 10px 5px 5px
+            }
+
+            .appbar {
+                padding: 0 14px 8px
+            }
+
+            .hero {
+                padding: 40px 0 18px
+            }
+
+            .doc {
+                padding: 26px 0 100px
+            }
+
+            .card {
+                width: 260px
+            }
+
+            .card-art {
+                height: 118px
+            }
+
+            .fan {
+                height: 20vh
+            }
+
+            .fan img {
+                width: 30vw
+            }
+
+            .deck {
+                width: 130px;
+                height: 186px
+            }
+
+            .wheelwrap {
+                width: 198px;
+                height: 198px
+            }
+
+            .ar-mascot {
+                height: 180px
+            }
+
+            .shutter {
+                width: 56px;
+                height: 56px
+            }
+
+            .shutter i {
+                width: 42px;
+                height: 42px
+            }
+
+            .done-hero img {
+                height: 110px;
+                max-height: 40%
+            }
+
+            .intro h3 {
+                font-size: 20px
+            }
+
+            .deco {
+                display: none
+            }
+        }
+
+        /* ==================== 카드북 전용 스타일 ==================== */
+        .cardbook-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 5px;
+        }
+
+        .card-slot {
+            background: #fff;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+            border: 2px dashed #D6E9F7;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        /* 획득한 카드 테두리 그라데이션 및 디자인 */
+        .card-slot.collected {
+            border: none;
+            background: linear-gradient(145deg, #FFF6B0, #05FB73 24%, #00B3FF 46%, #FE73F3 68%, #FFD429 88%, #3457F1);
+            padding: 4px;
+            /* 그라데이션 테두리 두께 */
+            box-shadow: 0 10px 20px -10px rgba(20, 50, 110, .4);
+        }
+
+        .card-slot.collected .inner {
+            background: #fff;
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            padding: 12px 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card-slot img {
+            width: 85%;
+            margin: 0 auto 8px;
+            border-radius: 8px;
+        }
+
+        .card-slot .name {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--ink);
+            word-break: keep-all;
+            line-height: 1.2;
+        }
+
+        .card-slot.empty .name {
+            color: #A9B4C5;
+            font-size: 32px;
+            font-weight: 900;
+        }
