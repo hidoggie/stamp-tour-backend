@@ -253,7 +253,7 @@ window.closePopup = function () {
   if (resetBtn) resetBtn.style.display = "flex";
   if (tooltip) {
       tooltip.style.display = "block";
-      setTimeout(() => { tooltip.style.display = "none"; }, 4000); // 4초 뒤 안내문구 자동 숨김
+   //   setTimeout(() => { tooltip.style.display = "none"; }, 4000); // 4초 뒤 안내문구 자동 숨김
   }
   
   const bgm = document.getElementById("bgm");
