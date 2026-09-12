@@ -184,10 +184,13 @@
         }
 
         .btn-ghost {
+            background: #FED7FC;
+            color: #3D4759
+        }
+        .btn-gray {
             background: var(--gray-l);
             color: #3D4759
         }
-
         #cardbook-back-btn {
             margin-top: 3vh;
             margin-bottom: 3vh;
@@ -561,7 +564,7 @@
             }
 
             .pad {
-                padding: 10px 5px 5px
+                padding: 0 5px 2.5rem
             }
 
             .appbar {
