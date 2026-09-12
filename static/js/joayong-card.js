@@ -486,7 +486,7 @@ function openCardbook() {
           img: "./img/card-joa-angry.jpg",
         };
         grid.innerHTML += `
-                            <div class="card-slot collected">
+                            <div class="card-slot collected" onclick="openEnlargeModal('${card.img}', '${card.name}')" style="cursor: pointer;">
                                 <div class="inner">
                                     <img src="${card.img}" alt="${card.name}">
                                     <div class="name">${card.name}</div>
@@ -507,3 +507,36 @@ function openCardbook() {
   // 화면 전환
   showScreen("screen-cardbook");
 }
+// 🌟 카드 크게 보기 모달 열기
+window.openEnlargeModal = function(imgSrc, cardName) {
+    const modal = document.getElementById("card-enlarge-modal");
+    const imgEl = document.getElementById("card-enlarge-img");
+    const nameEl = document.getElementById("card-enlarge-name");
+    
+    if (modal && imgEl && nameEl) {
+        imgEl.src = imgSrc;
+        nameEl.textContent = cardName;
+        modal.style.display = "flex";
+    }
+};
+
+// 🌟 카드 크게 보기 모달 닫기
+window.closeEnlargeModal = function() {
+    const modal = document.getElementById("card-enlarge-modal");
+    if (modal) {
+        modal.style.display = "none";
+    }
+};
+
+// 모달의 어두운 배경(여백)을 터치해도 닫히도록 이벤트 리스너 추가
+document.addEventListener("DOMContentLoaded", () => {
+    const modal = document.getElementById("card-enlarge-modal");
+    if (modal) {
+        modal.addEventListener("click", function(e) {
+            // 사용자가 카드 자체(흰 배경)가 아닌 그 바깥의 어두운 영역을 눌렀을 때만 닫힘
+            if (e.target === modal) {
+                closeEnlargeModal();
+            }
+        });
+    }
+});
