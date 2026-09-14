@@ -78,10 +78,10 @@ async function processScannedQR(scannedJoaId) {
         const data = await response.json();
 
         if (response.ok && data.success) {
-          if (!localStorage.getItem("debug_user_id")) {
-            localStorage.setItem("debug_user_id", data.user_id);
-            alert("🛠️ 임시 발급된 사용자 ID: " + data.user_id);
-          }
+    //      if (!localStorage.getItem("debug_user_id")) {
+    //        localStorage.setItem("debug_user_id", data.user_id);
+    //        alert("🛠️ 임시 발급된 사용자 ID: " + data.user_id);
+    //      }
           if (data.prize_completed) {
             alert(
               "이미 경품 수령을 완료하셨습니다.\n참여해 주셔서 감사합니다!",
