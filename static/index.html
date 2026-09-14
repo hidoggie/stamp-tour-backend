@@ -38,6 +38,26 @@
                 document.close();
             }
         })();
+        window.addEventListener('popstate', function(event) {
+    // 1. AR 카메라 찌꺼기가 남아있다면 강제 종료
+    if (typeof releaseCamera === 'function') {
+        releaseCamera();
+    }
+    
+    // 2. 에러 방지를 위해 try-catch로 스캐너 종료 시도
+    try {
+        if (typeof stopScanner === 'function') {
+            stopScanner();
+        }
+    } catch (e) {
+        console.warn("스캐너가 이미 중지되었거나 존재하지 않습니다.", e);
+    }
+    
+    // 3. 무조건 안정적인 지도 화면으로 복귀시켜 상태 엉킴 방지
+    if (typeof showScreen === 'function') {
+        showScreen('screen-map');
+    }
+});
     </script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
