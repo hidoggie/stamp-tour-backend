@@ -104,23 +104,25 @@ async function initDB() {
         total_quantity INT NOT NULL,
         remaining_quantity INT NOT NULL
       );
-    `);    
+    `);
 
-  const prizeCheck = await pool.query(`SELECT COUNT(*) FROM joa_prizes`);
-  if (parseInt(prizeCheck.rows[0].count) === 0) {
-    await pool.query(`
+    const prizeCheck = await pool.query(`SELECT COUNT(*) FROM joa_prizes`);
+    if (parseInt(prizeCheck.rows[0].count) === 0) {
+      await pool.query(`
         INSERT INTO joa_prizes (name, total_quantity, remaining_quantity) VALUES 
         ('용인 텀블러', 50, 50),
         ('조아용 인형', 100, 100),
         ('에코백', 200, 200),
         ('행운의 뱃지', 500, 500)
     `);
-  }
+    }
 
-// 유저 테이블에 룰렛 진행 상태 컬럼 추가 (안전장치)
-try {
-    await pool.query("ALTER TABLE joa_users ADD COLUMN roulette_status VARCHAR(20) DEFAULT 'WAITING';");
-} catch (e) {}  
+    // 유저 테이블에 룰렛 진행 상태 컬럼 추가 (안전장치)
+    try {
+      await pool.query(
+        "ALTER TABLE joa_users ADD COLUMN roulette_status VARCHAR(20) DEFAULT 'WAITING';",
+      );
+    } catch (e) {}
 
     // 메인 이벤트 생성
     const eventCheck = await pool.query(
@@ -158,7 +160,6 @@ try {
   } catch (err) {
     console.error("❌ DB 초기화 에러:", err);
   }
-
 }
 
 initDB();
@@ -285,18 +286,18 @@ app.post("/api/tour/resume", async (req, res) => {
 
 // 1. 유저가 '이미 신청 완료한 경품 목록' 조회 API
 app.get("/api/tour/prize_status", authenticate, async (req, res) => {
-    try {
-        const checkRes = await pool.query(
-            "SELECT ticket_type FROM joa_ticket_logs WHERE passport_id = $1", 
-            [req.user.passport_id] // 유저의 여권번호로 조회
-        );
-        // 수령한 이력이 있으면 배열에 'COMPLETION' 이라는 플래그를 넣어 프론트엔드로 전달
-        const claimedPrizes = checkRes.rowCount > 0 ? ['COMPLETION'] : [];
-        res.json({ success: true, claimedPrizes });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, error: "경품 상태 확인 오류" });
-    }
+  try {
+    const checkRes = await pool.query(
+      "SELECT ticket_type FROM joa_ticket_logs WHERE passport_id = $1",
+      [req.user.passport_id], // 유저의 여권번호로 조회
+    );
+    // 수령한 이력이 있으면 배열에 'COMPLETION' 이라는 플래그를 넣어 프론트엔드로 전달
+    const claimedPrizes = checkRes.rowCount > 0 ? ["COMPLETION"] : [];
+    res.json({ success: true, claimedPrizes });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: "경품 상태 확인 오류" });
+  }
 });
 
 // ═══════════════════════════════════════════════
@@ -314,7 +315,9 @@ app.post("/api/tour/arrive", authenticate, async (req, res) => {
       [joa_id],
     );
     if (targetRes.rowCount === 0)
-      return res.status(404).json({ error: "해당 이벤트존을 찾을 수 없습니다." });
+      return res
+        .status(404)
+        .json({ error: "해당 이벤트존을 찾을 수 없습니다." });
 
     const target = targetRes.rows[0];
 
@@ -354,8 +357,8 @@ app.post("/api/tour/arrive", authenticate, async (req, res) => {
       message: "위치 인증에 성공했습니다.",
       game_type: target.game_type,
       ar_type: target.ar_type,
-      prize_completed: req.user.roulette_status === 'COMPLETED',
-      user_id: req.user.id
+      prize_completed: req.user.roulette_status === "COMPLETED",
+      user_id: req.user.id,
     });
   } catch (err) {
     console.error(err);
@@ -451,18 +454,19 @@ app.post("/api/tour/photo_upload", authenticate, async (req, res) => {
         WHERE user_id = $1 AND joa_id = $2 AND status != 'PHOTO_SUBMITTED'  
         RETURNING id
       `,
-      [user_id, joa_id]
+      [user_id, joa_id],
     );
 
     if (updateRes.rowCount === 0) {
       return res.status(400).json({
-        error: "최종 인증 처리를 진행할 수 없는 상태이거나 이미 완료된 곳입니다.",
+        error:
+          "최종 인증 처리를 진행할 수 없는 상태이거나 이미 완료된 곳입니다.",
       });
     }
 
     res.json({
       success: true,
-      message: "🎉 축하합니다! 스탬프를 획득하셨습니다!"
+      message: "🎉 축하합니다! 스탬프를 획득하셨습니다!",
     });
   } catch (err) {
     console.error(err);
@@ -569,28 +573,36 @@ const authenticateAdmin = async (req, res, next) => {
 
 // 통계 화면 접근 권한 (SUPER_ADMIN, STAT_ADMIN 만 가능)
 const verifyStatAccess = (req, res, next) => {
-    const role = req.admin.role;
-    if (role !== 'SUPER_ADMIN' && role !== 'STAT_ADMIN' && role !== 'GENERAL_ADMIN') {
-        return res.status(403).json({ error: "통계 시스템 접근 권한이 없습니다." });
-    }
-    next();
+  const role = req.admin.role;
+  if (
+    role !== "SUPER_ADMIN" &&
+    role !== "STAT_ADMIN" &&
+    role !== "GENERAL_ADMIN"
+  ) {
+    return res.status(403).json({ error: "통계 시스템 접근 권한이 없습니다." });
+  }
+  next();
 };
 
 // 현장 스캐너 접근 권한 (SUPER_ADMIN, SCAN_ADMIN 만 가능)
 const verifyScanAccess = (req, res, next) => {
-    const role = req.admin.role;
-    if (role !== 'SUPER_ADMIN' && role !== 'SCAN_ADMIN' && role !== 'GENERAL_ADMIN') {
-        return res.status(403).json({ error: "스캐너 접근 권한이 없습니다." });
-    }
-    next();
+  const role = req.admin.role;
+  if (
+    role !== "SUPER_ADMIN" &&
+    role !== "SCAN_ADMIN" &&
+    role !== "GENERAL_ADMIN"
+  ) {
+    return res.status(403).json({ error: "스캐너 접근 권한이 없습니다." });
+  }
+  next();
 };
 
 // 계정 생성 권한 (오직 SUPER_ADMIN 만 가능)
 const verifySuperAdminRole = (req, res, next) => {
-    if (req.admin.role !== 'SUPER_ADMIN') {
-        return res.status(403).json({ error: "최고 관리자 권한이 필요합니다." });
-    }
-    next();
+  if (req.admin.role !== "SUPER_ADMIN") {
+    return res.status(403).json({ error: "최고 관리자 권한이 필요합니다." });
+  }
+  next();
 };
 
 // =======================================================
@@ -650,228 +662,365 @@ app.post("/api/admin/logout", authenticateAdmin, async (req, res) => {
   }
 });
 
-app.post("/api/admin/issue_ticket", authenticateAdmin, verifyScanAccess, async (req, res) => {
-    const { passport_id } = req.body; 
+app.post(
+  "/api/admin/issue_ticket",
+  authenticateAdmin,
+  verifyScanAccess,
+  async (req, res) => {
+    const { passport_id } = req.body;
 
     try {
-        // 1. 이미 경품을 수령했는지 확인
-        const checkRes = await pool.query("SELECT id FROM joa_ticket_logs WHERE passport_id = $1", [passport_id]);
-        if (checkRes.rowCount > 0) {
-            return res.status(400).json({ error: "이미 경품 수령이 완료된 사용자입니다." });
-        }
+      // 1. 이미 경품을 수령했는지 확인
+      const checkRes = await pool.query(
+        "SELECT id FROM joa_ticket_logs WHERE passport_id = $1",
+        [passport_id],
+      );
+      if (checkRes.rowCount > 0) {
+        return res
+          .status(400)
+          .json({ error: "이미 경품 수령이 완료된 사용자입니다." });
+      }
 
-        // 2. 사용자의 상태를 '룰렛 가능(READY)'으로 업데이트
-        await pool.query("UPDATE joa_users SET roulette_status = 'READY' WHERE passport_id = $1", [passport_id]);
+      // 2. 사용자의 상태를 '룰렛 가능(READY)'으로 업데이트
+      await pool.query(
+        "UPDATE joa_users SET roulette_status = 'READY' WHERE passport_id = $1",
+        [passport_id],
+      );
 
-        res.json({ success: true, message: "사용자 기기에서 룰렛이 활성화되었습니다!" });
+      res.json({
+        success: true,
+        message: "사용자 기기에서 룰렛이 활성화되었습니다!",
+      });
     } catch (err) {
-        console.error("스캔 에러:", err);
-        res.status(500).json({ error: "처리 중 서버 오류가 발생했습니다." });
+      console.error("스캔 에러:", err);
+      res.status(500).json({ error: "처리 중 서버 오류가 발생했습니다." });
     }
-});
+  },
+);
 
 app.get("/api/tour/check_roulette_status", authenticate, async (req, res) => {
-    try {
-        const userRes = await pool.query("SELECT roulette_status FROM joa_users WHERE id = $1", [req.user.id]);
-        if (userRes.rowCount > 0 && userRes.rows[0].roulette_status === 'READY') {
-            res.json({ success: true, isReady: true });
-        } else {
-            res.json({ success: true, isReady: false });
-        }
-    } catch (err) {
-        res.status(500).json({ error: "상태 확인 오류" });
+  try {
+    const userRes = await pool.query(
+      "SELECT roulette_status FROM joa_users WHERE id = $1",
+      [req.user.id],
+    );
+    if (userRes.rowCount > 0 && userRes.rows[0].roulette_status === "READY") {
+      res.json({ success: true, isReady: true });
+    } else {
+      res.json({ success: true, isReady: false });
     }
+  } catch (err) {
+    res.status(500).json({ error: "상태 확인 오류" });
+  }
 });
 
-app.post('/api/tour/spin', authenticate, async (req, res) => {
+app.post("/api/tour/spin", authenticate, async (req, res) => {
   try {
-        const { id: userId, passport_id } = req.user;
-        
-        // 1. 중복 수령 검증 (이미 경품을 받았는지 확인)
-        const logRes = await pool.query("SELECT id FROM joa_ticket_logs WHERE passport_id = $1", [passport_id]);
-        if (logRes.rowCount > 0) {
-            return res.status(403).json({ error: '이미 경품을 수령하셨습니다.' });
-        }
+    const { id: userId, passport_id } = req.user;
 
-        // 2. 완주 여부 검증 (스탬프 5개를 모두 모았는지 확인)
-        const stampRes = await pool.query(
-            "SELECT COUNT(*) FROM joa_stamps WHERE user_id = $1 AND status = 'PHOTO_SUBMITTED'", [userId]
-        );
-        if (parseInt(stampRes.rows[0].count) < 5) {
-            return res.status(403).json({ error: '스탬프 5개를 모두 모아야 룰렛을 돌릴 수 있습니다.' });
-        }
-        
-        // 3. 남은 경품 가져오기
-        const prizeRes = await pool.query("SELECT id, name, remaining_quantity FROM joa_prizes WHERE remaining_quantity > 0 ORDER BY id ASC");
-        const prizes = prizeRes.rows;
-        
-        if (prizes.length === 0) return res.status(400).json({ error: '모든 경품이 소진되었습니다.' });
-
-        // 3. 확률 계산 로직 (조아용 로직 재사용)
-        const totalQuantity = prizes.reduce((sum, p) => sum + p.remaining_quantity, 0);
-        let cumulativeProbability = 0;
-        const random = Math.random();
-        let winningPrize = prizes[prizes.length - 1]; // 기본값
-        
-        for (const prize of prizes) {
-            cumulativeProbability += prize.remaining_quantity / totalQuantity;
-            if (random < cumulativeProbability) {
-                winningPrize = prize;
-                break;
-            }
-        }
-
-        // 4. 각도 계산 (★ 눈속임 로직: 화면상 동일 비율 적용)
-        const segmentSize = 360 / prizes.length; // 전체를 경품 개수(N)로 똑같이 나눔
-        let stopAtAngle = 0;
-        
-        for (let i = 0; i < prizes.length; i++) {
-            if (prizes[i].id === winningPrize.id) {
-                const startAngle = i * segmentSize;
-                // 선에 걸리지 않도록 해당 칸의 5도 ~ (크기-5도) 사이의 랜덤 각도 추출
-                stopAtAngle = startAngle + (Math.random() * (segmentSize - 10) + 5);
-                break;
-            }
-        }
-
-        // 5. DB 업데이트 트랜잭션 (재고 차감 및 완료 처리)
-        await pool.query('BEGIN');        
-        await pool.query("UPDATE joa_prizes SET remaining_quantity = remaining_quantity - 1 WHERE id = $1", [winningPrize.id]);
-        
-        // ★ 사용자 발급 이력 남기기 (admin_id를 'USER_SELF_SCAN'으로 기록하여 구분)
-        await pool.query(
-            "INSERT INTO joa_ticket_logs (passport_id, admin_id, ticket_type) VALUES ($1, $2, $3)",
-            [passport_id, 'USER_SELF_SCAN', winningPrize.name]
-        );
-        
-        await pool.query("UPDATE joa_users SET roulette_status = 'COMPLETED' WHERE id = $1", [userId]);        
-        await pool.query('COMMIT');
-
-        res.json({ success: true, prizeId: winningPrize.id, prizeName: winningPrize.name });
-    } catch (err) {
-        await pool.query('ROLLBACK');
-        console.error("스핀 처리 중 오류:", err);
-        res.status(500).json({ error: '룰렛 처리 중 오류가 발생했습니다.' });
+    // 1. 중복 수령 검증 (이미 경품을 받았는지 확인)
+    const logRes = await pool.query(
+      "SELECT id FROM joa_ticket_logs WHERE passport_id = $1",
+      [passport_id],
+    );
+    if (logRes.rowCount > 0) {
+      return res.status(403).json({ error: "이미 경품을 수령하셨습니다." });
     }
-  });
 
-  // 룰렛 화면 렌더링용: 현재 재고가 남은 경품 목록만 가져오기
-app.get('/api/tour/available_prizes', async (req, res) => {
-    try {
-        const prizeRes = await pool.query("SELECT id, name FROM joa_prizes WHERE remaining_quantity > 0 ORDER BY id ASC");
-        res.json({ success: true, prizes: prizeRes.rows });
-    } catch (err) {
-        res.status(500).json({ error: "경품 목록 조회 실패" });
+    // 2. 완주 여부 검증 (스탬프 5개를 모두 모았는지 확인)
+    const stampRes = await pool.query(
+      "SELECT COUNT(*) FROM joa_stamps WHERE user_id = $1 AND status = 'PHOTO_SUBMITTED'",
+      [userId],
+    );
+    if (parseInt(stampRes.rows[0].count) < 5) {
+      return res
+        .status(403)
+        .json({ error: "스탬프 5개를 모두 모아야 룰렛을 돌릴 수 있습니다." });
     }
+
+    // 3. 남은 경품 가져오기
+    const prizeRes = await pool.query(
+      "SELECT id, name, remaining_quantity FROM joa_prizes WHERE remaining_quantity > 0 ORDER BY id ASC",
+    );
+    const prizes = prizeRes.rows;
+
+    if (prizes.length === 0)
+      return res.status(400).json({ error: "모든 경품이 소진되었습니다." });
+
+    // 3. 확률 계산 로직 (조아용 로직 재사용)
+    const totalQuantity = prizes.reduce(
+      (sum, p) => sum + p.remaining_quantity,
+      0,
+    );
+    let cumulativeProbability = 0;
+    const random = Math.random();
+    let winningPrize = prizes[prizes.length - 1]; // 기본값
+
+    for (const prize of prizes) {
+      cumulativeProbability += prize.remaining_quantity / totalQuantity;
+      if (random < cumulativeProbability) {
+        winningPrize = prize;
+        break;
+      }
+    }
+
+    // 4. 각도 계산 (★ 눈속임 로직: 화면상 동일 비율 적용)
+    const segmentSize = 360 / prizes.length; // 전체를 경품 개수(N)로 똑같이 나눔
+    let stopAtAngle = 0;
+
+    for (let i = 0; i < prizes.length; i++) {
+      if (prizes[i].id === winningPrize.id) {
+        const startAngle = i * segmentSize;
+        // 선에 걸리지 않도록 해당 칸의 5도 ~ (크기-5도) 사이의 랜덤 각도 추출
+        stopAtAngle = startAngle + (Math.random() * (segmentSize - 10) + 5);
+        break;
+      }
+    }
+
+    // 5. DB 업데이트 트랜잭션 (재고 차감 및 완료 처리)
+    await pool.query("BEGIN");
+    await pool.query(
+      "UPDATE joa_prizes SET remaining_quantity = remaining_quantity - 1 WHERE id = $1",
+      [winningPrize.id],
+    );
+
+    // ★ 사용자 발급 이력 남기기 (admin_id를 'USER_SELF_SCAN'으로 기록하여 구분)
+    await pool.query(
+      "INSERT INTO joa_ticket_logs (passport_id, admin_id, ticket_type) VALUES ($1, $2, $3)",
+      [passport_id, "USER_SELF_SCAN", winningPrize.name],
+    );
+
+    await pool.query(
+      "UPDATE joa_users SET roulette_status = 'COMPLETED' WHERE id = $1",
+      [userId],
+    );
+    await pool.query("COMMIT");
+
+    res.json({
+      success: true,
+      prizeId: winningPrize.id,
+      prizeName: winningPrize.name,
+    });
+  } catch (err) {
+    await pool.query("ROLLBACK");
+    console.error("스핀 처리 중 오류:", err);
+    res.status(500).json({ error: "룰렛 처리 중 오류가 발생했습니다." });
+  }
+});
+
+// 룰렛 화면 렌더링용: 현재 재고가 남은 경품 목록만 가져오기
+app.get("/api/tour/available_prizes", async (req, res) => {
+  try {
+    const prizeRes = await pool.query(
+      "SELECT id, name FROM joa_prizes WHERE remaining_quantity > 0 ORDER BY id ASC",
+    );
+    res.json({ success: true, prizes: prizeRes.rows });
+  } catch (err) {
+    res.status(500).json({ error: "경품 목록 조회 실패" });
+  }
 });
 // =======================================================
 // [대시보드 기능 API - 장기 이벤트 최적화 버전]
 // =======================================================
 
 // 🌟 이벤트 공식 오픈일 (이 날짜 이후 데이터만 집계)
-const EVENT_START_DATE = "2026-08-20 00:00:00+09";
+const EVENT_START_DATE = "2026-09-01 00:00:00+09";
 
 app.get("/api/admin/dashboard-stats", authenticateAdmin, verifyStatAccess, async (req, res) => {
     try {
-        // ★ 수정: joa_prizes (대기/완료) 대신, joa_ticket_logs 에서 티켓 종류별 발급 수량 집계
+        let { start_date, end_date } = req.query;
+        
+        // 날짜 파라미터가 넘어오면 해당 일자 기준, 없으면 전체 기간(EVENT_START_DATE ~ 2099년)
+        const startParam = start_date ? `${start_date} 00:00:00+09` : EVENT_START_DATE;
+        const endParam = end_date ? `${end_date} 23:59:59+09` : '2099-12-31 23:59:59+09';
+
+        // 1. 기간 내 경품 발급 내역 (티켓)
         const ticketRes = await pool.query(`
-            SELECT ticket_type, COUNT(*) as issue_count
-            FROM joa_ticket_logs
-            WHERE issued_at >= $1
+            SELECT ticket_type, COUNT(*) as issue_count 
+            FROM joa_ticket_logs 
+            WHERE issued_at >= $1 AND issued_at <= $2 
             GROUP BY ticket_type
-        `, [EVENT_START_DATE]);
-
+        `, [startParam, endParam]);
+        
+        // 2. 기간 내 거점별 방문/완료 현황
         const joaRes = await pool.query(`
-            SELECT
-                l.id, l.name,
-                COUNT(s.id) as total_arrivals,
-                SUM(CASE WHEN s.status = 'PHOTO_SUBMITTED' THEN 1 ELSE 0 END) as total_completions
-            FROM joa_stampspot l
-            LEFT JOIN joa_stamps s ON l.id = s.joa_id AND s.acquired_at >= $1
-            GROUP BY l.id, l.name
+            SELECT l.id, l.name, 
+                   COUNT(s.id) as total_arrivals, 
+                   SUM(CASE WHEN s.status = 'PHOTO_SUBMITTED' THEN 1 ELSE 0 END) as total_completions 
+            FROM joa_stampspot l 
+            LEFT JOIN joa_stamps s ON l.id = s.joa_id AND s.acquired_at >= $1 AND s.acquired_at <= $2 
+            GROUP BY l.id, l.name 
             ORDER BY l.id ASC
-        `, [EVENT_START_DATE]);
-
-        const dailyRes = await pool.query(`
-            SELECT
-                TO_CHAR(acquired_at, 'YYYY-MM-DD') as date,
-                COUNT(DISTINCT user_id) as daily_active_users,
-                SUM(CASE WHEN status = 'PHOTO_SUBMITTED' THEN 1 ELSE 0 END) as daily_completions
-            FROM joa_stamps
-            WHERE acquired_at >= $1
-            GROUP BY date
-            ORDER BY date DESC
-        `, [EVENT_START_DATE]);
+        `, [startParam, endParam]);
+        
+        // 3. 재고 현황 (재고는 특정 기간 조회가 무의미하므로 전체 실시간 현황을 가져옵니다)
+        const prizeRes = await pool.query("SELECT id, name, total_quantity, remaining_quantity FROM joa_prizes ORDER BY id ASC");
+        
+        // 4. 기간 내 5개 완주자 수
+        const completedUsers = await pool.query(`
+            SELECT COUNT(*) as cnt FROM (
+                SELECT user_id FROM joa_stamps 
+                WHERE status = 'PHOTO_SUBMITTED' AND acquired_at >= $1 AND acquired_at <= $2 
+                GROUP BY user_id HAVING COUNT(*) >= 5
+            ) as t
+        `, [startParam, endParam]);
+        
+        // 5. 기간 내 총 경품 수령자 수
+        const prizeRecipients = await pool.query(`
+            SELECT COUNT(DISTINCT passport_id) as cnt 
+            FROM joa_ticket_logs 
+            WHERE issued_at >= $1 AND issued_at <= $2
+        `, [startParam, endParam]);
 
         res.json({
             success: true,
-            // ★ 수정: 프론트엔드에 tickets 라는 이름으로 발급 현황 전달
             tickets: ticketRes.rows, 
             stampspot: joaRes.rows,
-            daily: dailyRes.rows
+            prizes: prizeRes.rows,
+            completed_users: completedUsers.rows[0].cnt,
+            prize_recipients: prizeRecipients.rows[0].cnt
         });
-    } catch (err) {
-        res.status(500).json({ error: "통계 조회 실패" });
+    } catch (err) { 
+        res.status(500).json({ error: "통계 조회 실패" }); 
     }
 });
 
-app.get("/api/admin/users", authenticateAdmin, verifyStatAccess, async (req, res) => {
+app.post(
+  "/api/admin/inventory/update",
+  authenticateAdmin,
+  verifyStatAccess,
+  async (req, res) => {
     try {
-        const userRes = await pool.query(`
-            SELECT
-                u.passport_id,
-                COUNT(s.joa_id) as total_visits,
-                SUM(CASE WHEN s.status = 'PHOTO_SUBMITTED' THEN 1 ELSE 0 END) as completed_stamps,
-                MAX(s.acquired_at) as last_activity
-            FROM joa_users u
-            JOIN joa_stamps s ON u.id = s.user_id 
-            WHERE s.acquired_at >= $1
-            GROUP BY u.id, u.passport_id
-            ORDER BY completed_stamps DESC, last_activity DESC
-        `, [EVENT_START_DATE]);
-        res.json({ success: true, users: userRes.rows });
+      const { prize_id, amount } = req.body;
+      await pool.query(
+        `
+            UPDATE joa_prizes 
+            SET remaining_quantity = remaining_quantity + $1,
+                total_quantity = CASE WHEN $1 > 0 THEN total_quantity + $1 ELSE total_quantity END
+            WHERE id = $2
+        `,
+        [parseInt(amount), prize_id],
+      );
+      res.json({ success: true, message: "재고가 업데이트되었습니다." });
     } catch (err) {
-        res.status(500).json({ error: "참가자 조회 실패" });
+      res.status(500).json({ error: "재고 업데이트 실패" });
+    }
+  },
+);
+
+app.get("/api/admin/hourly-stats", authenticateAdmin, verifyStatAccess, async (req, res) => {
+    try {
+        let { start_date, end_date } = req.query;
+        
+        const startParam = start_date ? `${start_date} 00:00:00+09` : EVENT_START_DATE;
+        const endParam = end_date ? `${end_date} 23:59:59+09` : '2099-12-31 23:59:59+09';
+
+        // 1. 테이블의 동적 열 생성을 위해 전체 경품 목록을 먼저 가져옵니다.
+        const prizeListRes = await pool.query("SELECT name FROM joa_prizes ORDER BY id ASC");
+        const prizeNames = prizeListRes.rows.map(r => r.name);
+
+        const query = `
+            WITH starters AS (
+                SELECT hr, COUNT(*) as start_count FROM (
+                    SELECT DATE_TRUNC('hour', MIN(acquired_at)) as hr
+                    FROM joa_stamps GROUP BY user_id
+                ) s GROUP BY hr
+            ),
+            completers AS (
+                SELECT hr, COUNT(*) as complete_count FROM (
+                    SELECT DATE_TRUNC('hour', MAX(acquired_at)) as hr
+                    FROM joa_stamps WHERE status = 'PHOTO_SUBMITTED'
+                    GROUP BY user_id HAVING COUNT(*) >= 5
+                ) c GROUP BY hr
+            ),
+            prizes AS (
+                SELECT hr, SUM(cnt) as prize_count, json_object_agg(ticket_type, cnt) as prize_details
+                FROM (
+                    SELECT DATE_TRUNC('hour', issued_at) as hr, ticket_type, COUNT(*) as cnt
+                    FROM joa_ticket_logs 
+                    GROUP BY DATE_TRUNC('hour', issued_at), ticket_type
+                ) p_sub
+                GROUP BY hr
+            ),
+            all_hours AS (
+                SELECT hr FROM starters
+                UNION SELECT hr FROM completers
+                UNION SELECT hr FROM prizes
+            )
+            SELECT 
+                TO_CHAR(a.hr, 'YYYY-MM-DD HH24:00') || ' ~ ' || TO_CHAR(a.hr + interval '1 hour', 'HH24:00') as time_range,
+                COALESCE(s.start_count, 0) as start_count,
+                COALESCE(c.complete_count, 0) as complete_count,
+                COALESCE(p.prize_count, 0) as prize_count,
+                COALESCE(p.prize_details, '{}'::json) as prize_details
+            FROM all_hours a
+            LEFT JOIN starters s ON a.hr = s.hr
+            LEFT JOIN completers c ON a.hr = c.hr
+            LEFT JOIN prizes p ON a.hr = p.hr
+            WHERE a.hr >= $1 AND a.hr <= $2
+            ORDER BY a.hr DESC
+        `;
+        
+        const result = await pool.query(query, [startParam, endParam]);
+        res.json({ success: true, stats: result.rows, prizeNames }); // prizeNames 함께 반환
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "시간대별 통계 조회 실패" });
     }
 });
 
-app.get("/api/admin/user-stamps/:passport_id", authenticateAdmin, verifyStatAccess, async (req, res) => {
+app.get(
+  "/api/admin/user-stamps/:passport_id",
+  authenticateAdmin,
+  verifyStatAccess,
+  async (req, res) => {
     try {
-        const { passport_id } = req.params;
-        const stampRes = await pool.query(`
+      const { passport_id } = req.params;
+      const stampRes = await pool.query(
+        `
             SELECT l.name, s.acquired_at
             FROM joa_stamps s
             JOIN joa_users u ON s.user_id = u.id
             JOIN joa_stampspot l ON s.joa_id = l.id
             WHERE u.passport_id = $1 AND s.status = 'PHOTO_SUBMITTED' AND s.acquired_at >= $2
             ORDER BY s.acquired_at DESC
-        `, [passport_id, EVENT_START_DATE]);
-        res.json({ success: true, stamps: stampRes.rows });
+        `,
+        [passport_id, EVENT_START_DATE],
+      );
+      res.json({ success: true, stamps: stampRes.rows });
     } catch (err) {
-        res.status(500).json({ error: "상세 스탬프 조회 실패" });
+      res.status(500).json({ error: "상세 스탬프 조회 실패" });
     }
-});
+  },
+);
 
-app.get("/api/admin/tickets", authenticateAdmin, verifyStatAccess, async (req, res) => {
+app.get(
+  "/api/admin/tickets",
+  authenticateAdmin,
+  verifyStatAccess,
+  async (req, res) => {
     try {
-        const result = await pool.query(`
+      const result = await pool.query(
+        `
             SELECT t.id, t.passport_id, t.admin_id, t.ticket_type, t.issued_at
             FROM joa_ticket_logs t
             WHERE t.issued_at >= $1
             ORDER BY t.issued_at DESC
-        `, [EVENT_START_DATE]);
-        res.json({ success: true, tickets: result.rows });
+        `,
+        [EVENT_START_DATE],
+      );
+      res.json({ success: true, tickets: result.rows });
     } catch (err) {
-        res.status(500).json({ error: "발급 내역 조회 실패" });
+      res.status(500).json({ error: "발급 내역 조회 실패" });
     }
-});
+  },
+);
 
-// 7. 부관리자 생성
 app.post("/api/admin/register-manager", authenticateAdmin, verifySuperAdminRole, async (req, res) => {
     const { login_id, login_pw, target_role } = req.body;
     
-    // 역할 검증
-    if (target_role !== 'STAT_ADMIN' && target_role !== 'SCAN_ADMIN') {
+    // 역할 검증 (현장 스탭 등 불필요한 권한 삭제, GENERAL_ADMIN만 허용)
+    if (target_role !== 'GENERAL_ADMIN') {
         return res.status(400).json({ error: "올바르지 않은 권한 설정입니다." });
     }
 
@@ -880,7 +1029,7 @@ app.post("/api/admin/register-manager", authenticateAdmin, verifySuperAdminRole,
             "INSERT INTO joa_admins (login_id, login_pw, role) VALUES ($1, $2, $3)", 
             [login_id, login_pw, target_role]
         );
-        res.json({ success: true, message: "계정 생성 완료" });
+        res.json({ success: true, message: "이벤트 담당자 계정 생성 완료" });
     } catch (err) {
         res.status(500).json({ error: "계정 등록 실패 (이미 존재하는 아이디일 수 있습니다.)" });
     }
