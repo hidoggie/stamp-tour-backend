@@ -506,11 +506,22 @@
             <div style="margin-bottom:20px; background:#eef5f4; padding:20px; border-radius:10px;">
                 <h3 style="margin-top:0; color:#245752; font-size:16px;">➕ 재고 수량 변경 (현장 추가 및 단체 차감)</h3>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <!-- 선택창 -->
                     <select id="inventoryPrizeSelect"
                         style="padding:8px; border:1px solid #ddd; border-radius:6px; flex:1; min-width: 150px;"></select>
-                    <input type="number" id="inventoryChangeAmount" placeholder="수량 (+추가, -차감)"
-                        style="padding:8px; border:1px solid #ddd; border-radius:6px; flex:1; min-width: 150px;">
-                    <button class="btn-action" onclick="updateInventory()" style="white-space: nowrap;">적용하기</button>
+
+                    <!-- 수량 입력창 (음수 입력 없이 숫자만 입력하도록 placeholder 변경) -->
+                    <!--input type="number" id="inventoryChangeAmount" placeholder="수량 입력 (숫자만)" min="1"
+                        inputmode="numeric" pattern="[0-9]*"
+                        style="padding:8px; border:1px solid #ddd; border-radius:6px; flex:1; min-width: 100px;"-->
+                    <input type="text" id="inventoryChangeAmount" placeholder="수량 입력 (숫자만)" inputmode="numeric" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="padding:8px; border:1px solid #ddd; border-radius:6px; flex:1; min-width: 100px;">
+
+                    <!-- 추가/차감 버튼 분리 -->
+                    <button class="btn-action" onclick="updateInventory('add')"
+                        style="background:#2e8b82; white-space: nowrap;">+ 추가</button>
+                    <button class="btn-action" onclick="updateInventory('sub')"
+                        style="background:#cc5a5a; white-space: nowrap;">- 차감</button>
+
                 </div>
             </div>
 
@@ -604,17 +615,6 @@
                 <tbody id="ticket-table-body">
                 </tbody>
             </table>
-
-            <!--div style="margin-top:20px; background:#eef5f4; padding:20px; border-radius:10px;">
-                <h3 style="margin-top:0; color:#245752; font-size:16px;">📦 실시간 재고 관리 (현장 추가 및 단체 차감)</h3>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <select id="inventoryPrizeSelect"
-                        style="padding:8px; border:1px solid #ddd; border-radius:6px; flex:1; min-width: 150px;"></select>
-                    <input type="number" id="inventoryChangeAmount" placeholder="수량 (+추가, -차감)"
-                        style="padding:8px; border:1px solid #ddd; border-radius:6px; flex:1; min-width: 150px;">
-                    <button class="btn-action" onclick="updateInventory()" style="white-space: nowrap;">적용하기</button>
-                </div>
-            </div-->
             <!-- 👇 페이징 처리 영역 추가 -->
             <div id="ticket-pagination" class="pagination"></div>
 
@@ -931,28 +931,56 @@
             document.getElementById(elementId).innerHTML = html;
         }
 
-        // 3-3. script 하단에 재고 수정 실행 함수 추가
-        async function updateInventory() {
-            const prize_id = document.getElementById('inventoryPrizeSelect').value;
-            const amount = document.getElementById('inventoryChangeAmount').value;
-            if (!prize_id || !amount) return alert("경품과 수량을 입력하세요.");
-            if (confirm(`수량을 ${amount}개 만큼 변경하시겠습니까?`)) {
+        // 기존 updateInventory(type) 함수를 찾아 아래 코드로 교체하세요.
+        async function updateInventory(type) {
+            const selectEl = document.getElementById('inventoryPrizeSelect');
+            const prize_id = selectEl.value;
+            const rawAmount = document.getElementById('inventoryChangeAmount').value;
+
+            if (!prize_id || !rawAmount || rawAmount <= 0) {
+                return alert("정확한 수량(1 이상)을 입력하세요.");
+            }
+
+            // 화면의 셀렉트 박스에 표시된 "(잔여: N)" 텍스트에서 현재 재고를 추출하여 1차 방어
+            const selectedText = selectEl.options[selectEl.selectedIndex].text;
+            const match = selectedText.match(/잔여:\s*(\d+)/);
+            const currentStock = match ? parseInt(match[1]) : 0;
+
+            let amount = parseInt(rawAmount);
+            let actionText = "추가";
+
+            if (type === 'sub') {
+                // 차감하려는 수량이 남은 재고보다 크면 즉시 차단
+                if (amount > currentStock) {
+                    return alert(`🚫 오류: 현재 남은 수량(${currentStock}개)보다 많이 차감할 수 없습니다.`);
+                }
+                amount = -amount; // 차감일 경우 음수로 변환
+                actionText = "차감";
+            }
+
+            if (confirm(`해당 경품 수량을 ${rawAmount}개 만큼 [${actionText}] 하시겠습니까?`)) {
                 try {
                     const res = await fetch("/api/admin/inventory/update", {
-                        method: "POST", headers: { "Content-Type": "application/json" },
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ prize_id, amount })
                     });
                     const data = await res.json();
+
                     if (data.success) {
-                        alert("반영되었습니다.");
+                        alert(`성공적으로 ${actionText} 되었습니다.`);
                         document.getElementById('inventoryChangeAmount').value = '';
-                        fetchInventoryData(); // ★ 변경된 데이터를 즉시 재조회
-                        fetchDashboardData(); // 대시보드 데이터도 백그라운드 갱신
+                        fetchInventoryData(); // 변경된 데이터를 즉시 재조회
+                        fetchDashboardData(); // 대시보드 데이터 백그라운드 갱신
+                    } else {
+                        // 서버 측 방어선에서 넘어온 에러 메시지 경고창
+                        alert(data.error || "수량 변경에 실패했습니다.");
                     }
-                } catch (e) { alert("서버 오류"); }
+                } catch (e) {
+                    alert("서버 오류가 발생했습니다.");
+                }
             }
         }
-
         // [팝업 로직] 상세 인증 내역 조회
         async function openStampModal(passport_id) {
             document.getElementById('modalTitle').innerText = `${passport_id}님의 인증 내역`;
