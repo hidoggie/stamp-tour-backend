@@ -15,6 +15,31 @@ async function loadUserStamps() {
         userStamps = data.stamps;
         console.log(`현재 획득한 스탬프: ${userStamps.length}개`);
         
+        // ★ [로컬스토리지와 DB 동기화 로직 추가] ★
+        const submittedCount = userStamps.filter(s => s.status === 'PHOTO_SUBMITTED').length;
+        let collectedModels = JSON.parse(localStorage.getItem("collected_models") || "[]");
+
+        // 케이스 A: DB를 지워서 로컬(localStorage) 데이터가 DB보다 많을 때 (테스트 중 DB 초기화)
+        if (submittedCount < collectedModels.length) {
+            // DB 개수에 맞춰서 로컬 카드 배열을 잘라버림 (0개면 0개로 초기화됨)
+            collectedModels = collectedModels.slice(0, submittedCount);
+            localStorage.setItem("collected_models", JSON.stringify(collectedModels));
+        }
+        // 케이스 B: 다른 기기에서 접속해서 DB 이력은 있는데 로컬 카드가 비어있을 때 (실사용자 기기변경/브라우저 초기화)
+        else if (submittedCount > collectedModels.length) {
+            const allTypes = ["type1", "type2", "type3", "type4", "type5", "type6", "type7", "type8", "type9", "type10", "type11"];
+            const availableTypes = allTypes.filter(t => !collectedModels.includes(t));
+            
+            // 부족한 카드 개수만큼 겹치지 않게 임의의 카드를 로컬에 채워줌
+            for (let i = collectedModels.length; i < submittedCount; i++) {
+                if (availableTypes.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * availableTypes.length);
+                    collectedModels.push(availableTypes.splice(randomIndex, 1)[0]);
+                }
+            }
+            localStorage.setItem("collected_models", JSON.stringify(collectedModels));
+        }
+        
         // 데이터 로드 후 5개 달성 여부 체크
         checkPrizeCondition();
         if (typeof window.updateMarkersOpacity === 'function') {
