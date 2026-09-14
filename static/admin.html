@@ -317,6 +317,114 @@
             font-weight: normal;
             margin-left: 10px;
         }
+
+        /* =========================================
+           📱 모바일 반응형 (Responsive Mobile) 추가
+           ========================================= */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            /* 사이드바 상단 가로 스크롤 형태로 변경 */
+            .sidebar {
+                width: 100%;
+                height: auto;
+                flex-direction: row;
+                padding: 10px;
+                overflow-x: auto;
+                white-space: nowrap;
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+            }
+
+            .sidebar h3 {
+                display: none;
+            }
+
+            /* 모바일 공간 절약을 위해 타이틀 숨김 */
+            .menu-item {
+                margin-bottom: 0;
+                margin-right: 10px;
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+
+            .menu-bottom {
+                margin-top: 0;
+                display: flex;
+                margin-left: auto;
+            }
+
+            /* 메인 컨텐츠 여백 축소 */
+            .main-content {
+                padding: 15px;
+                height: auto;
+                overflow-y: visible;
+            }
+
+            /* 대시보드 요약 카드 2x2 배치 */
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .summary-card {
+                padding: 15px;
+            }
+
+            .summary-value {
+                font-size: 24px;
+            }
+
+            /* 좌우 분할 박스 세로 배치로 변경 */
+            .dashboard-split {
+                grid-template-columns: 1fr;
+            }
+
+            /* 필터바(검색영역) 세로 정렬 및 꽉 찬 너비로 변경 */
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .filter-bar input,
+            .filter-bar select,
+            .filter-bar button {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .filter-bar span {
+                font-size: 14px;
+                text-align: left;
+            }
+
+            /* 테이블 가로 스크롤 영역 활성화 */
+            .table-responsive {
+                width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table {
+                min-width: 600px;
+            }
+
+            /* 테이블이 너무 찌그러지지 않도록 방어 */
+
+            /* 계정 생성 화면 분리를 세로형으로 변경 */
+            #section-managers>div {
+                flex-direction: column;
+            }
+
+            #section-managers>div>div {
+                width: 100% !important;
+                box-sizing: border-box;
+            }
+        }
     </style>
 </head>
 
@@ -325,6 +433,7 @@
     <div class="sidebar">
         <h3>조아용 스탬프투어</h3>
         <div class="menu-item active" onclick="switchView('dashboard')">📊 종합 대시보드</div>
+        <div class="menu-item" onclick="switchView('inventory')">📦 실시간 재고 관리</div>
         <div class="menu-item" onclick="switchView('users')">⏰ 시간대별 참여 통계</div>
         <div class="menu-item" onclick="switchView('tickets')">🎁 경품 발급 내역</div>
         <div class="menu-item super-only" id="menu-super" onclick="switchView('managers')">👥 부관리자 계정 생성</div>
@@ -360,31 +469,63 @@
             </div>
             <div class="dashboard-split">
                 <div class="dashboard-box">
-                    <h3>📍 이벤트존별 실시간 통계</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>이벤트존</th>
-                                <th>도착(진입)</th>
-                                <th>인증 완료</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dash-lighthouse-body"></tbody>
-                    </table>
-                </div>
-                <div class="dashboard-box">
                     <h3>📦 현재 재고 현황</h3>
-                    <table>
+                    <table class="table-responsive" style="min-width: 100%; white-space: nowrap;">
                         <thead>
                             <tr>
                                 <th>경품명</th>
-                                <th>총 수량</th>
-                                <th>남은 수량</th>
+                                <th style="color:#cc5a5a;">남은 수량</th>
+                                <th style="color:#777; font-weight:normal; font-size:12px;">총 수량</th>
                             </tr>
                         </thead>
-                        <tbody id="dash-inventory-body"></tbody>
+                        <tbody id="dash-inventory-body">
+                        </tbody>
                     </table>
                 </div>
+                <div class="dashboard-box">
+                    <h3>📍 이벤트존별 실시간 통계</h3>
+                    <table class="table-responsive" style="min-width: 100%; white-space: nowrap;">
+                        <thead>
+                            <tr>
+                                <th>이벤트존</th>
+                                <th style="color:#777; font-weight:normal; font-size:12px;">도착(진입)</th>
+                                <th style="color:#777; font-weight:normal; font-size:12px;">인증 완료</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dash-lighthouse-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="section-inventory" style="display:none;">
+            <h2>📦 실시간 재고 관리</h2>
+
+            <!-- 재고 수량 변경 폼 -->
+            <div style="margin-bottom:20px; background:#eef5f4; padding:20px; border-radius:10px;">
+                <h3 style="margin-top:0; color:#245752; font-size:16px;">➕ 재고 수량 변경 (현장 추가 및 단체 차감)</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <select id="inventoryPrizeSelect"
+                        style="padding:8px; border:1px solid #ddd; border-radius:6px; flex:1; min-width: 150px;"></select>
+                    <input type="number" id="inventoryChangeAmount" placeholder="수량 (+추가, -차감)"
+                        style="padding:8px; border:1px solid #ddd; border-radius:6px; flex:1; min-width: 150px;">
+                    <button class="btn-action" onclick="updateInventory()" style="white-space: nowrap;">적용하기</button>
+                </div>
+            </div>
+
+            <!-- 실시간 잔여 재고 표 -->
+            <div class="table-responsive">
+                <table style="min-width: 100%; white-space: nowrap;">
+                    <thead>
+                        <tr>
+                            <th>경품명</th>
+                            <th style="color:#cc5a5a;">현재 남은 수량</th> <!-- 순서 당김, 색상 강조 -->
+                            <th style="color:#777; font-weight:normal; font-size:12px;">총 수량(세팅)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-table-body"></tbody>
+                </table>
             </div>
         </section>
 
@@ -398,7 +539,7 @@
                 <button class="btn-action" onclick="downloadHourlyExcel()"
                     style="margin-left:auto; background:#2e8b82;">엑셀 다운로드</button>
             </div>
-            <table>
+            <table class="table-responsive">
                 <thead id="hourly-table-head">
                     <!-- 자바스크립트가 경품 목록에 맞춰 동적으로 컬럼을 채웁니다 -->
                 </thead>
@@ -427,7 +568,7 @@
                 <!-- 우측: 목록 테이블 -->
                 <div style="flex: 1; background:white; padding:30px; border-radius:10px;">
                     <h3 style="margin-top:0;">등록된 관리자 목록</h3>
-                    <table>
+                    <table class="table-responsive">
                         <thead>
                             <tr>
                                 <th>아이디</th>
@@ -435,7 +576,8 @@
                                 <th>생성 일자</th>
                             </tr>
                         </thead>
-                        <tbody id="manager-list-body"></tbody>
+                        <tbody id="manager-list-body">
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -451,27 +593,28 @@
                     다운로드</button>
             </div>
 
-            <table>
+            <table class="table-responsive">
                 <thead>
                     <tr>
-                        <th>발급일시</th>
                         <th>스탬프북 번호</th>
                         <th>경품명</th>
+                        <th>발급일시</th>
                     </tr>
                 </thead>
-                <tbody id="ticket-table-body"></tbody>
+                <tbody id="ticket-table-body">
+                </tbody>
             </table>
 
-            <div style="margin-top:20px; background:#eef5f4; padding:20px; border-radius:10px;">
-                <h3 style="margin-top:0; color:#245752;">📦 실시간 재고 관리 (현장 추가 및 단체 차감)</h3>
-                <div style="display: flex; gap: 10px;">
+            <!--div style="margin-top:20px; background:#eef5f4; padding:20px; border-radius:10px;">
+                <h3 style="margin-top:0; color:#245752; font-size:16px;">📦 실시간 재고 관리 (현장 추가 및 단체 차감)</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <select id="inventoryPrizeSelect"
-                        style="padding:8px; border:1px solid #ddd; border-radius:6px; flex:1;"></select>
+                        style="padding:8px; border:1px solid #ddd; border-radius:6px; flex:1; min-width: 150px;"></select>
                     <input type="number" id="inventoryChangeAmount" placeholder="수량 (+추가, -차감)"
-                        style="padding:8px; border:1px solid #ddd; border-radius:6px; width:150px;">
-                    <button class="btn-action" onclick="updateInventory()">적용하기</button>
+                        style="padding:8px; border:1px solid #ddd; border-radius:6px; flex:1; min-width: 150px;">
+                    <button class="btn-action" onclick="updateInventory()" style="white-space: nowrap;">적용하기</button>
                 </div>
-            </div>
+            </div-->
             <!-- 👇 페이징 처리 영역 추가 -->
             <div id="ticket-pagination" class="pagination"></div>
 
@@ -657,35 +800,61 @@
             } catch (e) { }
         }
 
-async function fetchManagerList() {
-    try {
-        const res = await fetch('/api/admin/managers');
-        const data = await res.json();
-        if (data.success) {
-            document.getElementById('manager-list-body').innerHTML = data.managers.map(m => {
-                // 권한 이름 매핑 변경
-                let roleName = m.role === 'SUPER_ADMIN' ? '👑 최고 관리자' : 
-                              (m.role === 'GENERAL_ADMIN' ? '🧑‍💼 이벤트 담당자' : '📊 기타 담당자');
-                return `<tr><td><b>${m.login_id}</b></td><td>${roleName}</td><td style="color:#666;">${new Date(m.created_at).toLocaleString()}</td></tr>`;
-            }).join('');
+        async function fetchManagerList() {
+            try {
+                const res = await fetch('/api/admin/managers');
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('manager-list-body').innerHTML = data.managers.map(m => {
+                        // 권한 이름 매핑 변경
+                        let roleName = m.role === 'SUPER_ADMIN' ? '👑 최고 관리자' :
+                            (m.role === 'GENERAL_ADMIN' ? '🧑‍💼 이벤트 담당자' : '📊 기타 담당자');
+                        return `<tr><td><b>${m.login_id}</b></td><td>${roleName}</td><td style="color:#666;">${new Date(m.created_at).toLocaleString()}</td></tr>`;
+                    }).join('');
+                }
+            } catch (e) { }
         }
-    } catch (e) { }
-}
 
         function renderDashboard(data) {
-            document.getElementById('sum-completed-users').innerText = data.completed_users || 0;
-            document.getElementById('sum-prize-users').innerText = data.prize_recipients || 0;
-
-            if (data.prizes) {
-                document.getElementById('sum-total-inventory').innerText = data.prizes.reduce((sum, p) => sum + p.remaining_quantity, 0);
-                document.getElementById('dash-inventory-body').innerHTML = data.prizes.map(p => `<tr><td><b>${p.name}</b></td><td>${p.total_quantity}</td><td style="color:#cc5a5a; font-weight:bold;">${p.remaining_quantity}</td></tr>`).join('');
-
-                const currentSelect = document.getElementById('inventoryPrizeSelect').value;
-                document.getElementById('inventoryPrizeSelect').innerHTML = data.prizes.map(p => `<option value="${p.id}">${p.name} (잔여: ${p.remaining_quantity})</option>`).join('');
-                if (currentSelect) document.getElementById('inventoryPrizeSelect').value = currentSelect;
+            // 1. 상단 요약 카드 (안전하게 있는지 확인 후 값 넣기)
+            if (document.getElementById('sum-completed-users')) {
+                document.getElementById('sum-completed-users').innerText = data.completed_users || 0;
+            }
+            if (document.getElementById('sum-prize-users')) {
+                document.getElementById('sum-prize-users').innerText = data.prize_recipients || 0;
             }
 
-            document.getElementById('dash-lighthouse-body').innerHTML = data.stampspot.map(lh => `<tr><td><b>${lh.name}</b></td><td>${lh.total_arrivals || 0}</td><td><b>${lh.total_completions || 0}</b></td></tr>`).join('');
+            // 2. 재고 관련 처리
+            if (data.prizes) {
+                // 총 잔여 재고 텍스트
+                if (document.getElementById('sum-total-inventory')) {
+                    document.getElementById('sum-total-inventory').innerText = data.prizes.reduce((sum, p) => sum + p.remaining_quantity, 0);
+                }
+
+                // 대시보드 내에 재고 표(dash-inventory-body)가 남아있다면 렌더링
+                const dashInvBody = document.getElementById('dash-inventory-body');
+                if (dashInvBody) {
+                    dashInvBody.innerHTML = data.prizes.map(p => `
+                <tr>
+                    <td><b>${p.name}</b></td>
+                    <td style="color:#cc5a5a; font-weight:bold; font-size:16px;">${p.remaining_quantity} 개</td>
+                    <td style="color:#888; font-size:12px;">${p.total_quantity} 개</td>
+                </tr>
+            `).join('');
+                }
+            }
+
+            // 3. 관광지 거점별 실시간 통계 렌더링
+            const lhBody = document.getElementById('dash-lighthouse-body');
+            if (lhBody && data.stampspot) {
+                lhBody.innerHTML = data.stampspot.map(lh => `
+            <tr>
+                <td><b>${lh.name}</b></td>
+                <td>${lh.total_arrivals || 0}</td>
+                <td><b style="color:#2e8b82;">${lh.total_completions || 0}</b></td>
+            </tr>
+        `).join('');
+            }
         }
 
         // [유저 탭 - 페이징 & 검색]
@@ -744,10 +913,10 @@ async function fetchManagerList() {
                 const prizeName = t.ticket_type;
 
                 return `<tr>
-            <td style="color:#666;">${dateStr}</td>
-            <td><b>${t.passport_id}</b></td>
-            <td><span class="badge type-badge">${prizeName}</span></td>
-        </tr>`;
+                  <td><b>${t.passport_id}</b></td>
+                  <td><span class="badge type-badge">${prizeName}</span></td>
+                  <td style="color:#666; font-size:12px;">${dateStr}</td>
+                </tr>`;
             }).join('');
 
             renderPagination('ticket-pagination', totalPages, currentTicketPage, 'renderTicketsPage');
@@ -777,7 +946,8 @@ async function fetchManagerList() {
                     if (data.success) {
                         alert("반영되었습니다.");
                         document.getElementById('inventoryChangeAmount').value = '';
-                        fetchDashboardData();
+                        fetchInventoryData(); // ★ 변경된 데이터를 즉시 재조회
+                        fetchDashboardData(); // 대시보드 데이터도 백그라운드 갱신
                     }
                 } catch (e) { alert("서버 오류"); }
             }
@@ -901,7 +1071,9 @@ async function fetchManagerList() {
             document.getElementById(`section-${viewName}`).style.display = "block";
             event.currentTarget.classList.add("active");
 
-            // 해당 탭 열릴 때 데이터 로드
+            // 각 탭이 열릴 때마다 최신 실시간 데이터를 서버에서 새로고침합니다.
+            if (viewName === 'dashboard') fetchDashboardData();
+            if (viewName === 'inventory') fetchInventoryData();
             if (viewName === 'users') fetchHourlyStats();
             if (viewName === 'tickets') fetchTicketsData();
             if (viewName === 'managers') fetchManagerList();
@@ -923,6 +1095,30 @@ async function fetchManagerList() {
 
             // 데이터 재조회 (날짜가 비어있으므로 전체 기간으로 조회됨)
             fetchDashboardData();
+        }
+
+        async function fetchInventoryData() {
+            try {
+                const res = await fetch("/api/admin/inventory");
+                const data = await res.json();
+                if (data.success) {
+                    // 표 그리기 (남은 수량을 중앙으로 당기고 강조, 총 수량은 작게 처리)
+                    document.getElementById('inventory-table-body').innerHTML = data.prizes.map(p => `
+                <tr>
+                    <td><b>${p.name}</b></td>
+                    <td style="color:#cc5a5a; font-weight:bold; font-size:16px;">${p.remaining_quantity} 개</td>
+                    <td style="color:#888; font-size:12px;">${p.total_quantity} 개</td>
+                </tr>
+            `).join('');
+
+                    // 셀렉트 박스 그리기 (현재 선택된 값 유지)
+                    const currentSelect = document.getElementById('inventoryPrizeSelect').value;
+                    document.getElementById('inventoryPrizeSelect').innerHTML = data.prizes.map(p =>
+                        `<option value="${p.id}">${p.name} (잔여: ${p.remaining_quantity})</option>`
+                    ).join('');
+                    if (currentSelect) document.getElementById('inventoryPrizeSelect').value = currentSelect;
+                }
+            } catch (e) { }
         }
 
         document.addEventListener("DOMContentLoaded", () => {
