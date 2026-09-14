@@ -1035,6 +1035,15 @@ app.post("/api/admin/register-manager", authenticateAdmin, verifySuperAdminRole,
     }
 });
 
+app.get("/api/admin/inventory", authenticateAdmin, verifyStatAccess, async (req, res) => {
+    try {
+        const prizeRes = await pool.query("SELECT id, name, total_quantity, remaining_quantity FROM joa_prizes ORDER BY id ASC");
+        res.json({ success: true, prizes: prizeRes.rows });
+    } catch (err) { 
+        res.status(500).json({ error: "재고 조회 실패" }); 
+    }
+});
+
 // 서버 구동
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
