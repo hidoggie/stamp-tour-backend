@@ -6,23 +6,23 @@ function setScreenHeight() {
 window.addEventListener("resize", setScreenHeight);
 setScreenHeight();
 
+let currentActiveScreen = "screen-intro";
+
 // 화면 전환 함수
 function showScreen(screenId, isPopState = false) {
-  document
-    .querySelectorAll(".screen")
-    .forEach((el) => el.classList.remove("on"));
+  document.querySelectorAll(".screen").forEach((el) => el.classList.remove("on"));
   document.getElementById(screenId).classList.add("on");
 
-  // 뒤로가기 버튼(popstate)으로 이동한 게 아닐 때만 브라우저 히스토리에 기록
   if (!isPopState) {
     history.pushState({ screen: screenId }, "", "");
   }
+  
+  // 현재 상태 업데이트
+  currentActiveScreen = screenId;
 
-  // ★ 네이버 지도 렌더링 오류 완벽 해결
+  // 네이버 지도 렌더링 오류 해결
   if (screenId === "screen-map" && window.map) {
-    setTimeout(() => {
-      window.dispatchEvent(new Event("resize"));
-    }, 50);
+    setTimeout(() => window.dispatchEvent(new Event("resize")), 50);
   }
 }
 
@@ -557,26 +557,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // 브라우저 물리적 뒤로가기 완벽 제어
 window.addEventListener("popstate", function (event) {
-  // 1. 진행 중인 AR 카메라 및 QR 스캐너 자원 완전 해제
-  if (typeof releaseCamera === "function") releaseCamera();
-  if (typeof stopScannerSafe === "function") {
-    stopScannerSafe();
-  } else if (typeof html5QrcodeScanner !== "undefined" && html5QrcodeScanner) {
-    try { html5QrcodeScanner.clear(); } catch(e) {}
-    html5QrcodeScanner = null;
+  const targetScreen = event.state && event.state.screen ? event.state.screen : "screen-map";
+
+  // 1. [떠나는 화면 정리] AR 포토존에서 뒤로가기를 눌렀을 때
+  if (currentActiveScreen === "screen-ar") {
+     // 카메라 끄기
+     if (window.XR8) { window.XR8.stop(); window.XR8.clearCameraPipelineModules(); }
+     
+     // 🎵 음악 완벽하게 끄기 (추가됨)
+     const bgm = document.getElementById("bgm");
+     if (bgm) { bgm.pause(); bgm.src = ""; } 
+     
+     // AR 껍데기 삭제
+     const arContainer = document.getElementById("ar-container");
+     if (arContainer) arContainer.innerHTML = "";
+  } 
+  // [떠나는 화면 정리] 스캐너에서 뒤로가기를 눌렀을 때
+  else if (currentActiveScreen === "screen-scanner") {
+     if (typeof stopScannerSafe === "function") stopScannerSafe();
   }
 
-  // 2. 돌아갈 이전 화면 확인
-  let targetScreen = event.state && event.state.screen ? event.state.screen : "screen-map";
 
-  // 3. 카메라 실행이 필요한 화면이나 중간 로딩 화면으로 돌아가려 하면 무조건 지도로 강제 복귀
-  const blockBackScreens = ["screen-scanner", "screen-ar", "screen-shuffle", "screen-card"];
-  if (blockBackScreens.includes(targetScreen)) {
-    targetScreen = "screen-map";
-  }
-
-  // 4. 화면 전환 처리 (히스토리에 중복 기록되지 않도록 true 플래그 전달)
-  if (typeof showScreen === "function") {
-    showScreen(targetScreen, true);
+  // 2. [돌아갈 화면 맞춤 처리]
+  if (targetScreen === "screen-scanner") {
+      // 📷 스캔 화면으로 돌아왔을 때, 빈 화면이 되지 않도록 스캐너 재실행!
+      if (typeof startScanner === "function") startScanner(); 
+  } 
+  else if (targetScreen === "screen-shuffle" || targetScreen === "screen-card") {
+      // 카드 섞기나 뽑기 화면으로 뒤로가기 하면 오류가 나므로, 이전 단계인 스캔 화면으로 점프
+      if (typeof startScanner === "function") startScanner(); 
+  } 
+  else {
+      // 지도 화면 등 정상적인 화면 전환
+      showScreen(targetScreen, true);
   }
 });
