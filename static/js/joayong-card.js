@@ -556,39 +556,39 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // 브라우저 물리적 뒤로가기 완벽 제어
+// 브라우저 뒤로가기(popstate) 정밀 제어 (음악 강제 종료 포함)
 window.addEventListener("popstate", function (event) {
   const targetScreen = event.state && event.state.screen ? event.state.screen : "screen-map";
 
-  // 1. [떠나는 화면 정리] AR 포토존에서 뒤로가기를 눌렀을 때
-  if (currentActiveScreen === "screen-ar") {
-     // 카메라 끄기
-     if (window.XR8) { window.XR8.stop(); window.XR8.clearCameraPipelineModules(); }
-     
-     // 🎵 음악 완벽하게 끄기 (추가됨)
-     const bgm = document.getElementById("bgm");
-     if (bgm) { bgm.pause(); bgm.src = ""; } 
-     
-     // AR 껍데기 삭제
-     const arContainer = document.getElementById("ar-container");
-     if (arContainer) arContainer.innerHTML = "";
-  } 
-  // [떠나는 화면 정리] 스캐너에서 뒤로가기를 눌렀을 때
-  else if (currentActiveScreen === "screen-scanner") {
-     if (typeof stopScannerSafe === "function") stopScannerSafe();
+  // 1. 🎵 음악 완벽 차단: 현재 페이지의 모든 audio 요소를 찾아 소스를 끊고 초기화
+  document.querySelectorAll("audio").forEach(audio => {
+      audio.pause();               // 재생 정지
+      audio.removeAttribute('src'); // 음원 연결 끊기
+      audio.load();                // 강제 메모리 비우기
+      audio.remove();              // HTML에서 완전히 삭제
+  });
+
+  // 2. AR 카메라 자원 강제 해제
+  if (window.XR8) {
+      window.XR8.stop(); 
+      window.XR8.clearCameraPipelineModules(); 
+  }
+  const arContainer = document.getElementById("ar-container");
+  if (arContainer) arContainer.innerHTML = "";
+
+  // 3. 기존 QR 스캐너가 켜져있다면 안전하게 해제
+  if (typeof stopScannerSafe === "function") {
+      stopScannerSafe();
   }
 
-
-  // 2. [돌아갈 화면 맞춤 처리]
-  if (targetScreen === "screen-scanner") {
-      // 📷 스캔 화면으로 돌아왔을 때, 빈 화면이 되지 않도록 스캐너 재실행!
+  // 4. [돌아갈 화면 맞춤 처리]
+  if (targetScreen === "screen-scanner" || targetScreen === "screen-shuffle" || targetScreen === "screen-card") {
+      // 📷 스캔 관련 화면으로 돌아왔을 땐 카메라 켜면서 스캔 화면으로 복귀!
       if (typeof startScanner === "function") startScanner(); 
-  } 
-  else if (targetScreen === "screen-shuffle" || targetScreen === "screen-card") {
-      // 카드 섞기나 뽑기 화면으로 뒤로가기 하면 오류가 나므로, 이전 단계인 스캔 화면으로 점프
-      if (typeof startScanner === "function") startScanner(); 
-  } 
-  else {
+  } else {
       // 지도 화면 등 정상적인 화면 전환
-      showScreen(targetScreen, true);
+      if (typeof showScreen === "function") {
+          showScreen(targetScreen, true);
+      }
   }
 });
