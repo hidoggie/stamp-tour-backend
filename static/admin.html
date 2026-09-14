@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>단종GO 스탬프 투어 - 통합 관리자 시스템</title>
+    <title>조아용 스탬프 투어 - 통합 관리자 시스템</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
@@ -323,18 +323,12 @@
 <body>
 
     <div class="sidebar">
-        <h3>단종GO 스탬프 투어 Admin</h3>
+        <h3>조아용 스탬프투어</h3>
         <div class="menu-item active" onclick="switchView('dashboard')">📊 종합 대시보드</div>
-        <div class="menu-item" onclick="switchView('users')">👤 참가자 인증 현황</div>
+        <div class="menu-item" onclick="switchView('users')">⏰ 시간대별 참여 통계</div>
         <div class="menu-item" onclick="switchView('tickets')">🎁 경품 발급 내역</div>
         <div class="menu-item super-only" id="menu-super" onclick="switchView('managers')">👥 부관리자 계정 생성</div>
         <div class="menu-bottom">
-            <a href="admin_scanner.html" target="_blank" style="text-decoration: none; color: inherit;"
-                id="menu-scanner">
-                <div class="menu-item"
-                    style="background: #e74c3c; color: white; text-align: center; margin-bottom: 15px;">📷 현장 QR 스캐너 열기
-                </div>
-            </a>
             <div class="menu-item" onclick="executeLogout(true)"
                 style="background: #666; color: white; text-align: center;">🚪 로그아웃</div>
         </div>
@@ -347,33 +341,30 @@
                 <span style="font-weight:bold; color:#245752;">조회 기간 :</span>
                 <input type="date" id="dashStartDate"> ~ <input type="date" id="dashEndDate">
                 <button class="btn-action" onclick="fetchDashboardData()">조회</button>
-                <span class="loading-text" style="margin-left:auto;">기본값: 이벤트 전체 기간</span>
+                <button class="btn-action" onclick="resetDashboardDate()" style="margin-left:auto; background:#666;">전체
+                    기간 조회</button>
             </div>
             <div class="summary-grid">
                 <div class="summary-card">
-                    <div class="summary-title">경품 현장 발급자 수</div>
-                    <div class="summary-value" style="color:#cc5a5a" id="sum-pending">0</div>
+                    <div class="summary-title">인증 완료자 수</div>
+                    <div class="summary-value" id="sum-completed-users">0</div>
                 </div>
                 <div class="summary-card">
-                    <div class="summary-title">발송 완료 건수</div>
-                    <div class="summary-value" id="sum-completed">0</div>
+                    <div class="summary-title">총 경품 수령자 수</div>
+                    <div class="summary-value" id="sum-prize-users">0</div>
                 </div>
                 <div class="summary-card">
-                    <div class="summary-title">총 인증 완료(포토)</div>
-                    <div class="summary-value" id="sum-total-stamps">0</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-title">오늘 인증 수</div>
-                    <div class="summary-value" id="sum-today-stamps">0</div>
+                    <div class="summary-title">전체 잔여 재고</div>
+                    <div class="summary-value" style="color:#cc5a5a" id="sum-total-inventory">0</div>
                 </div>
             </div>
             <div class="dashboard-split">
                 <div class="dashboard-box">
-                    <h3>📍 관광지 거점별 실시간 통계</h3>
+                    <h3>📍 이벤트존별 실시간 통계</h3>
                     <table>
                         <thead>
                             <tr>
-                                <th>관광지명</th>
+                                <th>이벤트존</th>
                                 <th>도착(진입)</th>
                                 <th>인증 완료</th>
                             </tr>
@@ -382,40 +373,38 @@
                     </table>
                 </div>
                 <div class="dashboard-box">
-                    <h3>📅 일자별 전체 참가 트렌드</h3>
+                    <h3>📦 현재 재고 현황</h3>
                     <table>
                         <thead>
                             <tr>
-                                <th>일자</th>
-                                <th>활동 유저수</th>
-                                <th>획득 스탬프 수</th>
+                                <th>경품명</th>
+                                <th>총 수량</th>
+                                <th>남은 수량</th>
                             </tr>
                         </thead>
-                        <tbody id="dash-daily-body"></tbody>
+                        <tbody id="dash-inventory-body"></tbody>
                     </table>
                 </div>
             </div>
         </section>
 
         <section id="section-users" style="display:none;">
-            <h2>👤 참가자 인증 현황</h2>
+            <h2>⏰ 시간대별 참여 통계 (보고서용)</h2>
             <div class="filter-bar">
-                <input type="text" id="filterUserId" placeholder="스탬프 번호(ID) 검색..."
-                    onkeyup="if(event.keyCode==13) renderUsersPage(1)" style="width: 250px;">
-                <button class="btn-action" onclick="renderUsersPage(1)">검색</button>
+                <span style="font-weight:bold;">조회 일자 :</span>
+                <input type="date" id="hourlyStartDate"> ~ <input type="date" id="hourlyEndDate">
+                <button class="btn-action" onclick="fetchHourlyStats()">조회</button>
+
+                <button class="btn-action" onclick="downloadHourlyExcel()"
+                    style="margin-left:auto; background:#2e8b82;">엑셀 다운로드</button>
             </div>
             <table>
-                <thead>
-                    <tr>
-                        <th>스탬프 번호 (ID)</th>
-                        <th>방문/진입 관광지 수</th>
-                        <th>최종 획득 완료 스탬프수 (상세보기)</th>
-                        <th>최근 활동 일시</th>
-                    </tr>
+                <thead id="hourly-table-head">
+                    <!-- 자바스크립트가 경품 목록에 맞춰 동적으로 컬럼을 채웁니다 -->
                 </thead>
-                <tbody id="user-table-body"></tbody>
+                <tbody id="hourly-table-body"></tbody>
             </table>
-            <div id="user-pagination" class="pagination"></div>
+            <div id="hourly-pagination" class="pagination"></div>
         </section>
 
         <section id="section-managers" style="display:none;">
@@ -430,8 +419,7 @@
                         style="width:100%; height:40px; margin-bottom:15px; border:1px solid #ddd; padding-left:10px; box-sizing:border-box;"><br>
                     <select id="newAdminRole"
                         style="width:100%; height:40px; margin-bottom:20px; border:1px solid #ddd; padding-left:10px; box-sizing:border-box;">
-                        <option value="SCAN_ADMIN">📷 현장 스탭 (스캐너만 사용 가능)</option>
-                        <option value="STAT_ADMIN">📊 군청 담당자 (통계만 조회 가능)</option>
+                        <option value="GENERAL_ADMIN">🧑‍💼 이벤트 담당자 (계정 생성 외 전체 조회/관리)</option>
                     </select><br>
                     <button class="btn-action" style="width:100%; height:45px; font-size:14px;"
                         onclick="registerManager()">계정 생성 완료</button>
@@ -454,21 +442,11 @@
         </section>
 
         <section id="section-tickets" style="display:none;">
-            <h2>🎁 현장 경품 발급 내역 (부정 발급 모니터링)</h2>
+            <h2>🎁 현장 경품 발급 내역</h2>
             <div class="filter-bar">
                 <span style="font-weight:bold;">발급 기간 :</span>
                 <input type="date" id="ticketStartDate"> ~ <input type="date" id="ticketEndDate">
                 <button class="btn-action" onclick="fetchTicketsData()">기간 조회</button>
-
-                <span style="margin-left:20px; font-weight:bold;">권종 필터 :</span>
-                <select id="filterTicketType" onchange="renderTicketsPage(1)">
-                    <option value="ALL">전체 권종</option>
-                    <option value="이용권_A">영상관 무료이용권</option>
-                    <option value="이용권_B">전시관 무료이용권</option>
-                    <option value="이용권_C">레이저서바이벌관 무료이용권</option>
-                    <option value="이용권_D">관광열차 무료이용권</option>
-                </select>
-
                 <button class="btn-action" onclick="downloadExcel()" style="margin-left:auto; background:#2e8b82;">엑셀
                     다운로드</button>
             </div>
@@ -478,14 +456,25 @@
                     <tr>
                         <th>발급일시</th>
                         <th>스탬프북 번호</th>
-                        <th>이용권 종류</th>
-                        <th>발급 담당자 (Admin ID)</th>
+                        <th>경품명</th>
                     </tr>
                 </thead>
                 <tbody id="ticket-table-body"></tbody>
             </table>
+
+            <div style="margin-top:20px; background:#eef5f4; padding:20px; border-radius:10px;">
+                <h3 style="margin-top:0; color:#245752;">📦 실시간 재고 관리 (현장 추가 및 단체 차감)</h3>
+                <div style="display: flex; gap: 10px;">
+                    <select id="inventoryPrizeSelect"
+                        style="padding:8px; border:1px solid #ddd; border-radius:6px; flex:1;"></select>
+                    <input type="number" id="inventoryChangeAmount" placeholder="수량 (+추가, -차감)"
+                        style="padding:8px; border:1px solid #ddd; border-radius:6px; width:150px;">
+                    <button class="btn-action" onclick="updateInventory()">적용하기</button>
+                </div>
+            </div>
             <!-- 👇 페이징 처리 영역 추가 -->
             <div id="ticket-pagination" class="pagination"></div>
+
         </section>
     </div>
 
@@ -510,6 +499,10 @@
         let lastActivityTime = Date.now();
         let pollingTimer = null, idleCheckTimer = null;
 
+        let globalHourlyStats = [];
+        let globalPrizeNames = [];
+        let currentHourlyPage = 1;
+
         function resetIdleTimer() { lastActivityTime = Date.now(); }
         window.addEventListener('mousemove', resetIdleTimer);
         window.addEventListener('keydown', resetIdleTimer);
@@ -531,23 +524,121 @@
             window.location.href = "admin_login.html";
         }
 
-        // 데이터 갱신
         async function fetchDashboardData() {
             try {
                 const sDate = document.getElementById('dashStartDate') ? document.getElementById('dashStartDate').value : '';
                 const eDate = document.getElementById('dashEndDate') ? document.getElementById('dashEndDate').value : '';
+
                 let query = '';
-                if (sDate && eDate) query = `?start_date=${sDate}&end_date=${eDate}`;
+                // 시작일/종료일이 둘 다 있거나, 시작일만 입력해도 조회가 가능하도록 로직 보완
+                if (sDate && eDate) {
+                    query = `?start_date=${sDate}&end_date=${eDate}`;
+                } else if (sDate) {
+                    // 시작일만 선택한 경우 해당 날짜 하루만 조회되도록 처리
+                    query = `?start_date=${sDate}&end_date=${sDate}`;
+                }
 
                 const statRes = await fetch(`/api/admin/dashboard-stats${query}`);
                 if (statRes.status === 401) return executeLogout(false, "세션 만료");
+
                 const statData = await statRes.json();
                 if (statData.success) renderDashboard(statData);
 
-                const userRes = await fetch("/api/admin/users");
-                const userData = await userRes.json();
-                if (userData.success) { globalUsers = userData.users; renderUsersPage(currentUserPage); }
             } catch (err) { }
+        }
+
+        async function fetchHourlyStats() {
+            try {
+                const sDate = document.getElementById('hourlyStartDate').value;
+                const eDate = document.getElementById('hourlyEndDate').value;
+                let query = '';
+                if (sDate && eDate) query = `?start_date=${sDate}&end_date=${eDate}`;
+                else if (sDate) query = `?start_date=${sDate}&end_date=${sDate}`;
+
+                const res = await fetch(`/api/admin/hourly-stats${query}`);
+                const data = await res.json();
+                if (data.success) {
+                    globalHourlyStats = data.stats;
+                    globalPrizeNames = data.prizeNames; // 서버에서 받은 경품 목록 저장
+                    renderHourlyPage(1);
+                }
+            } catch (e) { }
+        }
+
+        // 3. renderHourlyPage 함수 수정 (동적 열 렌더링)
+        function renderHourlyPage(pageNum) {
+            currentHourlyPage = pageNum;
+
+            // 3-1. 테이블 헤더(thead) 동적 생성
+            let thHTML = `<tr>
+        <th>일시 (시간대)</th>
+        <th>방문자 수 (최초)</th>
+        <th>완주자 수 (5개)</th>
+        <th>총 경품 수령</th>`;
+            globalPrizeNames.forEach(name => {
+                thHTML += `<th>🎁 ${name}</th>`; // 경품 종류별 컬럼 추가
+            });
+            thHTML += `</tr>`;
+            document.getElementById("hourly-table-head").innerHTML = thHTML;
+
+            // 3-2. 페이징 및 바디(tbody) 데이터 렌더링
+            const totalPages = Math.ceil(globalHourlyStats.length / PAGE_SIZE) || 1;
+            if (currentHourlyPage > totalPages) currentHourlyPage = totalPages;
+            const startIdx = (currentHourlyPage - 1) * PAGE_SIZE;
+            const sliced = globalHourlyStats.slice(startIdx, startIdx + PAGE_SIZE);
+
+            const colspanCount = 4 + globalPrizeNames.length; // 데이터 없을 때 병합할 셀 개수
+
+            document.getElementById("hourly-table-body").innerHTML = sliced.map(s => {
+                let tr = `<tr>
+            <td style="font-weight:bold;">${s.time_range}</td>
+            <td>${s.start_count} 명</td>
+            <td><span style="color:#2e8b82; font-weight:bold;">${s.complete_count} 명</span></td>
+            <td><span style="color:#cc5a5a; font-weight:bold;">${s.prize_count} 명</span></td>`;
+
+                // 각 경품별 수량 가져오기 (없으면 0)
+                globalPrizeNames.forEach(name => {
+                    const cnt = s.prize_details[name] || 0;
+                    tr += `<td>${cnt}</td>`;
+                });
+
+                tr += `</tr>`;
+                return tr;
+            }).join('') || `<tr><td colspan="${colspanCount}" style="text-align:center; padding:30px;">조회된 데이터가 없습니다.</td></tr>`;
+
+            renderPagination('hourly-pagination', totalPages, currentHourlyPage, 'renderHourlyPage');
+        }
+
+        function downloadHourlyExcel() {
+            if (globalHourlyStats.length === 0) return alert("다운로드할 데이터가 없습니다.");
+
+            // 엑셀 데이터 매핑 (기본 항목 + 동적 경품 항목)
+            const excelData = globalHourlyStats.map(s => {
+                let row = {
+                    "일시 (시간대)": s.time_range,
+                    "방문자 수 (최초 시작)": s.start_count,
+                    "스탬프 완주자 수": s.complete_count,
+                    "총 경품 수령자 수": s.prize_count
+                };
+                // 경품 이름별로 데이터를 채워 넣습니다.
+                globalPrizeNames.forEach(name => {
+                    row[name] = s.prize_details[name] || 0;
+                });
+                return row;
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+            // 엑셀 칸 너비 설정 (기본 열 4개 + 경품 열 개수만큼 추가)
+            let cols = [{ wch: 25 }, { wch: 20 }, { wch: 20 }, { wch: 20 }];
+            globalPrizeNames.forEach(() => cols.push({ wch: 15 }));
+            worksheet['!cols'] = cols;
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "시간대별_참여통계");
+
+            const today = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(workbook, `조아용_시간대별_통계_${today}.xlsx`);
         }
 
         async function fetchTicketsData() {
@@ -566,39 +657,35 @@
             } catch (e) { }
         }
 
-        async function fetchManagerList() {
-            try {
-                const res = await fetch('/api/admin/managers');
-                const data = await res.json();
-                if (data.success) {
-                    document.getElementById('manager-list-body').innerHTML = data.managers.map(m => {
-                        let roleName = m.role === 'SUPER_ADMIN' ? '👑 최고 관리자' : (m.role === 'SCAN_ADMIN' ? '📷 현장 스탭' : '📊 군청 담당자');
-                        return `<tr><td><b>${m.login_id}</b></td><td>${roleName}</td><td style="color:#666;">${new Date(m.created_at).toLocaleString()}</td></tr>`;
-                    }).join('');
-                }
-            } catch (e) { }
-        }
-
-        // [대시보드]
-        function renderDashboard(data) {
-            document.getElementById('sum-pending').innerText = "0"; // 발송 대기 개념 제거
-            const totalIssued = data.tickets ? data.tickets.reduce((sum, t) => sum + parseInt(t.issue_count), 0) : 0;
-            document.getElementById('sum-completed').innerText = totalIssued;
-
-            let totalStamps = 0;
-            document.getElementById('dash-lighthouse-body').innerHTML = data.stampspot.map(lh => {
-                totalStamps += parseInt(lh.total_completions || 0);
-                return `<tr><td><b>${lh.name}</b></td><td>${lh.total_arrivals || 0}</td><td><b>${lh.total_completions || 0}</b></td></tr>`;
+async function fetchManagerList() {
+    try {
+        const res = await fetch('/api/admin/managers');
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('manager-list-body').innerHTML = data.managers.map(m => {
+                // 권한 이름 매핑 변경
+                let roleName = m.role === 'SUPER_ADMIN' ? '👑 최고 관리자' : 
+                              (m.role === 'GENERAL_ADMIN' ? '🧑‍💼 이벤트 담당자' : '📊 기타 담당자');
+                return `<tr><td><b>${m.login_id}</b></td><td>${roleName}</td><td style="color:#666;">${new Date(m.created_at).toLocaleString()}</td></tr>`;
             }).join('');
-            document.getElementById('sum-total-stamps').innerText = totalStamps;
+        }
+    } catch (e) { }
+}
 
-            const todayStr = new Date().toISOString().split('T')[0];
-            let todayStamps = 0;
-            document.getElementById('dash-daily-body').innerHTML = data.daily.map(d => {
-                if (d.date === todayStr) todayStamps = d.daily_completions;
-                return `<tr><td>${d.date}</td><td>${d.daily_active_users || 0}</td><td style="color:#cc5a5a; font-weight:bold;">${d.daily_completions || 0}</td></tr>`;
-            }).join('') || '<tr><td colspan="3">데이터가 없습니다.</td></tr>';
-            document.getElementById('sum-today-stamps').innerText = todayStamps;
+        function renderDashboard(data) {
+            document.getElementById('sum-completed-users').innerText = data.completed_users || 0;
+            document.getElementById('sum-prize-users').innerText = data.prize_recipients || 0;
+
+            if (data.prizes) {
+                document.getElementById('sum-total-inventory').innerText = data.prizes.reduce((sum, p) => sum + p.remaining_quantity, 0);
+                document.getElementById('dash-inventory-body').innerHTML = data.prizes.map(p => `<tr><td><b>${p.name}</b></td><td>${p.total_quantity}</td><td style="color:#cc5a5a; font-weight:bold;">${p.remaining_quantity}</td></tr>`).join('');
+
+                const currentSelect = document.getElementById('inventoryPrizeSelect').value;
+                document.getElementById('inventoryPrizeSelect').innerHTML = data.prizes.map(p => `<option value="${p.id}">${p.name} (잔여: ${p.remaining_quantity})</option>`).join('');
+                if (currentSelect) document.getElementById('inventoryPrizeSelect').value = currentSelect;
+            }
+
+            document.getElementById('dash-lighthouse-body').innerHTML = data.stampspot.map(lh => `<tr><td><b>${lh.name}</b></td><td>${lh.total_arrivals || 0}</td><td><b>${lh.total_completions || 0}</b></td></tr>`).join('');
         }
 
         // [유저 탭 - 페이징 & 검색]
@@ -630,39 +717,36 @@
 
         function renderTicketsPage(pageNum) {
             currentTicketPage = pageNum;
-            const fDate = document.getElementById('filterTicketDate') ? document.getElementById('filterTicketDate').value : '';
-            const fType = document.getElementById('filterTicketType') ? document.getElementById('filterTicketType').value : 'ALL';
 
-            // 필터링 적용
             let filtered = globalTickets;
-            if (fDate) {
+            const sDate = document.getElementById('ticketStartDate').value;
+            const eDate = document.getElementById('ticketEndDate').value;
+
+            if (sDate || eDate) {
                 filtered = filtered.filter(t => {
-                    // 시간대 차이 방지를 위해 로컬 날짜 문자열 비교
                     const d = new Date(t.issued_at);
                     const localDate = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-                    return localDate === fDate;
+                    let pass = true;
+                    if (sDate && localDate < sDate) pass = false;
+                    if (eDate && localDate > eDate) pass = false;
+                    return pass;
                 });
             }
-            if (fType !== 'ALL') {
-                filtered = filtered.filter(t => t.ticket_type === fType);
-            }
 
-            // 페이징 처리
             const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
             if (currentTicketPage > totalPages) currentTicketPage = totalPages;
             const startIdx = (currentTicketPage - 1) * PAGE_SIZE;
             const sliced = filtered.slice(startIdx, startIdx + PAGE_SIZE);
 
-            // 렌더링 (admin_id 및 ticket_type 표시)
+            // 테이블 렌더링: 담당자 TD 삭제됨
             document.getElementById("ticket-table-body").innerHTML = sliced.map(t => {
                 const dateStr = new Date(t.issued_at).toLocaleString();
-                const typeName = t.ticket_type.replace('_', ' '); // 예: 이용권_A -> 이용권 A
+                const prizeName = t.ticket_type;
 
                 return `<tr>
             <td style="color:#666;">${dateStr}</td>
             <td><b>${t.passport_id}</b></td>
-            <td><span class="badge type-badge">${typeName}</span></td>
-            <td style="color:#2e8b82; font-weight:bold;">${t.admin_id}</td>
+            <td><span class="badge type-badge">${prizeName}</span></td>
         </tr>`;
             }).join('');
 
@@ -676,6 +760,27 @@
                 html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="${funcName}(${i})">${i}</button>`;
             }
             document.getElementById(elementId).innerHTML = html;
+        }
+
+        // 3-3. script 하단에 재고 수정 실행 함수 추가
+        async function updateInventory() {
+            const prize_id = document.getElementById('inventoryPrizeSelect').value;
+            const amount = document.getElementById('inventoryChangeAmount').value;
+            if (!prize_id || !amount) return alert("경품과 수량을 입력하세요.");
+            if (confirm(`수량을 ${amount}개 만큼 변경하시겠습니까?`)) {
+                try {
+                    const res = await fetch("/api/admin/inventory/update", {
+                        method: "POST", headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ prize_id, amount })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        alert("반영되었습니다.");
+                        document.getElementById('inventoryChangeAmount').value = '';
+                        fetchDashboardData();
+                    }
+                } catch (e) { alert("서버 오류"); }
+            }
         }
 
         // [팝업 로직] 상세 인증 내역 조회
@@ -737,42 +842,28 @@
             const role = localStorage.getItem("admin_role");
             if (!role) return window.location.href = "admin_login.html";
 
-            // 현장 스탭(SCAN_ADMIN)이 URL을 치고 대시보드에 들어오면 스캐너로 강제 쫓아냄
-            if (role === "SCAN_ADMIN") {
-                alert("현장 스탭은 대시보드에 접근할 수 없습니다. 스캐너 화면으로 이동합니다.");
-                window.location.href = "admin_scanner.html";
-                return;
-            }
-
             // 최고 관리자(SUPER_ADMIN)일 때만 계정 생성 메뉴 표시
             if (role === "SUPER_ADMIN") {
                 document.getElementById("menu-super").style.display = "block";
             }
 
-            // 군청 담당자(STAT_ADMIN)일 때는 QR 스캐너 버튼 숨기기
-            if (role === "STAT_ADMIN") {
-                const scannerMenu = document.getElementById("menu-scanner");
-                if (scannerMenu) scannerMenu.style.display = "none";
-            }
-
             startSystem();
         });
 
-        // ====================================================
-        // 엑셀(.xlsx) 파일 다운로드 기능 (현장 발급 내역용으로 개편)
-        // ====================================================
         function downloadExcel() {
-            // 1. 현재 화면에 적용된 필터 조건 가져오기
-            const fDate = document.getElementById('filterTicketDate').value;
-            const fType = document.getElementById('filterTicketType').value;
-
-            // 2. 필터링된 데이터 추출
             let filtered = globalTickets;
-            if (fDate) {
-                filtered = filtered.filter(t => new Date(t.issued_at).toISOString().split('T')[0] === fDate);
-            }
-            if (fType !== 'ALL') {
-                filtered = filtered.filter(t => t.ticket_type === fType);
+            const sDate = document.getElementById('ticketStartDate').value;
+            const eDate = document.getElementById('ticketEndDate').value;
+
+            if (sDate || eDate) {
+                filtered = filtered.filter(t => {
+                    const d = new Date(t.issued_at);
+                    const localDate = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+                    let pass = true;
+                    if (sDate && localDate < sDate) pass = false;
+                    if (eDate && localDate > eDate) pass = false;
+                    return pass;
+                });
             }
 
             if (filtered.length === 0) {
@@ -780,32 +871,27 @@
                 return;
             }
 
-            // 3. 엑셀에 들어갈 데이터 배열로 깔끔하게 매핑 (기존 연락처, 주소 등 삭제)
+            // 엑셀 데이터 매핑: '지급 관리자 ID' 항목 삭제됨
             const excelData = filtered.map(t => ({
                 "스탬프북 번호": t.passport_id,
-                "지급 관리자 ID": t.admin_id,
-                "이용권 종류": t.ticket_type.replace('_', ' '),
+                "경품명": t.ticket_type,
                 "발급일시": new Date(t.issued_at).toLocaleString()
             }));
 
-            // 4. SheetJS 라이브러리를 사용하여 워크시트 생성
             const worksheet = XLSX.utils.json_to_sheet(excelData);
 
-            // 5. 엑셀 열(칸) 너비 보기 좋게 세팅
+            // 엑셀 열(칸) 너비 축소 (기존 4개 열 -> 3개 열)
             worksheet['!cols'] = [
                 { wch: 20 }, // 스탬프북 번호
-                { wch: 20 }, // 지급 관리자 ID
-                { wch: 15 }, // 이용권 종류
+                { wch: 15 }, // 경품명
                 { wch: 25 }  // 발급일시
             ];
 
-            // 6. 워크북 만들어 시트 붙이기
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "현장발급내역");
+            XLSX.utils.book_append_sheet(workbook, worksheet, "경품지급내역");
 
-            // 7. 파일 다운로드
             const today = new Date().toISOString().split('T')[0];
-            XLSX.writeFile(workbook, `단종GO_현장발급내역_${today}.xlsx`);
+            XLSX.writeFile(workbook, `조아용_경품지급내역_${today}.xlsx`);
         }
 
         // UI 탭 제어
@@ -816,6 +902,7 @@
             event.currentTarget.classList.add("active");
 
             // 해당 탭 열릴 때 데이터 로드
+            if (viewName === 'users') fetchHourlyStats();
             if (viewName === 'tickets') fetchTicketsData();
             if (viewName === 'managers') fetchManagerList();
         }
@@ -827,6 +914,15 @@
             }, 10000);
             fetchDashboardData();
             fetchTicketsData(); // 시작할 때 티켓 내역도 한 번 불러옴
+        }
+
+        function resetDashboardDate() {
+            // 날짜 입력 칸 초기화
+            if (document.getElementById('dashStartDate')) document.getElementById('dashStartDate').value = '';
+            if (document.getElementById('dashEndDate')) document.getElementById('dashEndDate').value = '';
+
+            // 데이터 재조회 (날짜가 비어있으므로 전체 기간으로 조회됨)
+            fetchDashboardData();
         }
 
         document.addEventListener("DOMContentLoaded", () => {
