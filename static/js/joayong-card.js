@@ -419,18 +419,26 @@ async function stopScannerSafe() {
         }
 
         // 스캐너 닫기 (취소) 함수
-        function stopScanner() {
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.stop().then((ignore) => {
-                    html5QrcodeScanner.clear();
-                }).catch((err) => {
-                    console.error("스캐너 정지 실패", err);
-                });
-            }
-            // 스캐너를 끄고 지도 화면으로 돌아감
-            if (typeof loadUserStamps === "function") loadUserStamps(); // ★ 추가
-            showScreen('screen-map');
+async function stopScanner() {
+    if (html5QrcodeScanner) {
+        try {
+            // 상태와 무관하게 일단 정지 시도 후 에러는 무시
+            await html5QrcodeScanner.stop();
+        } catch (err) {
+            console.warn("스캐너 정지 에러 (안전하게 무시됨):", err);
+        } finally {
+            // UI 초기화 로직도 에러가 나지 않도록 try-catch로 방어
+            try {
+                html5QrcodeScanner.clear();
+            } catch (e) {}
+            html5QrcodeScanner = null; // 인스턴스 완전 초기화
         }
+    }
+    
+    // 에러 발생 여부와 상관없이 무조건 지도 화면 복귀 보장
+    if (typeof loadUserStamps === "function") loadUserStamps();
+    showScreen('screen-map');
+}
 
 
 // 🌟 스탬프 카드북 렌더링 함수
