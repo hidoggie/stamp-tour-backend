@@ -59,6 +59,26 @@
     }
 });
     </script>
+    <script>
+    window.addEventListener('DOMContentLoaded', function() {
+        // 기존 해시(#cardbook) 체크 로직 아래에 이 코드를 추가하세요.
+        
+        // 🛠️ 테스트용 URL 파라미터 체크 로직
+        const urlParams = new URLSearchParams(window.location.search);
+        const testModel = urlParams.get('test_model'); // 예: ?test_model=type2
+        
+        if (testModel) {
+            // 다른 초기화 스크립트가 끝난 뒤 실행되도록 약간의 지연을 줍니다.
+            setTimeout(function() {
+                // 강제로 로컬스토리지에 모델 키를 세팅하고 AR 띄우기
+                localStorage.setItem('selected_model_key', testModel);
+                if (typeof enterAR === 'function') {
+                    enterAR();
+                }
+            }, 500); 
+        }
+    });
+</script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>조아용샷 GO — 2026 용인시 조아용 축제 AR 스탬프투어</title>
@@ -287,7 +307,7 @@
                         <img id="card-enlarge-img" src="" style="width: 100%; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                     </div>
                 </div>
-                <p style="color: white; margin-top: 20px; font-size: 15px; opacity: 0.8;">화면을 터치하면 닫힙니다</p>
+                <!--p style="color: white; margin-top: 20px; font-size: 15px; opacity: 0.8;">화면을 터치하면 닫힙니다</p-->
             </div>
             
         </div>        
