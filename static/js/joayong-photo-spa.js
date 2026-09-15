@@ -2,7 +2,7 @@
 // 1. 전역 상수 및 3D 모델 스펙 정의
 // ==========================================
 const MODEL_SPECS = {
-  type1: { name: "✨ 불뿜는 조아용", bgm: "./audio/Where_the_White_Petals_Fall.mp3", url: "./models/joayong_angry.glb", scale: "2.5 2.5 2.5", position: "0 0 0", rotation: "0 0 0", animation: "" },
+  type1: { name: "✨ 불뿜는 조아용", bgm: "./audio/Where_the_White_Petals_Fall.mp3", url: "./models/joayong_angry.glb", scale: "2 2 2", position: "0 0 0", rotation: "0 0 0", animation: "" },
   type2: { name: "✨ UFO 조아용", bgm: "./audio/Chasing_the_Morning_Sun.mp3", url: "./models/joayong_ufo.glb", scale: "1 1 1", position: "0 0 0", rotation: "0 -45 0", animation: "" },
   type3: { name: "✨ 드럼치는 조아용", bgm: "./audio/The_Final_Lap_of_Grace.mp3", url: "./models/joayong_drum.glb", scale: "1.5 1.5 1.5", position: "0 0.5 0", rotation: "0 0 0", animation: "" },
   type4: { name: "✨ 꽃과 함께 조아용", bgm: "./audio/The_Final_Lap_of_Grace.mp3", url: "./models/joayong_flower.glb", scale: "2 2 2", position: "0 0 0", rotation: "0 0 0", animation: "" },
