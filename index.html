@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <script>
+        (function () {
+            var userAgent = navigator.userAgent.toLowerCase();
+
+            // 차단할 인앱 브라우저 키워드 목록 (카카오톡, 네이버, 인스타, 페이스북, 라인 등)
+            var targetInApp = ['kakaotalk', 'naver', 'instagram', 'fb_iab', 'fb4a', 'fban', 'line'];
+            var isInApp = false;
+
+            for (var i = 0; i < targetInApp.length; i++) {
+                if (userAgent.indexOf(targetInApp[i]) !== -1) {
+                    isInApp = true;
+                    break;
+                }
+            }
+
+            if (isInApp) {
+                // 안드로이드 기기인 경우 크롬 브라우저로 강제 이동 시도
+                if (userAgent.indexOf('android') !== -1) {
+                    alert('안정적인 스탬프투어 진행을 위해 크롬(Chrome) 브라우저로 이동합니다.');
+                    // intent 스키마를 통해 크롬 외부 브라우저로 현재 주소 열기
+                    location.href = 'intent://' + location.href.replace(/https?:\/\//i, '') + '#Intent;scheme=https;package=com.android.chrome;end';
+                }
+                // 아이폰(iOS) 기기인 경우 사파리로 열도록 안내
+                else if (userAgent.indexOf('iphone') !== -1 || userAgent.indexOf('ipad') !== -1) {
+                    alert('안정적인 스탬프투어 진행을 위해 화면 우측 하단의 [Safari로 열기] 또는 [기본 브라우저로 열기] 버튼을 눌러주세요!');
+                }
+                // 기타
+                else {
+                    alert('현재 브라우저에서는 스탬프 기록이 유실될 수 있습니다. 크롬이나 사파리 브라우저 앱을 켜고 주소를 직접 입력해 접속해주세요.');
+                }
+
+                // 인앱 브라우저에서는 더 이상 화면이 그려지지 않도록 HTML 내용을 비워버림 (강제 차단)
+                document.write('<div style="text-align:center; padding:50px; font-family:sans-serif;"><h3>기본 브라우저(크롬, 사파리)로 접속해주세요!</h3><p>현재 앱에서는 스탬프 기록이 저장되지 않습니다.</p></div>');
+                document.close();
+            }
+        })();
+        window.addEventListener('popstate', function(event) {
+    // 1. AR 카메라 찌꺼기가 남아있다면 강제 종료
+    if (typeof releaseCamera === 'function') {
+        releaseCamera();
+    }
+    
+    // 2. 에러 방지를 위해 try-catch로 스캐너 종료 시도
+    try {
+        if (typeof stopScanner === 'function') {
+            stopScanner();
+        }
+    } catch (e) {
+        console.warn("스캐너가 이미 중지되었거나 존재하지 않습니다.", e);
+    }
+    
+    // 3. 무조건 안정적인 지도 화면으로 복귀시켜 상태 엉킴 방지
+    if (typeof showScreen === 'function') {
+        showScreen('screen-map');
+    }
+});
+    </script>
+    <script>
+    window.addEventListener('DOMContentLoaded', function() {
+        // 기존 해시(#cardbook) 체크 로직 아래에 이 코드를 추가하세요.
+        
+        // 🛠️ 테스트용 URL 파라미터 체크 로직
+        const urlParams = new URLSearchParams(window.location.search);
+        const testModel = urlParams.get('test_model'); // 예: ?test_model=type2
+        
+        if (testModel) {
+            // 다른 초기화 스크립트가 끝난 뒤 실행되도록 약간의 지연을 줍니다.
+            setTimeout(function() {
+                // 강제로 로컬스토리지에 모델 키를 세팅하고 AR 띄우기
+                localStorage.setItem('selected_model_key', testModel);
+                if (typeof enterAR === 'function') {
+                    enterAR();
+                }
+            }, 500); 
+        }
+    });
+</script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>조아용샷 GO — 2026 용인시 조아용 축제 AR 스탬프투어</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap"
+        rel="stylesheet">
+
+    <!-- 🌟 필수 라이브러리 추가 -->
+    <script src="./js/qrcode.min.js"></script>
+    <script src="./js/html5-qrcode.min.js" type="text/javascript"></script>
+    <script type="text/javascript"
+        src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=eb9mai2ikc&callback=initMap"></script>
+    <script type="text/javascript" src="./js/joayong.js"></script>
+    <script type="text/javascript" src="./js/joayong-photo-spa.js"></script>
+    <link rel="stylesheet" href="./css/joayong-style.css">
+
+    <script src="./js/8frame-1.5.0.min.js"></script>
+    <script src="./js/xrextras.js"></script>
+    <script src="./js/landing-page.js"></script>
+    <script async src="./js/xr.js" data-preload-chunks="slam"></script>
+    <script src="./js/aframe-extras-7.2.0.min.js"></script>
+
+    <link rel="stylesheet" href="./css/joayong-photo.css">
+
+    <script>
+        window.addEventListener('DOMContentLoaded', function() {
+            // URL 끝에 #cardbook이 붙어있으면 스탬프북 화면을 강제로 엽니다.
+            if (window.location.hash === '#cardbook') {
+                // 약간의 지연(setTimeout)을 주어 다른 초기화 스크립트가 끝난 뒤에 실행되게 안전장치를 둡니다.
+                setTimeout(function() {
+                    if (typeof openCardbook === 'function') {
+                        openCardbook();
+                    } else if (typeof showScreen === 'function') {
+                        showScreen('screen-cardbook');
+                    }
+                }, 100); 
+            }
+        });
+    </script>
+
+</head>
+
+<body>
+
+    <div class="app-container">
+        <div class="screenwin">
+            <!-- 🌟 화면 1: 인트로 화면 -->
+            <section class="screen on" id="screen-intro">
+                <div class="skybg">
+                    <div class="cloud" style="width:110px;height:34px;left:-16px;top:52px"></div>
+                    <div class="cloud" style="width:86px;height:28px;right:-12px;top:118px"></div>
+                </div>
+                <div class="intro-body">
+                    <div class="fan">
+                        <img src="./img/card-joa-back.jpg" alt>
+                        <img src="./img/card-joa-back.jpg" alt>
+                        <img src="./img/card-joa-back.jpg" alt>
+                    </div>
+                    <h3>조아용과 인증샷을 찍고<br><mark>카드 5장</mark>을 모으세요</h3>
+                    <p class="sub" style="margin-bottom: 20px;">현장에 숨은 조아용을 찾으면<br>경품이 와르르 쏟아집니다</p>
+
+                    <div class="stack" style="width:100%">
+                        <button class="btn btn-primary" onclick="showScreen('screen-map')">조아용샷 GO</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 🌟 화면 2: 지도 화면 -->
+            <section class="screen" id="screen-map">
+                <div class="appbar">
+                    <!--span class="back" onclick="showScreen('screen-intro')"><img src="./img/back-btn.png" style="width:30px; height:30px"></span-->
+                    <h2>현장 위치 안내</h2>
+                    <span class="prog" id="mapProg">0 / 5</span>
+                </div>
+                <div class="pad" style="padding-top:0">
+                    <p class="mapnote">지도에 숨겨진 QR을 찾아 조아용 카드를 획득하세요. <b style="color:var(--blue-d)">안내 마커</b>가 목적지입니다.
+                    </p>
+
+                    <div id="mapBox">
+                        <div id="map"></div>
+                    </div>
+
+                    <div class="stack">
+                        <button class="btn btn-primary" onclick="startScanner()">이벤트 QR 스캔</button>
+                        <button class="btn btn-ghost" onclick="openCardbook()">스탬프북 확인</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 🌟 화면 8: 스탬프 카드북 화면 -->
+            <section class="screen" id="screen-cardbook">
+                <div class="skybg"></div>
+                <div class="appbar">
+                    <h2>스탬프 카드북</h2>
+                    <span class="prog" id="cardbookProg">0 / 5</span>
+                </div>
+                <div class="pad" style="padding-top:0; overflow-y: auto;">
+                    <!--p style="text-align:center; font-size:14px; margin-bottom: 20px; color: #5A6579; font-weight:600;">
+                        지금까지 모은 조아용 카드입니다.<br>남은 카드를 모두 찾아주세요!
+                    </p-->
+                    <!--div class="stack" style="margin-top: auto;"-->
+                    <button class="btn btn-ghost" id="cardbook-back-btn" onclick="showScreen('screen-map')">이벤트 장소
+                        확인</button>
+                    <!--/div-->
+
+                    <!-- 카드 그리드 영역 -->
+                    <div id="cardbook-grid" class="cardbook-grid">
+                        <!-- 자바스크립트로 5개의 슬롯이 그려집니다 -->
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- 🌟 화면 3: 카드 섞기 화면 -->
+            <section class="screen" id="screen-shuffle">
+                <div class="appbar">
+                    <h2>새로운 조아용 발견!</h2>
+                </div>
+                <div class="pad" style="padding-top:0">
+                    <div class="shufflearea">
+                        <div>
+                            <div class="deck">
+                                <img src="./img/card-joa-back.jpg" alt>
+                                <img src="./img/card-joa-back.jpg" alt>
+                                <img src="./img/card-joa-back.jpg" alt>
+                            </div>
+                            <p style="text-align:center;font-size:1.2rem;color:#5A6579;margin-top:5vh;font-weight:700">이
+                                구역의 조아용 카드를 섞는 중…</p>
+                        </div>
+                    </div>
+                    <div class="stack">
+                        <button class="btn btn-primary" onclick="pickCard()">카드 뽑기</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 🌟 화면 4: 카드 뽑기 완료 화면 -->
+            <section class="screen reveal" id="screen-card">
+                <div class="appbar">
+                    <h2>조아용 카드 획득!</h2>
+                </div>
+                <div class="pad" style="padding-top:0;align-items:center">
+                    <div style="flex:1;display:grid;place-items:center;width:100%" id="cardSlot">
+                        <!-- 동적으로 카드가 렌더링될 영역 -->
+                        <div class="card">
+                            <div class="card-in" style="padding: 20px;">
+                                <h3 id="picked-card-name" style="margin:0 0 10px 0;">조아용</h3>
+                                <img id="picked-card-img" src="./img/card-joa-angry.jpg"
+                                    style="width:100%; border-radius:10px;">
+                            </div>
+                        </div>
+                    </div>
+                    <p style="font-size:13px;color:#8A93A5;text-align:center;margin:0 0 12px;font-weight:600">AR 포토존에서 인증샷을 촬영해 주세요!</p>
+                    <div class="stack" style="width:100%">
+                        <button class="btn btn-gray" disabled>잠시 후 AR 포토존으로 이동합니다...</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 🌟 화면 5: 5장 수집 완료 화면 -->
+            <section class="screen" id="screen-complete">
+                <div class="skybg"></div>
+                <div class="pad">
+                    <div class="done-hero">
+                        <h3 style="font-size: 2.5rem;">🏅 완주 성공!</h3>
+                        <h3>5장 수집 완료!</h3>
+                        <p style="font-size:14px;color:#3D4759;margin:15px 16px 0;line-height:1.55;font-weight:600">
+                            안내소(경품수령처)로 이동해 주세요.<br>아래 버튼을 눌러 현장에 비치된 <b>경품 전용 QR</b> 을 스캔하여 경품을 받으세요.
+                        </p>
+                    </div>
+                    <div class="stack">
+                        <!-- ★ 클릭 시 mode 파라미터로 'prize'를 전달합니다 -->
+                        <button class="btn btn-primary" onclick="startScanner('prize')">안내소 경품 QR 스캔하기</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 🌟 화면 7: 사용자 QR 스캐너 화면 -->
+            <section class="screen" id="screen-scanner">
+                <div class="appbar">
+                    <!-- ★ [추가] 뒤로 가기(지도 화면으로 복귀) 버튼 -->
+                    <!--span class="back" onclick="stopScanner()">←</span-->
+                    <h2>QR 스캔하기</h2>
+                </div>
+                <div class="pad" style="padding-top:0; align-items:center;">
+                    <p style="text-align:center; font-size:14px; margin-bottom: 10px;">이벤트 장소에 비치된 스탬프 QR 코드를 사각형 안에
+                        맞춰주세요.</p>
+
+                    <!-- 카메라 영상이 출력될 영역 -->
+                    <div id="qr-reader"
+                        style="width: 100%; max-width: 400px; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
+                    </div>
+
+                    <div class="stack" style="width:100%; margin-top: 20px;">
+                        <button class="btn btn-ghost" onclick="stopScanner()">스캔 취소 (지도로 돌아가기)</button>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 🌟 화면 9: AR 포토존 화면 (초기엔 비워둠) -->
+            <section class="screen" id="screen-ar" style="padding:0;">
+              <!-- 상단 뒤로가기 버튼 등 커스텀 UI 레이어 -->
+              <button id="arNavi-back-btn" class="arNavi-back-btn" onclick="exitAR()" style="position:absolute; z-index:999;">
+                <img src="./img/back-btn.png" alt="뒤로가기">
+              </button>
+
+              <button id="arNavi-info-btn" class="arNavi-info-btn" onclick="openPopup()" style="position:absolute; z-index:999;">
+                <img src="./img/info-s.png" alt="사용안내"> 
+              </button>
+    
+              <!-- AR 엔진(a-scene)이 주입될 빈 껍데기 -->
+              <div id="ar-container" style="width: 100%; height: 100%;"></div>
+            </section>
+
+            <div id="card-enlarge-modal" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:999999; flex-direction:column; align-items:center; justify-content:center; backdrop-filter: blur(5px);">
+                <!-- 닫기 버튼 -->
+<!-- 닫기 버튼 -->
+<button onclick="closeEnlargeModal()" style="position: absolute; top: 30px; right: 20px; width: 44px; height: 44px; box-sizing: border-box; padding: 0; flex-shrink: 0; background-color: white; color: black; border-radius: 50%; border: none; cursor: pointer; font-size: 36px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.5); line-height: 0;">&times;</button>
+                <!-- 무지개 테두리 효과 -->
+                <div style="width: 80%; max-width: 320px; text-align: center; background: linear-gradient(145deg, #FFF6B0, #05FB73 24%, #00B3FF 46%, #FE73F3 68%, #FFD429 88%, #3457F1); padding: 8px; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.5);">
+                    <!-- 실제 카드 내용 -->
+                    <div style="background: white; border-radius: 14px; padding: 25px 20px; display: flex; flex-direction: column; align-items: center;">
+                        <h3 id="card-enlarge-name" style="margin: 0 0 15px 0; font-family: var(--display); color: var(--ink); font-size: 1.6rem;">조아용</h3>
+                        <img id="card-enlarge-img" src="" style="width: 100%; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    </div>
+                </div>
+                <!--p style="color: white; margin-top: 20px; font-size: 15px; opacity: 0.8;">화면을 터치하면 닫힙니다</p-->
+            </div>
+            
+        </div>        
+    </div>
+
+    <script type="text/javascript" src="./js/joayong-card.js"></script>
+ 
+</body>
+
+</html>
