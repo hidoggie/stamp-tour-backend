@@ -543,17 +543,19 @@ window.closeEnlargeModal = function() {
 };
 
 // 모달의 어두운 배경(여백)을 터치해도 닫히도록 이벤트 리스너 추가
-document.addEventListener("DOMContentLoaded", () => {
-    const modal = document.getElementById("card-enlarge-modal");
-    if (modal) {
-        modal.addEventListener("click", function(e) {
-            // 사용자가 카드 자체(흰 배경)가 아닌 그 바깥의 어두운 영역을 눌렀을 때만 닫힘
-            if (e.target === modal) {
-                closeEnlargeModal();
-            }
-        });
-    }
-});
+
+//document.addEventListener("DOMContentLoaded", () => {
+//    const modal = document.getElementById("card-enlarge-modal");
+//    if (modal) {
+//        modal.addEventListener("click", function(e) {
+//            // 사용자가 카드 자체(흰 배경)가 아닌 그 바깥의 어두운 영역을 눌렀을 때만 닫힘
+//            if (e.target === modal) {
+//                closeEnlargeModal();
+//            }
+//        });
+//    }
+//});
+
 
 // 브라우저 물리적 뒤로가기 완벽 제어
 // 브라우저 뒤로가기(popstate) 정밀 제어 (음악 강제 종료 포함)

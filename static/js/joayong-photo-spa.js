@@ -406,6 +406,7 @@ async function handleSaveDevice() {
 
 async function handleShareSNS() {
   if (!capturedFile) return;
+  // 1. 여기서 서버 전송이 성공하면 스탬프 발급은 완료됨
   const isUploaded = await uploadPhotoToServer();
   if (!isUploaded) return;
 
@@ -413,11 +414,24 @@ async function handleShareSNS() {
   try {
     if (navigator.canShare && navigator.canShare({ files: [capturedFile] })) {
       await navigator.share({ ...shareData, files: [capturedFile] });
-    } else if (navigator.share) { await navigator.share(shareData); } 
-    else { alert("현재 브라우저에서는 공유 기능을 지원하지 않습니다.\n대신 스탬프는 정상 발급되었습니다!"); }
-  } catch (error) {} finally { exitAR(); }
+    } else if (navigator.share) { 
+      await navigator.share(shareData); 
+    } else { 
+      alert("현재 브라우저에서는 공유 기능을 지원하지 않습니다.\n대신 스탬프는 정상 발급되었습니다!"); 
+      return; // 하단의 catch나 finally로 빠지지 않고 종료
+    }
+    
+    // ★ 추가: 공유가 정상적으로 성공했을 때의 알림
+    alert("SNS에 공유되었습니다! 스탬프가 발급되었습니다! 🎁");
+    
+  } catch (error) {
+    // ★ 추가: 사용자가 공유 창에서 '뒤로가기'나 '취소'를 눌렀을 때의 알림
+    // 에러가 발생해도 서버 업로드는 완료된 상태이므로 스탬프는 지급됨
+    alert("공유를 취소하셨습니다. (사진이 저장되어 스탬프는 정상 발급되었습니다! 🎁)");
+  } finally { 
+    exitAR(); 
+  }
 }
-
 // ==========================================
 // 7. 유틸 및 전역 세팅
 // ==========================================
