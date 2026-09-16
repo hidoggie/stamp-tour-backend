@@ -57,7 +57,7 @@ async function initDB() {
                 passport_id VARCHAR(20) UNIQUE NOT NULL, -- 예: JOA-A1B2-C3D4
                 device_id VARCHAR(100) UNIQUE,           -- 브라우저 쿠키용 UUID
                 role VARCHAR(20) DEFAULT 'USER',         -- 'USER', 'GENERAL_ADMIN', 'SUPER_ADMIN'
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT (now() AT TIME ZONE 'Asia/Seoul')
             );
         `);
 
@@ -234,8 +234,9 @@ app.post("/api/tour/start", async (req, res) => {
 
     // DB에 저장 (기존에 발급받은 쿠키가 있다면 무시)
     await pool.query(
-      `INSERT INTO joa_users (passport_id, device_id) VALUES ($1, $2)
-             ON CONFLICT (device_id) DO NOTHING`,
+      `INSERT INTO joa_users (passport_id, device_id, created_at) 
+       VALUES ($1, $2, (now() AT TIME ZONE 'Asia/Seoul'))
+       ON CONFLICT (device_id) DO NOTHING`,
       [passport_id, device_id],
     );
 
@@ -885,28 +886,38 @@ app.get("/api/admin/dashboard-stats", authenticateAdmin, verifyStatAccess, async
     }
 });
 
-app.post(
-  "/api/admin/inventory/update",
-  authenticateAdmin,
-  verifyStatAccess,
-  async (req, res) => {
+app.post("/api/admin/inventory/update", authenticateAdmin, verifyStatAccess, async (req, res) => {
     try {
-      const { prize_id, amount } = req.body;
-      await pool.query(
-        `
+        const { prize_id, amount } = req.body;
+        const parsedAmount = parseInt(amount);
+
+        // 1. 현재 남은 재고 수량 확인
+        const prizeRes = await pool.query("SELECT name, remaining_quantity FROM joa_prizes WHERE id = $1", [prize_id]);
+        if (prizeRes.rowCount === 0) return res.status(404).json({ success: false, error: "경품을 찾을 수 없습니다." });
+
+        const currentQuantity = prizeRes.rows[0].remaining_quantity;
+
+        // 2. 차감 시 음수가 되는지 체크 (방어 로직)
+        if (parsedAmount < 0 && Math.abs(parsedAmount) > currentQuantity) {
+            return res.status(400).json({ 
+                success: false, 
+                error: `[차감 실패] 현재 남은 수량(${currentQuantity}개)보다 많이 차감할 수 없습니다.` 
+            });
+        }
+
+        // 3. 문제없을 경우 재고 업데이트 진행
+        await pool.query(`
             UPDATE joa_prizes 
             SET remaining_quantity = remaining_quantity + $1,
                 total_quantity = CASE WHEN $1 > 0 THEN total_quantity + $1 ELSE total_quantity END
             WHERE id = $2
-        `,
-        [parseInt(amount), prize_id],
-      );
-      res.json({ success: true, message: "재고가 업데이트되었습니다." });
-    } catch (err) {
-      res.status(500).json({ error: "재고 업데이트 실패" });
+        `, [parsedAmount, prize_id]);
+
+        res.json({ success: true, message: "재고가 성공적으로 업데이트되었습니다." });
+    } catch (err) { 
+        res.status(500).json({ success: false, error: "재고 업데이트 중 서버 오류가 발생했습니다." }); 
     }
-  },
-);
+});
 
 app.get("/api/admin/hourly-stats", authenticateAdmin, verifyStatAccess, async (req, res) => {
     try {
