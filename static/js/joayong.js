@@ -66,13 +66,23 @@ async function checkPrizeCondition() {
     if (!data.success) return;
     const claimedPrizes = data.claimedPrizes || [];
 
-    // 🌟 스탬프 5개를 모았고 & 아직 경품을 받지 않은 상태라면
-    if (acquiredCount >= 5 && !claimedPrizes.includes("COMPLETION")) {
-      if (isCompletionAlertShown) return;
-        isCompletionAlertShown = true; // 플래그를 true로 변경
+  if (acquiredCount >= 5 && !claimedPrizes.includes("COMPLETION")) {
+        
+        // ★ [방어벽 1] 스캐너나 카메라가 백그라운드에 켜져 있다면 묻지도 따지지도 않고 즉시 종료!
+        try { 
+            if (typeof stopScanner === 'function') stopScanner(); 
+            if (typeof releaseCamera === 'function') releaseCamera(); 
+        } catch (e) {}
+
+        if (isCompletionAlertShown) {
+            // 이미 알림이 떴었다면 화면만 완주 화면으로 다시 고정하고 종료
+            if (typeof showScreen === 'function') showScreen("screen-complete");
+            return;
+        }
+        isCompletionAlertShown = true;
+
         alert("🎉 모든 조아용 스탬프를 모았습니다!\n경품 수령처로 이동하여 아래 [경품 QR 스캔하기] 버튼을 눌러주세요.");
         
-        // ★ 2. 기존의 완주 화면(screen-complete)으로 부드럽게 이동
         if (typeof showScreen === 'function') {
             showScreen("screen-complete");
         }
@@ -138,3 +148,22 @@ async function spinRoulette() {
     alert("룰렛 통신 중 오류가 발생했습니다.");
   }
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    if (typeof showScreen === 'function') {
+        const originalShowScreen = showScreen;
+        window.showScreen = function(screenId) {
+            const acquiredCount = userStamps.filter(s => s.status === 'PHOTO_SUBMITTED').length;
+            
+            // 5개를 다 모은 유저가 에러 등의 이유로 지도(screen-map)로 튕기려 할 때
+            if (acquiredCount >= 5 && screenId === 'screen-map') {
+                console.log("완주 유저는 지도 화면으로 갈 수 없습니다. 완주 화면으로 고정합니다.");
+                originalShowScreen('screen-complete');
+                return;
+            }
+            
+            // 그 외의 정상적인 상황은 원래대로 실행
+            originalShowScreen(screenId);
+        };
+    }
+});
