@@ -514,7 +514,9 @@
                     <!--input type="number" id="inventoryChangeAmount" placeholder="수량 입력 (숫자만)" min="1"
                         inputmode="numeric" pattern="[0-9]*"
                         style="padding:8px; border:1px solid #ddd; border-radius:6px; flex:1; min-width: 100px;"-->
-                    <input type="text" id="inventoryChangeAmount" placeholder="수량 입력 (숫자만)" inputmode="numeric" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="padding:8px; border:1px solid #ddd; border-radius:6px; flex:1; min-width: 100px;">
+                    <input type="text" id="inventoryChangeAmount" placeholder="수량 입력 (숫자만)" inputmode="numeric"
+                        pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                        style="padding:8px; border:1px solid #ddd; border-radius:6px; flex:1; min-width: 100px;">
 
                     <!-- 추가/차감 버튼 분리 -->
                     <button class="btn-action" onclick="updateInventory('add')"
@@ -604,6 +606,13 @@
                     다운로드</button>
             </div>
 
+            <div class="filter-bar" style="background:#f4f9f9; border: 1px solid #dff0ee; margin-top: -10px;">
+                <span style="font-weight:bold; color:#245752;">ID(번호) 검색 :</span>
+                <input type="text" id="searchTicketId" placeholder="스탬프북 번호 일부 입력" style="flex:1; max-width: 300px;"
+                    onkeyup="renderTicketsPage(1)">
+                <span style="font-size: 12px; color: #777; margin-left: 10px;">* 검색 결과는 엑셀 다운로드에 영향을 주지 않습니다.</span>
+            </div>
+
             <table class="table-responsive">
                 <thead>
                     <tr>
@@ -645,6 +654,21 @@
         let globalHourlyStats = [];
         let globalPrizeNames = [];
         let currentHourlyPage = 1;
+
+        // [신규 추가] 시간 포맷팅 및 타임존 오차 보정 함수
+        function formatKST(dateString) {
+            let d = new Date(dateString);
+
+            //      d.setHours(d.getHours() - 9);
+
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+
+            return `${year}.${month}.${day} ${hours}:${minutes}`;
+        }
 
         function resetIdleTimer() { lastActivityTime = Date.now(); }
         window.addEventListener('mousemove', resetIdleTimer);
@@ -891,6 +915,9 @@
             const sDate = document.getElementById('ticketStartDate').value;
             const eDate = document.getElementById('ticketEndDate').value;
 
+            const searchIdInput = document.getElementById('searchTicketId');
+            const searchId = searchIdInput ? searchIdInput.value.trim().toLowerCase() : '';
+
             if (sDate || eDate) {
                 filtered = filtered.filter(t => {
                     const d = new Date(t.issued_at);
@@ -902,6 +929,10 @@
                 });
             }
 
+            if (searchId) {
+              filtered = filtered.filter(t => t.passport_id.toLowerCase().includes(searchId));
+            }
+
             const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
             if (currentTicketPage > totalPages) currentTicketPage = totalPages;
             const startIdx = (currentTicketPage - 1) * PAGE_SIZE;
@@ -909,7 +940,7 @@
 
             // 테이블 렌더링: 담당자 TD 삭제됨
             document.getElementById("ticket-table-body").innerHTML = sliced.map(t => {
-                const dateStr = new Date(t.issued_at).toLocaleString();
+                const dateStr = formatKST(t.issued_at);
                 const prizeName = t.ticket_type;
 
                 return `<tr>
@@ -1073,7 +1104,7 @@
             const excelData = filtered.map(t => ({
                 "스탬프북 번호": t.passport_id,
                 "경품명": t.ticket_type,
-                "발급일시": new Date(t.issued_at).toLocaleString()
+                "발급일시": formatKST(t.issued_at)
             }));
 
             const worksheet = XLSX.utils.json_to_sheet(excelData);

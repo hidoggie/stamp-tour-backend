@@ -10,6 +10,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="./js/Winwheel.min.js"></script>
+    <script src="./js/html2canvas.js"></script>
     <script src="./js/joayong.js"></script>
 
     <style>
@@ -286,8 +287,27 @@
         .ticket-prize {
             font-size: 34px;
             font-weight: 900;
-            color: #111;
             margin: 0 0 5px 0;
+            color: #E63946;
+            /* 시인성이 좋은 빨간색으로 변경 */
+            animation: blinkLive 1.2s infinite;
+            /* 1.2초 주기로 무한 깜빡임 */
+        }
+
+        /* 캡처 방지용 깜빡임 애니메이션 추가 */
+        @keyframes blinkLive {
+
+            0%,
+            100% {
+                opacity: 1;
+                text-shadow: 0 0 0 rgba(230, 57, 70, 0);
+            }
+
+            50% {
+                opacity: 0.3;
+                text-shadow: 0 0 8px rgba(230, 57, 70, 0.5);
+                /* 살짝 네온 효과를 주어 더 눈에 띄게 */
+            }
         }
 
         .ticket-desc {
@@ -428,6 +448,26 @@
                 font-size: 17px;
             }
         }
+
+        /* 버튼 내 로딩 스피너 애니메이션 */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin-anim 1s ease-in-out infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+            margin-top: -2px;
+        }
+
+        @keyframes spin-anim {
+            to {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
 
@@ -436,7 +476,7 @@
     <!-- 1. 룰렛 화면 -->
     <div id="screen-roulette">
         <h1>행운의 조아용 룰렛</h1>
-        <p>가운데 버튼을 눌러 경품을 확인하세요!</p>
+        <p>"룰렛 돌리기" 버튼을 눌러 경품을 확인하세요!</p>
 
         <div class="roulette-wrapper">
             <div class="pointer"></div>
@@ -451,7 +491,7 @@
 
         <div id="result-text" class="result-text">키링 당첨!</div>
 
-        <button id="btn-action" class="spin-btn">돌리기!</button>
+        <button id="btn-action" class="spin-btn">룰렛 돌리기!</button>
     </div>
 
     <!-- 2. 교환권 화면 -->
@@ -476,7 +516,7 @@
 
             <div class="ticket-bottom-row">
                 <span id="ticket-date">2026.00.00 00:00</span>
-                <span>유효 30분</span>
+                <!--span>유효 30분</span-->
             </div>
         </div>
 
@@ -484,7 +524,7 @@
             이 교환권은 <b>1인 1회</b>만 발급됩니다.
         </div>
 
-        <button class="btn-home" onclick="window.location.href='index.html#cardbook'">수령 확인</button>
+        <!--button class="btn-home" onclick="window.location.href='index.html#cardbook'">수령 확인</button-->
     </div>
 
     <!-- 자바스크립트 로직 -->
@@ -546,7 +586,9 @@
         btnAction.addEventListener('click', async function () {
             // [STEP 1] 룰렛 돌리기
             if (currentStep === 1) {
+                // 1) 버튼 비활성화 및 로딩 스피너 노출
                 this.disabled = true;
+                this.innerHTML = '<span class="spinner"></span>당첨 확인 중...';
 
                 try {
                     const response = await fetch('/api/tour/spin', { method: 'POST' });
@@ -569,13 +611,20 @@
 
                         theWheel.animation.stopAngle = stopAtAngle;
                         theWheel.startAnimation();
+
+                        // 2) 서버 통신이 성공하여 룰렛이 돌아가기 시작하면 텍스트 변경
+                        this.innerHTML = '결과를 기다려주세요!';
                     } else {
                         alert(data.error);
+                        // 에러 시 버튼 복구
                         this.disabled = false;
+                        this.innerHTML = '돌리기!';
                     }
                 } catch (e) {
                     alert("룰렛 통신 중 오류가 발생했습니다.");
+                    // 에러 시 버튼 복구
                     this.disabled = false;
+                    this.innerHTML = '돌리기!';
                 }
             }
             // [STEP 2] 교환권 화면으로 이동
@@ -603,18 +652,58 @@
 
         // ★ 교환권 렌더링 및 화면 전환 함수
         function showTicketScreen() {
-            const randomCode = "JY-" + Math.floor(1000 + Math.random() * 9000);
+            const myPassportId = localStorage.getItem("my_passport_id") || "ID-ERROR";
 
             const now = new Date();
             const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
             document.getElementById('ticket-prize-name').innerText = finalPrizeName;
-            document.getElementById('ticket-code-val').innerText = randomCode;
+            document.getElementById('ticket-code-val').innerText = myPassportId;
             document.getElementById('ticket-date').innerText = dateStr;
 
-            document.getElementById('screen-roulette').classList.add('hidden');
-            document.getElementById('screen-ticket').classList.remove('hidden');
+            const screenRoulette = document.getElementById('screen-roulette');
+            const screenTicket = document.getElementById('screen-ticket');
+
+            screenRoulette.classList.add('hidden');
+            screenTicket.classList.remove('hidden');
+
+            history.pushState(null, null, location.href);
+
+            setTimeout(() => {
+                alert("만약을 대비해 교환권이 기기에 이미지로 자동 저장됩니다.");
+
+                html2canvas(screenTicket, {
+                    scale: 2, // 고해상도(2배수)로 캡처하여 깨짐 방지
+                    backgroundColor: "#F7FBFF" // 기존 body 배경색 적용
+                }).then(canvas => {
+                    // 캔버스를 base64 이미지 URL로 변환
+                    const imgData = canvas.toDataURL('image/png');
+
+                    // 가상의 <a> 태그를 생성하여 다운로드 트리거 실행
+                    const link = document.createElement('a');
+                    link.href = imgData;
+                    // 파일명에 교환 코드를 넣어 관리하기 쉽게 설정
+                    link.download = `조아용_경품교환권_${myPassportId}.png`;
+
+                    document.body.appendChild(link);
+                    link.click(); // 자동 클릭 실행
+                    document.body.removeChild(link);
+                }).catch(err => {
+                    console.error("화면 캡처 중 오류 발생:", err);
+                });
+            }, 300);
+
         }
+
+        window.addEventListener('popstate', function (event) {
+            // currentStep이 2(교환권 화면)일 때 뒤로 가기를 누르면
+            if (currentStep === 2) {
+                // 뒤로 가지 못하도록 다시 히스토리를 밀어 넣고
+                history.pushState(null, null, location.href);
+                // 경고창을 띄워 사용자에게 안내합니다.
+                alert("경품 수령 전까지는 뒤로 가실 수 없습니다. 진행 요원에게 이 화면을 보여주세요.");
+            }
+        });
     </script>
 </body>
 
