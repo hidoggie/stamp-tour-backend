@@ -670,24 +670,33 @@
             history.pushState(null, null, location.href);
 
             setTimeout(() => {
-                alert("만약을 대비해 교환권이 기기에 이미지로 자동 저장됩니다.");
+                alert("만약을 대비해 교환권이 기기에 이미지로 자동 저장됩니다.\n(갤러리 앱의 '다운로드' 앨범을 확인해 주세요!)");
 
                 html2canvas(screenTicket, {
-                    scale: 2, // 고해상도(2배수)로 캡처하여 깨짐 방지
-                    backgroundColor: "#F7FBFF" // 기존 body 배경색 적용
+                    scale: 2,
+                    backgroundColor: "#F7FBFF",
+                    useCORS: true // 캔버스 렌더링 안정성 확보
                 }).then(canvas => {
-                    // 캔버스를 base64 이미지 URL로 변환
-                    const imgData = canvas.toDataURL('image/png');
+                    // Data URL 방식 대신 모바일에서 안전한 Blob(파일 객체) 방식으로 변환
+                    canvas.toBlob(function (blob) {
+                        if (!blob) {
+                            console.error("이미지 변환 실패");
+                            return;
+                        }
+                        // Blob을 가상 URL로 만들기
+                        const blobUrl = URL.createObjectURL(blob);
 
-                    // 가상의 <a> 태그를 생성하여 다운로드 트리거 실행
-                    const link = document.createElement('a');
-                    link.href = imgData;
-                    // 파일명에 교환 코드를 넣어 관리하기 쉽게 설정
-                    link.download = `조아용_경품교환권_${myPassportId}.png`;
+                        const link = document.createElement('a');
+                        link.href = blobUrl;
+                        link.download = `조아용_경품교환권_${myPassportId}.png`;
 
-                    document.body.appendChild(link);
-                    link.click(); // 자동 클릭 실행
-                    document.body.removeChild(link);
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+
+                        // 메모리 누수 방지를 위해 가상 URL 폐기 (0.1초 후)
+                        setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+                    }, 'image/png');
                 }).catch(err => {
                     console.error("화면 캡처 중 오류 발생:", err);
                 });
