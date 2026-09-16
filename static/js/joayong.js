@@ -52,6 +52,7 @@ async function loadUserStamps() {
     console.error("스탬프 기록 로드 실패", err);
   }
 }
+
 // 2. 경품 수령 조건(5개 달성) 확인 및 완주 화면 이동
 async function checkPrizeCondition() {
   const acquiredStamps = userStamps.filter((s) => s.status === "PHOTO_SUBMITTED");
@@ -66,26 +67,28 @@ async function checkPrizeCondition() {
     if (!data.success) return;
     const claimedPrizes = data.claimedPrizes || [];
 
-  if (acquiredCount >= 5 && !claimedPrizes.includes("COMPLETION")) {
+    // 🌟 스탬프 5개를 모았고 & 아직 경품을 받지 않은 상태라면
+    if (acquiredCount >= 5 && !claimedPrizes.includes("COMPLETION")) {
         
-        // ★ [방어벽 1] 스캐너나 카메라가 백그라운드에 켜져 있다면 묻지도 따지지도 않고 즉시 종료!
+        if (isCompletionAlertShown) return; 
+
+        // 최초 완주 시에만 아래 로직(스탬프 스캐너 강제 종료 및 알림) 딱 1회 실행
+        isCompletionAlertShown = true;
+
+        // 혹시 모를 중복 에러를 막기 위해 마지막 스탬프 스캐너만 즉시 강제 종료
         try { 
             if (typeof stopScanner === 'function') stopScanner(); 
             if (typeof releaseCamera === 'function') releaseCamera(); 
         } catch (e) {}
 
-        if (isCompletionAlertShown) {
-            // 이미 알림이 떴었다면 화면만 완주 화면으로 다시 고정하고 종료
-            if (typeof showScreen === 'function') showScreen("screen-complete");
-            return;
-        }
-        isCompletionAlertShown = true;
-
-        alert("🎉 모든 조아용 스탬프를 모았습니다!\n경품 수령처로 이동하여 아래 [경품 QR 스캔하기] 버튼을 눌러주세요.");
-        
-        if (typeof showScreen === 'function') {
-            showScreen("screen-complete");
-        }
+        // 스캐너가 꺼지고 서버 통신(에러 메시지 등)이 끝날 수 있도록 0.5초 대기 후 쾌적하게 알림창 띄우기
+        setTimeout(() => {
+            alert("🎉 모든 조아용 스탬프를 모았습니다!\n경품 수령처로 이동하여 아래 [경품 QR 스캔하기] 버튼을 눌러주세요.");
+            
+            if (typeof showScreen === 'function') {
+                showScreen("screen-complete");
+            }
+        }, 10);
     }
   } catch (err) {
     console.error("경품 상태 확인 실패:", err);
