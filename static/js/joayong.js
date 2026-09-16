@@ -1,5 +1,6 @@
 let userStamps = [];
 let pollingInterval = null;
+let isCompletionAlertShown = false;
 
 // 1. 내 스탬프 내역 가져오기
 async function loadUserStamps() {
@@ -67,8 +68,8 @@ async function checkPrizeCondition() {
 
     // 🌟 스탬프 5개를 모았고 & 아직 경품을 받지 않은 상태라면
     if (acquiredCount >= 5 && !claimedPrizes.includes("COMPLETION")) {
-        
-        // ★ 1. 사용자에게 알림창(팝업) 띄우기
+      if (isCompletionAlertShown) return;
+        isCompletionAlertShown = true; // 플래그를 true로 변경
         alert("🎉 모든 조아용 스탬프를 모았습니다!\n경품 수령처로 이동하여 아래 [경품 QR 스캔하기] 버튼을 눌러주세요.");
         
         // ★ 2. 기존의 완주 화면(screen-complete)으로 부드럽게 이동
