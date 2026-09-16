@@ -10,13 +10,15 @@ let currentActiveScreen = "screen-intro";
 
 // 화면 전환 함수
 function showScreen(screenId, isPopState = false) {
-  document.querySelectorAll(".screen").forEach((el) => el.classList.remove("on"));
+  document
+    .querySelectorAll(".screen")
+    .forEach((el) => el.classList.remove("on"));
   document.getElementById(screenId).classList.add("on");
 
   if (!isPopState) {
     history.pushState({ screen: screenId }, "", "");
   }
-  
+
   // 현재 상태 업데이트
   currentActiveScreen = screenId;
 
@@ -37,11 +39,18 @@ document.addEventListener("DOMContentLoaded", async function () {
     showScreen("screen-map");
   }
 
-  if (typeof loadUserStamps === "function") {
-    loadUserStamps();
-  }
   if (joaIdParam) {
+    // 1. URL에서 joa_id 값을 지워줍니다 (새로고침 시 중복 스캔 방지)
+    window.history.replaceState({}, document.title, window.location.pathname);
+
+    // 2. QR 스캔 로직만 먼저 단독으로 실행합니다.
+    // (processScannedQR 함수 내부에서 결과 확인 후 loadUserStamps를 알아서 호출합니다)
     processScannedQR(joaIdParam);
+  } else {
+    // 3. QR 진입이 아닌 일반 진입/새로고침일 때만 바로 스탬프를 로드합니다.
+    if (typeof loadUserStamps === "function") {
+      loadUserStamps();
+    }
   }
 });
 
@@ -78,21 +87,24 @@ async function processScannedQR(scannedJoaId) {
         const data = await response.json();
 
         if (response.ok && data.success) {
-    //      if (!localStorage.getItem("debug_user_id")) {
-    //        localStorage.setItem("debug_user_id", data.user_id);
-    //        alert("🛠️ 임시 발급된 사용자 ID: " + data.user_id);
-    //      }
+          if (typeof loadUserStamps === "function") await loadUserStamps();
+          const acquiredCount = typeof userStamps !== "undefined" 
+              ? userStamps.filter(s => s.status === 'PHOTO_SUBMITTED').length 
+              : 0;
+ 
           if (data.prize_completed) {
             alert(
               "이미 경품 수령을 완료하셨습니다.\n참여해 주셔서 감사합니다!",
             );
-            if (typeof loadUserStamps === "function") await loadUserStamps();
             openCardbook();
+          } else if (acquiredCount >= 5) {
+            // 👇 3. 5개를 모두 모은 완주자라면 "이미 획득" 알림을 건너뜁니다.
+            // 위에서 실행된 loadUserStamps()가 알아서 완주 알림을 띄우고 완주 화면(screen-complete)으로 보내줍니다.
+            return; 
           } else if (data.status === "PHOTO_SUBMITTED") {
             alert(
               "이미 스탬프를 획득한 장소입니다. 다른 곳에 숨어있는 조아용을 찾아주세요!",
             );
-            if (typeof loadUserStamps === "function") await loadUserStamps();
             showScreen("screen-map");
           } else {
             localStorage.setItem("return_joa_id", scannedJoaId);
@@ -152,7 +164,9 @@ function pickCard() {
   };
 
   const allKeys = Object.keys(CARDS_INFO);
-  const collectedModels = JSON.parse(localStorage.getItem("collected_models") || "[]");
+  const collectedModels = JSON.parse(
+    localStorage.getItem("collected_models") || "[]",
+  );
 
   let availableKeys = allKeys.filter((key) => !collectedModels.includes(key));
   if (availableKeys.length === 0) availableKeys = allKeys;
@@ -173,13 +187,13 @@ function pickCard() {
   imgEl.style.opacity = "0"; // 깜빡임 방지용 투명화
 
   // 이미지 로드 성공 이벤트
-  imgEl.onload = function() {
-    imgEl.style.opacity = "1";     
+  imgEl.onload = function () {
+    imgEl.style.opacity = "1";
     showScreen("screen-card");
 
     setTimeout(() => {
       if (typeof enterAR === "function") enterAR();
-      
+
       if (pickBtn) {
         pickBtn.disabled = false;
         pickBtn.innerText = "카드 뽑기";
@@ -187,9 +201,9 @@ function pickCard() {
     }, 2000);
   };
 
-// 만약 네트워크 에러 등으로 이미지를 못 불러올 경우의 방어 코드
-  imgEl.onerror = function() {
-    imgEl.style.opacity = "1"; 
+  // 만약 네트워크 에러 등으로 이미지를 못 불러올 경우의 방어 코드
+  imgEl.onerror = function () {
+    imgEl.style.opacity = "1";
     showScreen("screen-card");
     setTimeout(() => {
       if (typeof enterAR === "function") enterAR();
@@ -378,74 +392,85 @@ async function stopScannerSafe() {
   }
 }
 
-        function startScanner(mode = 'stamp') {
-            showScreen('screen-scanner');
+function startScanner(mode = "stamp") {
+  showScreen("screen-scanner");
 
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.clear();
+  if (html5QrcodeScanner) {
+    html5QrcodeScanner.clear();
+  }
+
+  html5QrcodeScanner = new Html5Qrcode("qr-reader");
+  const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+  html5QrcodeScanner
+    .start(
+      { facingMode: "environment" },
+      config,
+      (decodedText) => {
+        html5QrcodeScanner
+          .stop()
+          .then(() => {
+            // ★ 분기 처리: 경품 스캔 모드일 때
+            if (mode === "prize") {
+              // 행사장에 비치할 QR 코드 내용은 딱 이 텍스트로 만들어주세요!
+              if (decodedText.trim() === "SECRET_PRIZE_QR_2026") {
+                window.location.href = "roulette.html";
+              } else {
+                alert(
+                  "올바른 경품 QR 코드가 아닙니다. 행사장에 비치된 QR을 스캔해주세요.",
+                );
+                showScreen("screen-complete");
+              }
             }
-
-            html5QrcodeScanner = new Html5Qrcode("qr-reader");
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-
-            html5QrcodeScanner.start(
-                { facingMode: "environment" },
-                config,
-                (decodedText) => {
-                    html5QrcodeScanner.stop().then(() => {
-                        // ★ 분기 처리: 경품 스캔 모드일 때
-                        if (mode === 'prize') {
-                            // 행사장에 비치할 QR 코드 내용은 딱 이 텍스트로 만들어주세요!
-                            if (decodedText.trim() === "SECRET_PRIZE_QR_2026") {
-                                window.location.href = "roulette.html";
-                            } else {
-                                alert("올바른 경품 QR 코드가 아닙니다. 행사장에 비치된 QR을 스캔해주세요.");
-                                showScreen('screen-complete');
-                            }
-                        }
-                        // ★ 분기 처리: 일반 스탬프 스캔 모드일 때
-                        else {
-                            if (decodedText.includes("joa_id=") || decodedText.includes("m.site.naver.com")) {
-                                window.location.href = decodedText;
-                            } else {
-                                alert("유효하지 않은 스탬프 QR 코드입니다. 행사장에 비치된 조아용 QR을 스캔해주세요.");
-                                if (typeof loadUserStamps === "function") loadUserStamps();
-                                showScreen('screen-map');
-                            }
-                        }
-                    }).catch((err) => {
-                        console.error("스캐너 정지 중 오류", err);
-                    });
-                },
-                (errorMessage) => { }
-            ).catch((err) => {
-                alert("카메라 권한을 허용해야 QR 스캔이 가능합니다.");
-                showScreen(mode === 'prize' ? 'screen-complete' : 'screen-map');
-            });
-        }
-
-        // 스캐너 닫기 (취소) 함수
-async function stopScanner() {
-    if (html5QrcodeScanner) {
-        try {
-            // 상태와 무관하게 일단 정지 시도 후 에러는 무시
-            await html5QrcodeScanner.stop();
-        } catch (err) {
-            console.warn("스캐너 정지 에러 (안전하게 무시됨):", err);
-        } finally {
-            // UI 초기화 로직도 에러가 나지 않도록 try-catch로 방어
-            try {
-                html5QrcodeScanner.clear();
-            } catch (e) {}
-            html5QrcodeScanner = null; // 인스턴스 완전 초기화
-        }
-    }
-    
-    // 에러 발생 여부와 상관없이 무조건 지도 화면 복귀 보장
-    if (typeof loadUserStamps === "function") loadUserStamps();
-    showScreen('screen-map');
+            // ★ 분기 처리: 일반 스탬프 스캔 모드일 때
+            else {
+              if (
+                decodedText.includes("joa_id=") ||
+                decodedText.includes("m.site.naver.com")
+              ) {
+                window.location.href = decodedText;
+              } else {
+                alert(
+                  "유효하지 않은 스탬프 QR 코드입니다. 행사장에 비치된 조아용 QR을 스캔해주세요.",
+                );
+                if (typeof loadUserStamps === "function") loadUserStamps();
+                showScreen("screen-map");
+              }
+            }
+          })
+          .catch((err) => {
+            console.error("스캐너 정지 중 오류", err);
+          });
+      },
+      (errorMessage) => {},
+    )
+    .catch((err) => {
+      alert("카메라 권한을 허용해야 QR 스캔이 가능합니다.");
+      showScreen(mode === "prize" ? "screen-complete" : "screen-map");
+    });
 }
 
+// 스캐너 닫기 (취소) 함수
+async function stopScanner() {
+  if (html5QrcodeScanner) {
+    try {
+      // 상태와 무관하게 일단 정지 시도 후 에러는 무시
+      await html5QrcodeScanner.stop();
+    } catch (err) {
+      console.warn("스캐너 정지 에러 (안전하게 무시됨):", err);
+    } finally {
+      // UI 초기화 로직도 에러가 나지 않도록 try-catch로 방어
+      try {
+        html5QrcodeScanner.clear();
+      } catch (e) {}
+      html5QrcodeScanner = null; // 인스턴스 완전 초기화
+    }
+  }
+
+  // 에러 발생 여부와 상관없이 무조건 지도 화면 복귀 보장
+  if (typeof loadUserStamps === "function") loadUserStamps();
+  showScreen("screen-map");
+}
 
 // 🌟 스탬프 카드북 렌더링 함수
 function openCardbook() {
@@ -522,24 +547,24 @@ function openCardbook() {
   showScreen("screen-cardbook");
 }
 // 🌟 카드 크게 보기 모달 열기
-window.openEnlargeModal = function(imgSrc, cardName) {
-    const modal = document.getElementById("card-enlarge-modal");
-    const imgEl = document.getElementById("card-enlarge-img");
-    const nameEl = document.getElementById("card-enlarge-name");
-    
-    if (modal && imgEl && nameEl) {
-        imgEl.src = imgSrc;
-        nameEl.textContent = cardName;
-        modal.style.display = "flex";
-    }
+window.openEnlargeModal = function (imgSrc, cardName) {
+  const modal = document.getElementById("card-enlarge-modal");
+  const imgEl = document.getElementById("card-enlarge-img");
+  const nameEl = document.getElementById("card-enlarge-name");
+
+  if (modal && imgEl && nameEl) {
+    imgEl.src = imgSrc;
+    nameEl.textContent = cardName;
+    modal.style.display = "flex";
+  }
 };
 
 // 🌟 카드 크게 보기 모달 닫기
-window.closeEnlargeModal = function() {
-    const modal = document.getElementById("card-enlarge-modal");
-    if (modal) {
-        modal.style.display = "none";
-    }
+window.closeEnlargeModal = function () {
+  const modal = document.getElementById("card-enlarge-modal");
+  if (modal) {
+    modal.style.display = "none";
+  }
 };
 
 // 모달의 어두운 배경(여백)을 터치해도 닫히도록 이벤트 리스너 추가
@@ -556,41 +581,45 @@ window.closeEnlargeModal = function() {
 //    }
 //});
 
-
 // 브라우저 물리적 뒤로가기 완벽 제어
 // 브라우저 뒤로가기(popstate) 정밀 제어 (음악 강제 종료 포함)
 window.addEventListener("popstate", function (event) {
-  const targetScreen = event.state && event.state.screen ? event.state.screen : "screen-map";
+  const targetScreen =
+    event.state && event.state.screen ? event.state.screen : "screen-map";
 
   // 1. 🎵 음악 완벽 차단: 현재 페이지의 모든 audio 요소를 찾아 소스를 끊고 초기화
-  document.querySelectorAll("audio").forEach(audio => {
-      audio.pause();               // 재생 정지
-      audio.removeAttribute('src'); // 음원 연결 끊기
-      audio.load();                // 강제 메모리 비우기
-      audio.remove();              // HTML에서 완전히 삭제
+  document.querySelectorAll("audio").forEach((audio) => {
+    audio.pause(); // 재생 정지
+    audio.removeAttribute("src"); // 음원 연결 끊기
+    audio.load(); // 강제 메모리 비우기
+    audio.remove(); // HTML에서 완전히 삭제
   });
 
   // 2. AR 카메라 자원 강제 해제
   if (window.XR8) {
-      window.XR8.stop(); 
-      window.XR8.clearCameraPipelineModules(); 
+    window.XR8.stop();
+    window.XR8.clearCameraPipelineModules();
   }
   const arContainer = document.getElementById("ar-container");
   if (arContainer) arContainer.innerHTML = "";
 
   // 3. 기존 QR 스캐너가 켜져있다면 안전하게 해제
   if (typeof stopScannerSafe === "function") {
-      stopScannerSafe();
+    stopScannerSafe();
   }
 
   // 4. [돌아갈 화면 맞춤 처리]
-  if (targetScreen === "screen-scanner" || targetScreen === "screen-shuffle" || targetScreen === "screen-card") {
-      // 📷 스캔 관련 화면으로 돌아왔을 땐 카메라 켜면서 스캔 화면으로 복귀!
-      if (typeof startScanner === "function") startScanner(); 
+  if (
+    targetScreen === "screen-scanner" ||
+    targetScreen === "screen-shuffle" ||
+    targetScreen === "screen-card"
+  ) {
+    // 📷 스캔 관련 화면으로 돌아왔을 땐 카메라 켜면서 스캔 화면으로 복귀!
+    if (typeof startScanner === "function") startScanner();
   } else {
-      // 지도 화면 등 정상적인 화면 전환
-      if (typeof showScreen === "function") {
-          showScreen(targetScreen, true);
-      }
+    // 지도 화면 등 정상적인 화면 전환
+    if (typeof showScreen === "function") {
+      showScreen(targetScreen, true);
+    }
   }
 });
