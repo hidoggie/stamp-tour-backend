@@ -818,10 +818,13 @@
                 const ticketRes = await fetch(`/api/admin/tickets${query}`);
                 const ticketData = await ticketRes.json();
                 if (ticketData.success) {
-                    globalTickets = ticketData.tickets;
+                    // 발급일시(issued_at) 기준 최신(내림차순) 정렬 로직 추가
+                    globalTickets = ticketData.tickets.sort((a, b) => new Date(b.issued_at) - new Date(a.issued_at));
                     renderTicketsPage(1);
                 }
-            } catch (e) { }
+            } catch (e) {
+                console.error("티켓 데이터를 불러오는 중 오류가 발생했습니다.", e);
+            }
         }
 
         async function fetchManagerList() {
@@ -930,7 +933,7 @@
             }
 
             if (searchId) {
-              filtered = filtered.filter(t => t.passport_id.toLowerCase().includes(searchId));
+                filtered = filtered.filter(t => t.passport_id.toLowerCase().includes(searchId));
             }
 
             const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
@@ -956,9 +959,26 @@
         // 공통 페이징 버튼 생성기
         function renderPagination(elementId, totalPages, currentPage, funcName) {
             let html = '';
-            for (let i = 1; i <= totalPages; i++) {
+            const pageBlockSize = 10; // 하단에 보여줄 최대 페이지 버튼 수
+            const currentBlock = Math.ceil(currentPage / pageBlockSize);
+            const startPage = (currentBlock - 1) * pageBlockSize + 1;
+            const endPage = Math.min(startPage + pageBlockSize - 1, totalPages);
+
+            // 이전 블록으로 이동 버튼
+            if (startPage > 1) {
+                html += `<button class="page-btn" onclick="${funcName}(${startPage - 1})">◀ 이전</button>`;
+            }
+
+            // 페이지 번호 버튼 렌더링
+            for (let i = startPage; i <= endPage; i++) {
                 html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="${funcName}(${i})">${i}</button>`;
             }
+
+            // 다음 블록으로 이동 버튼
+            if (endPage < totalPages) {
+                html += `<button class="page-btn" onclick="${funcName}(${endPage + 1})">다음 ▶</button>`;
+            }
+
             document.getElementById(elementId).innerHTML = html;
         }
 
