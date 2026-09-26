@@ -516,7 +516,7 @@
 
             <div class="ticket-bottom-row">
                 <span id="ticket-date">2026.00.00 00:00</span>
-                <!--span>유효 30분</span-->
+                <span id="ticket-timer" style="font-weight: 900; color: #E63946;"></span>
             </div>
         </div>
 
@@ -535,6 +535,14 @@
         let finalPrizeName = "";
 
         document.addEventListener("DOMContentLoaded", async () => {
+            const savedPrize = localStorage.getItem("my_saved_prize");
+            if (savedPrize) {
+                finalPrizeName = savedPrize;
+                currentStep = 2; // 바로 교환권 발급 단계로 설정
+                showTicketScreen(); // 룰렛 숨기고 티켓 화면 띄우기
+                return; // 아래의 룰렛 세팅 로직은 실행하지 않고 종료
+            }
+
             try {
                 const res = await fetch('/api/tour/available_prizes');
                 const data = await res.json();
@@ -590,12 +598,17 @@
                 this.disabled = true;
                 this.innerHTML = '<span class="spinner"></span>당첨 확인 중...';
 
+                history.pushState(null, null, location.href);
+
                 try {
                     const response = await fetch('/api/tour/spin', { method: 'POST' });
                     const data = await response.json();
 
                     if (data.success) {
                         finalPrizeName = data.prizeName;
+
+                        localStorage.setItem("my_saved_prize", finalPrizeName);    
+                        localStorage.setItem("prize_timestamp", Date.now()); // ★ 추가됨
 
                         const matchingIndexes = [];
                         for (let i = 0; i < segmentsList.length; i++) {
@@ -669,6 +682,48 @@
 
             history.pushState(null, null, location.href);
 
+// --- [실시간 타이머 및 자동 만료 로직] ---
+            const VALID_MINUTES = 30; // 유효 시간 30분 설정 (현장 상황에 맞게 조절)
+            let prizeTime = localStorage.getItem("prize_timestamp");
+            
+            // 만약 시간 기록이 없다면 지금 시간으로 세팅 (방어 코드)
+            if (!prizeTime) {
+                prizeTime = Date.now();
+                localStorage.setItem("prize_timestamp", prizeTime);
+            }
+
+            const timerEl = document.getElementById("ticket-timer");
+            const ticketBox = document.querySelector(".ticket-box");
+            const prizeText = document.querySelector(".ticket-prize");
+
+            const countdownInterval = setInterval(() => {
+                const now = Date.now();
+                // 남은 시간(밀리초) 계산: (발급시간 + 30분) - 현재시간
+                const diff = (parseInt(prizeTime) + VALID_MINUTES * 60 * 1000) - now;
+
+                if (diff <= 0) {
+                    // 1) 시간이 다 되면 타이머 중지
+                    clearInterval(countdownInterval);
+                    
+                    // 2) 시각적으로 만료되었음을 뚜렷하게 표시
+                    timerEl.innerText = "⚠️ 유효시간 만료 (수령 불가)";
+                    ticketBox.style.filter = "grayscale(100%)"; // 티켓 전체를 흑백으로 변경
+                    ticketBox.style.opacity = "0.5";
+                    prizeText.style.animation = "none"; // 깜빡임 효과 중지
+                    
+                    // 3) 데이터를 지워버려서 새로고침해도 복구 안 되게 처리
+                    localStorage.removeItem("my_saved_prize");
+                    localStorage.removeItem("prize_timestamp");
+                    
+                } else {
+                    // 남은 시간을 분/초로 변환하여 표시
+                    const m = Math.floor(diff / 60000);
+                    const s = Math.floor((diff % 60000) / 1000);
+                    // 초(s)가 1자리일 경우 앞에 '0'을 붙여줌
+                    timerEl.innerText = `남은 시간 ${m}:${String(s).padStart(2, '0')}`;
+                }
+            }, 1000); // 1초마다 반복 실행
+
             setTimeout(() => {
                 alert("만약을 대비해 교환권이 기기에 이미지로 자동 저장됩니다.\n(갤러리 앱의 '다운로드' 앨범을 확인해 주세요!)");
 
@@ -705,14 +760,20 @@
         }
 
         window.addEventListener('popstate', function (event) {
-            // currentStep이 2(교환권 화면)일 때 뒤로 가기를 누르면
-            if (currentStep === 2) {
-                // 뒤로 가지 못하도록 다시 히스토리를 밀어 넣고
+            if (currentStep === 1 && btnAction.disabled || currentStep === 2) {
                 history.pushState(null, null, location.href);
                 // 경고창을 띄워 사용자에게 안내합니다.
                 alert("경품 수령 전까지는 뒤로 가실 수 없습니다. 진행 요원에게 이 화면을 보여주세요.");
             }
         });
+
+        window.addEventListener('beforeunload', function (e) {
+            if (currentStep === 2 || (currentStep === 1 && btnAction.disabled)) {
+                e.preventDefault();
+                e.returnValue = ''; // 브라우저 기본 경고창 띄우기
+            }
+        });
+
     </script>
 </body>
 
