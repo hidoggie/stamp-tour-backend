@@ -98,8 +98,6 @@ async function processScannedQR(scannedJoaId) {
             );
             openCardbook();
           } else if (acquiredCount >= 4) {
-            // 👇 3. 4개를 모두 모은 완주자라면 "이미 획득" 알림을 건너뜁니다.
-            // 위에서 실행된 loadUserStamps()가 알아서 완주 알림을 띄우고 완주 화면(screen-complete)으로 보내줍니다.
             return; 
           } else if (data.status === "PHOTO_SUBMITTED") {
             alert(
@@ -107,6 +105,20 @@ async function processScannedQR(scannedJoaId) {
             );
             showScreen("screen-map");
           } else {
+
+            try {
+                // 재고가 1개라도 남아있는 경품 목록을 서버에 요청
+                const prizeCheckRes = await fetch('/api/tour/available_prizes');
+                const prizeCheckData = await prizeCheckRes.json();
+                
+                // 받아온 경품 목록이 비어있다면 (전체 소진 상태)
+                if (prizeCheckData.success && prizeCheckData.prizes.length === 0) {
+                    alert("📢 안내\n현재 준비된 경품이 모두 소진되었습니다.\n(스탬프 투어 포토 미션과 카드 수집은 계속해서 즐기실 수 있습니다!)");
+                }
+            } catch (e) {
+                console.warn("경품 재고 확인 실패", e);
+            }
+
             localStorage.setItem("return_joa_id", scannedJoaId);
             shuffleAndPickCard();
           }
