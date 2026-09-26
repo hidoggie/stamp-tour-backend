@@ -127,33 +127,6 @@ function closePrizeModal() {
   if (qrContainer) qrContainer.innerHTML = "";
 }
 
-// 5. 룰렛 돌리기 API (roulette.html 같은 별도 페이지에서 사용)
-let theWheel = null; // Winwheel 객체가 연결될 변수
-
-async function spinRoulette() {
-  try {
-    const response = await fetch("/api/tour/spin", { method: "POST" });
-    const data = await response.json();
-
-    if (data.success) {
-      if (theWheel) {
-        theWheel.animation.stopAngle = data.stopAt; // 서버에서 정해준 각도로 멈춤
-        theWheel.startAnimation();
-
-        // 회전 완료 후 콜백
-        theWheel.animation.callbackFinished = function () {
-          alert(`🎉 축하합니다!\n[ ${data.prizeName} ] 에 당첨되셨습니다!`);
-          window.location.href = "index.html"; // 교환 후 메인 복귀
-        };
-      }
-    } else {
-      alert(data.error);
-    }
-  } catch (e) {
-    alert("룰렛 통신 중 오류가 발생했습니다.");
-  }
-}
-
 document.addEventListener("DOMContentLoaded", () => {
     if (typeof showScreen === 'function') {
         const originalShowScreen = showScreen;
