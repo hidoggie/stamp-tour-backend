@@ -53,7 +53,7 @@ async function loadUserStamps() {
   }
 }
 
-// 2. 경품 수령 조건(5개 달성) 확인 및 완주 화면 이동
+// 2. 경품 수령 조건(4개 달성) 확인 및 완주 화면 이동
 async function checkPrizeCondition() {
   const acquiredStamps = userStamps.filter((s) => s.status === "PHOTO_SUBMITTED");
   const acquiredCount = acquiredStamps.length;
@@ -67,8 +67,10 @@ async function checkPrizeCondition() {
     if (!data.success) return;
     const claimedPrizes = data.claimedPrizes || [];
 
+    window.hasClaimedPrize = claimedPrizes.includes("COMPLETION");
+
     // 🌟 스탬프 5개를 모았고 & 아직 경품을 받지 않은 상태라면
-    if (acquiredCount >= 4 && !claimedPrizes.includes("COMPLETION")) {
+    if (acquiredCount >= 4 && !window.hasClaimedPrize) {
         
         if (isCompletionAlertShown) return; 
 
@@ -158,10 +160,16 @@ document.addEventListener("DOMContentLoaded", () => {
         window.showScreen = function(screenId) {
             const acquiredCount = userStamps.filter(s => s.status === 'PHOTO_SUBMITTED').length;
             
-            // 5개를 다 모은 유저가 에러 등의 이유로 지도(screen-map)로 튕기려 할 때
+            // 4개를 다 모은 유저가 에러 등의 이유로 지도(screen-map)로 튕기려 할 때
             if (acquiredCount >= 4 && screenId === 'screen-map') {
-                console.log("완주 유저는 지도 화면으로 갈 수 없습니다. 완주 화면으로 고정합니다.");
-                originalShowScreen('screen-complete');
+                if (window.hasClaimedPrize) {
+                    alert("이미 경품 수령을 완료하셨습니다.\n참여해 주셔서 감사합니다!");
+                    originalShowScreen('screen-map'); // 지도로 정상 이동 허용
+                } else {
+                    // 경품 미수령자만 완주 화면으로 고정
+      //              console.log("완주 유저는 지도 화면으로 갈 수 없습니다. 완주 화면으로 고정합니다.");
+                    originalShowScreen('screen-complete');
+                }
                 return;
             }
             
