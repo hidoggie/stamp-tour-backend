@@ -59,7 +59,7 @@ async function checkPrizeCondition() {
   const acquiredCount = acquiredStamps.length;
 
   const mapProgEl = document.getElementById("mapProg");
-  if (mapProgEl) mapProgEl.innerText = `${acquiredCount} / 5`;
+  if (mapProgEl) mapProgEl.innerText = `${acquiredCount} / 4`;
 
   try {
     const res = await fetch("/api/tour/prize_status");
@@ -68,7 +68,7 @@ async function checkPrizeCondition() {
     const claimedPrizes = data.claimedPrizes || [];
 
     // 🌟 스탬프 5개를 모았고 & 아직 경품을 받지 않은 상태라면
-    if (acquiredCount >= 5 && !claimedPrizes.includes("COMPLETION")) {
+    if (acquiredCount >= 4 && !claimedPrizes.includes("COMPLETION")) {
         
         if (isCompletionAlertShown) return; 
 
@@ -159,7 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const acquiredCount = userStamps.filter(s => s.status === 'PHOTO_SUBMITTED').length;
             
             // 5개를 다 모은 유저가 에러 등의 이유로 지도(screen-map)로 튕기려 할 때
-            if (acquiredCount >= 5 && screenId === 'screen-map') {
+            if (acquiredCount >= 4 && screenId === 'screen-map') {
                 console.log("완주 유저는 지도 화면으로 갈 수 없습니다. 완주 화면으로 고정합니다.");
                 originalShowScreen('screen-complete');
                 return;

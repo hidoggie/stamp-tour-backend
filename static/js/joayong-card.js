@@ -97,8 +97,8 @@ async function processScannedQR(scannedJoaId) {
               "이미 경품 수령을 완료하셨습니다.\n참여해 주셔서 감사합니다!",
             );
             openCardbook();
-          } else if (acquiredCount >= 5) {
-            // 👇 3. 5개를 모두 모은 완주자라면 "이미 획득" 알림을 건너뜁니다.
+          } else if (acquiredCount >= 4) {
+            // 👇 3. 4개를 모두 모은 완주자라면 "이미 획득" 알림을 건너뜁니다.
             // 위에서 실행된 loadUserStamps()가 알아서 완주 알림을 띄우고 완주 화면(screen-complete)으로 보내줍니다.
             return; 
           } else if (data.status === "PHOTO_SUBMITTED") {
@@ -220,10 +220,11 @@ function pickCard() {
 
 // 🌟 네이버 지도 초기화 (오버레이 & 수령처 마커)
 function initMap() {
-  const eventCenterPoint = new naver.maps.LatLng(37.249746, 127.165157);
+//    const eventCenterPoint = new naver.maps.LatLng(37.24938515, 127.16528661);
+  const eventCenterPoint = new naver.maps.LatLng(37.24939945, 127.16539373);
   window.map = new naver.maps.Map("map", {
     center: eventCenterPoint,
-    zoom: 18,
+    zoom: 20,
   });
 
   new naver.maps.Marker({
@@ -234,7 +235,7 @@ function initMap() {
 
   const overlayBounds = new naver.maps.LatLngBounds(
     new naver.maps.LatLng(37.2506087, 127.1659997),
-    new naver.maps.LatLng(37.2488391, 127.1642977),
+    new naver.maps.LatLng(37.24870746, 127.16434891),   
   );
 
   function ImageOverlay(bounds, imageUrl, map) {
@@ -259,113 +260,115 @@ function initMap() {
     this._element.style.top = ne.y + "px";
     this._element.style.width = ne.x - sw.x + "px";
     this._element.style.height = sw.y - ne.y + "px";
+
+    this._element.style.transformOrigin = "center center";
+    this._element.style.transform = "rotate(-5deg)";
   };
   ImageOverlay.prototype.onRemove = function () {
     this._element.parentNode.removeChild(this._element);
   };
 
-  new ImageOverlay(overlayBounds, "./img/mir-layout.png", window.map);
+  //new ImageOverlay(overlayBounds, "./img/mir-layout-2026.png", window.map);
+  new ImageOverlay(overlayBounds, "./img/mir-new-map-578.svg", window.map);
 
   // 1. 5군데 스탬프 QR의 위경도 좌표를 배열로 정의합니다.
   // (아래 좌표들은 임의로 넣은 것이니 실제 위치 좌표로 수정해 주세요)
-  const stampPositions = [
-    new naver.maps.LatLng(37.2500978, 127.1646161),
-    new naver.maps.LatLng(37.2496836, 127.1647082),
-    new naver.maps.LatLng(37.2491335, 127.1648911),
-    new naver.maps.LatLng(37.2502435, 127.1654148),
-    new naver.maps.LatLng(37.2498069, 127.1655542),
-  ];
+ // const stampPositions = [
+ //   new naver.maps.LatLng(37.24944189, 127.16564710),
+ //   new naver.maps.LatLng(37.24941339, 127.16556179),
+ //   new naver.maps.LatLng(37.24926177, 127.16549351),
+ //   new naver.maps.LatLng(37.24917549, 127.16512484),   
+ // ];
 
   // 2. 스탬프 아이콘 이미지 경로 지정
-  const stampImageUrl = [
-    "./img/joa_id_1.png",
-    "./img/joa_id_2.png",
-    "./img/joa_id_3.png",
-    "./img/joa_id_4.png",
-    "./img/joa_id_5.png",
-  ]; // 실제 준비하신 스탬프 이미지 경로로 변경하세요.
-  window.stampMarkers = [];
+  //const stampImageUrl = [
+  //  "./img/joa_id_1.png",
+  //  "./img/joa_id_2.png",
+  //  "./img/joa_id_3.png",
+  //  "./img/joa_id_4.png",
+  //]; // 실제 준비하신 스탬프 이미지 경로로 변경하세요.
+  //window.stampMarkers = [];
 
   // 3. 반복문을 통해 지도에 5개의 스탬프 마커를 배치합니다.
-  for (let i = 0; i < stampPositions.length; i++) {
-    let marker = new naver.maps.Marker({
-      position: stampPositions[i],
-      map: window.map, // index.html에 선언된 지도 객체 변수
-      title: "스탬프 QR 위치 " + (i + 1),
-      icon: {
-        url: stampImageUrl[i],
-        size: new naver.maps.Size(100, 100), // 화면에 표시될 아이콘 크기
-        scaledSize: new naver.maps.Size(50, 50), // 원본 이미지를 해당 크기로 리사이징
-        anchor: new naver.maps.Point(25, 50), // 이미지의 중심점을 좌표에 맞추기 위한 기준점
-      },
-    });
-    window.stampMarkers.push(marker);
-  }
+ // for (let i = 0; i < stampPositions.length; i++) {
+ //   let marker = new naver.maps.Marker({
+ //     position: stampPositions[i],
+ //     map: window.map, // index.html에 선언된 지도 객체 변수
+ //     title: "스탬프 QR 위치 " + (i + 1),
+ //     icon: {
+ //       url: stampImageUrl[i],
+ //       size: new naver.maps.Size(50, 50), // 화면에 표시될 아이콘 크기
+ //       scaledSize: new naver.maps.Size(50, 50), // 원본 이미지를 해당 크기로 리사이징
+ //       anchor: new naver.maps.Point(25, 50), // 이미지의 중심점을 좌표에 맞추기 위한 기준점
+ //     },
+ //   });
+ //   window.stampMarkers.push(marker);
+ // }
 
   // 경품 수령처 마커
-  const infoMarkerPosition = new naver.maps.LatLng(37.2492938, 127.1657185);
-  const infoMarker = new naver.maps.Marker({
-    position: infoMarkerPosition,
-    map: window.map,
-    title: "ℹ️ 경품 수령처",
-    icon: {
-      url: "./img/present_place.png",
-      size: new naver.maps.Size(100, 100),
-      scaledSize: new naver.maps.Size(60, 60),
-      anchor: new naver.maps.Point(30, 60),
-    },
-  });
+  //const infoMarkerPosition = new naver.maps.LatLng(37.24931514, 127.16559441);
+  //const infoMarker = new naver.maps.Marker({
+  //  position: infoMarkerPosition,
+  //  map: window.map,
+  //  title: "ℹ️ 경품 수령처",
+  //  icon: {
+  //    url: "./img/present_place.png",
+  //    size: new naver.maps.Size(70, 70),
+  //    scaledSize: new naver.maps.Size(70, 70),
+  //    anchor: new naver.maps.Point(35, 70),
+  //  },
+  //});
 
-  window.updateMarkersOpacity = function () {
-    if (!window.stampMarkers || typeof userStamps === "undefined") return;
+  //window.updateMarkersOpacity = function () {
+  //  if (!window.stampMarkers || typeof userStamps === "undefined") return;
 
-    userStamps.forEach((stamp) => {
-      if (stamp.status === "PHOTO_SUBMITTED") {
-        let markerIndex = parseInt(stamp.joa_id) - 1;
-        let marker = window.stampMarkers[markerIndex];
+//    userStamps.forEach((stamp) => {
+//      if (stamp.status === "PHOTO_SUBMITTED") {
+//        let markerIndex = parseInt(stamp.joa_id) - 1;
+//        let marker = window.stampMarkers[markerIndex];
 
-        if (marker) {
+//        if (marker) {
           // opacity 대신 filter: grayscale(100%)를 적용하여 완전한 흑백으로 만듭니다.
-          marker.setIcon({
-            content: `<div style="width: 50px; height: 50px; filter: grayscale(100%);"><img src="${stampImageUrl[markerIndex]}" style="width: 100%; height: 100%; display: block;"></div>`,
-            size: new naver.maps.Size(50, 50),
-            anchor: new naver.maps.Point(25, 50),
-          });
-        }
-      }
-    });
-  };
+//          marker.setIcon({
+//            content: `<div style="width: 50px; height: 50px; filter: grayscale(100%);"><img src="${stampImageUrl[markerIndex]}" style="width: 100%; height: 100%; display: block;"></div>`,
+//            size: new naver.maps.Size(50, 50),
+//            anchor: new naver.maps.Point(25, 50),
+//          });
+//        }
+//      }
+//    });
+//  };
 
-  const infoWindow = new naver.maps.InfoWindow({
-    content: `<div style="padding:5px;font-size:12px;text-align:center; color: black">ℹ️ 경품 수령처</div>`,
-  });
-  naver.maps.Event.addListener(infoMarker, "mouseover", () =>
-    infoWindow.open(window.map, infoMarker),
-  );
-  naver.maps.Event.addListener(infoMarker, "mouseout", () =>
-    infoWindow.close(),
-  );
+//  const infoWindow = new naver.maps.InfoWindow({
+//    content: `<div style="padding:5px;font-size:12px;text-align:center; color: black">ℹ️ 경품 수령처</div>`,
+//  });
+//  naver.maps.Event.addListener(infoMarker, "mouseover", () =>
+//    infoWindow.open(window.map, infoMarker),
+//  );
+//  naver.maps.Event.addListener(infoMarker, "mouseout", () =>
+//    infoWindow.close(),
+//  );
 
-  let isMarkerEnlarged = false;
-  naver.maps.Event.addListener(infoMarker, "click", () => {
-    if (isMarkerEnlarged) {
-      infoMarker.setIcon({
-        url: "./img/present_place.png",
-        size: new naver.maps.Size(100, 100),
-        scaledSize: new naver.maps.Size(60, 60),
-        anchor: new naver.maps.Point(30, 60),
-      });
-      isMarkerEnlarged = false;
-    } else {
-      infoMarker.setIcon({
-        url: "./img/present_place.png",
-        size: new naver.maps.Size(100, 100),
-        scaledSize: new naver.maps.Size(60, 60),
-        anchor: new naver.maps.Point(30, 60),
-      });
-      isMarkerEnlarged = true;
-    }
-  });
+ // let isMarkerEnlarged = false;
+ // naver.maps.Event.addListener(infoMarker, "click", () => {
+ //   if (isMarkerEnlarged) {
+ //     infoMarker.setIcon({
+ //       url: "./img/present_place.png",
+ //       size: new naver.maps.Size(70, 70),
+ //       scaledSize: new naver.maps.Size(70, 70),
+ //       anchor: new naver.maps.Point(35, 70),
+ //     });
+ //     isMarkerEnlarged = false;
+ //   } else {
+ //     infoMarker.setIcon({
+ //       url: "./img/present_place.png",
+ //       size: new naver.maps.Size(60, 60),
+ //       scaledSize: new naver.maps.Size(60, 60),
+ //       anchor: new naver.maps.Point(30, 60),
+ //     });
+ //     isMarkerEnlarged = true;
+ //   }
+ // });
 
   if (typeof loadUserStamps === "function") {
     loadUserStamps();
@@ -508,15 +511,15 @@ function openCardbook() {
   // 3. 상단 프로그레스 업데이트
   const cardbookProgEl = document.getElementById("cardbookProg");
   if (cardbookProgEl) {
-    cardbookProgEl.innerText = `${acquiredCount} / 5`;
+    cardbookProgEl.innerText = `${acquiredCount} / 4`;
   }
 
-  // 4. 슬롯 5개 그리기
+  // 4. 슬롯 4개 그리기
   const grid = document.getElementById("cardbook-grid");
   if (grid) {
     grid.innerHTML = ""; // 기존 내용 비우기
 
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 4; i++) {
       if (i < collectedModels.length) {
         // 획득한 카드 슬롯
         const key = collectedModels[i];
