@@ -68,7 +68,7 @@ async function initDB() {
                 name VARCHAR(100) NOT NULL,
                 lat DOUBLE PRECISION NOT NULL,
                 lng DOUBLE PRECISION NOT NULL,
-                radius_m INT DEFAULT 1000,               -- 1km 반경
+                radius_m INT DEFAULT 100,               -- 100m 반경
                 paid_type VARCHAR(20),                   -- ★ 이 부분이 누락되어 있었습니다! ('paid', 'free')
                 game_type VARCHAR(50),                   
                 ar_type VARCHAR(50)                      
@@ -110,10 +110,11 @@ async function initDB() {
     if (parseInt(prizeCheck.rows[0].count) === 0) {
       await pool.query(`
         INSERT INTO joa_prizes (name, total_quantity, remaining_quantity) VALUES 
-        ('용인 텀블러', 50, 50),
-        ('조아용 인형', 100, 100),
-        ('에코백', 200, 200),
-        ('행운의 뱃지', 500, 500)
+        ('보조배터리', 150, 150),
+        ('압축파우치', 200, 200),
+        ('키캡', 300, 300),
+        ('치약칫솔세트', 700, 700),
+        ('타포린백', 700, 700)
     `);
     }
 
@@ -140,17 +141,17 @@ async function initDB() {
 
     const joaCheck = await pool.query(`SELECT id FROM joa_stampspot LIMIT 1`);
     if (joaCheck.rows.length === 0 && eventId) {
-      const FESTIVAL_LAT = 37.249109; // 예시 좌표
-      const FESTIVAL_LNG = 127.164899; // 예시 좌표
+      const FESTIVAL_LAT = 37.24940363; // 예시 좌표
+      const FESTIVAL_LNG = 127.16528993; // 예시 좌표
 
       await pool.query(
         `
                 INSERT INTO joa_stampspot (event_id, name, lat, lng, radius_m, ar_type) VALUES 
-                ($1, 'Zone A', $2, $3, 1000, 'random_card'), 
-                ($1, 'Zone B', $2, $3, 1000, 'random_card'), 
-                ($1, 'Zone C', $2, $3, 1000, 'random_card'),
-                ($1, 'Zone D', $2, $3, 1000, 'random_card'),
-                ($1, 'Zone E', $2, $3, 1000, 'random_card')
+                ($1, 'Zone A', $2, $3, 100, 'random_card'), 
+                ($1, 'Zone B', $2, $3, 100, 'random_card'), 
+                ($1, 'Zone C', $2, $3, 100, 'random_card'),
+                ($1, 'Zone D', $2, $3, 100, 'random_card'),
+                ($1, 'Zone E', $2, $3, 100, 'random_card')
             `,
         [eventId, FESTIVAL_LAT, FESTIVAL_LNG],
       );
@@ -728,15 +729,15 @@ app.post("/api/tour/spin", authenticate, async (req, res) => {
       return res.status(403).json({ error: "이미 경품을 수령하셨습니다." });
     }
 
-    // 2. 완주 여부 검증 (스탬프 5개를 모두 모았는지 확인)
+    // 2. 완주 여부 검증 (스탬프 4개를 모두 모았는지 확인)
     const stampRes = await pool.query(
       "SELECT COUNT(*) FROM joa_stamps WHERE user_id = $1 AND status = 'PHOTO_SUBMITTED'",
       [userId],
     );
-    if (parseInt(stampRes.rows[0].count) < 5) {
+    if (parseInt(stampRes.rows[0].count) < 4) {
       return res
         .status(403)
-        .json({ error: "스탬프 5개를 모두 모아야 룰렛을 돌릴 수 있습니다." });
+        .json({ error: "스탬프 4개를 모두 모아야 룰렛을 돌릴 수 있습니다." });
     }
 
     // 3. 남은 경품 가져오기
@@ -862,7 +863,7 @@ app.get("/api/admin/dashboard-stats", authenticateAdmin, verifyStatAccess, async
             SELECT COUNT(*) as cnt FROM (
                 SELECT user_id FROM joa_stamps 
                 WHERE status = 'PHOTO_SUBMITTED' AND acquired_at >= $1 AND acquired_at <= $2 
-                GROUP BY user_id HAVING COUNT(*) >= 5
+                GROUP BY user_id HAVING COUNT(*) >= 4
             ) as t
         `, [startParam, endParam]);
         
@@ -941,7 +942,7 @@ app.get("/api/admin/hourly-stats", authenticateAdmin, verifyStatAccess, async (r
                 SELECT hr, COUNT(*) as complete_count FROM (
                     SELECT DATE_TRUNC('hour', MAX(acquired_at)) as hr
                     FROM joa_stamps WHERE status = 'PHOTO_SUBMITTED'
-                    GROUP BY user_id HAVING COUNT(*) >= 5
+                    GROUP BY user_id HAVING COUNT(*) >= 4
                 ) c GROUP BY hr
             ),
             prizes AS (
