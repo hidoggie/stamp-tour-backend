@@ -468,6 +468,15 @@
                 transform: rotate(360deg);
             }
         }
+        @keyframes blink-shadow-green {
+            0% { box-shadow: 0 0 0 0 rgba(0, 242, 96, 0.8); }
+            70% { box-shadow: 0 0 15px 15px rgba(0, 242, 96, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 242, 96, 0); }
+        }
+
+        .blink-active {
+            animation: blink-shadow-green 1.5s infinite !important;
+        }
     </style>
 </head>
 
@@ -657,6 +666,8 @@
             btnAction.innerText = "교환권 받기";
             btnAction.style.background = "#00F260";
             btnAction.style.color = "#000";
+
+            btnAction.classList.add('blink-active');
 
             // 3. 상태 변경 및 버튼 활성화
             currentStep = 2;
