@@ -679,8 +679,20 @@
             idleCheckTimer = setInterval(() => {
                 if (Date.now() - lastActivityTime > 30 * 60 * 1000) executeLogout(false, "자동 로그아웃 되었습니다.");
             }, 10000);
-            pollingTimer = setInterval(fetchDashboardData, 10000);
+
+            // 2. 실시간 브로드캐스팅 모듈 실행
+            initBroadcasting();
+
+            // 3. 백업용 폴링 (웹소켓 장애 대비 10초 주기)
+            pollingTimer = setInterval(() => {
+                const activeMenu = document.querySelector('.menu-item.active').innerText;
+                if (activeMenu.includes('대시보드')) fetchDashboardData();
+                if (activeMenu.includes('재고 관리')) fetchInventoryData();
+            }, 10000);
+
+            // 4. 초기 데이터 로드
             fetchDashboardData();
+            fetchTicketsData();
         }
 
         async function executeLogout(isManual = false, msg = "") {
@@ -1158,15 +1170,6 @@
             if (viewName === 'managers') fetchManagerList();
         }
 
-        // 5. 초기 구동(startSystem) 시 tickets도 로드되도록 추가
-        function startSystem() {
-            idleCheckTimer = setInterval(() => {
-                if (Date.now() - lastActivityTime > 30 * 60 * 1000) executeLogout(false, "자동 로그아웃 되었습니다.");
-            }, 10000);
-            fetchDashboardData();
-            fetchTicketsData(); // 시작할 때 티켓 내역도 한 번 불러옴
-        }
-
         function resetDashboardDate() {
             // 날짜 입력 칸 초기화
             if (document.getElementById('dashStartDate')) document.getElementById('dashStartDate').value = '';
@@ -1206,6 +1209,55 @@
             if (role === "SUPER_ADMIN") document.getElementById("menu-super").style.display = "block";
             startSystem();
         });
+
+        // 브로드캐스팅(WebSocket) 연결 설정
+        let socket;
+        let refreshTimer = null; // 💡 디바운싱(안전장치)을 위한 타이머 변수
+
+        function initBroadcasting() {
+            const wsUrl = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + '/ws';
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                console.log("실시간 브로드캐스팅 모듈이 연결되었습니다.");
+            };
+
+            socket.onmessage = (event) => {
+                try {
+                    const msg = JSON.parse(event.data);
+
+                    // DB 변동 신호가 들어왔을 때
+                    if (msg.type === 'DB_UPDATED' || msg.type === 'INVENTORY_CHANGED') {
+
+                        // 💡 [안전장치 로직]
+                        // 기존에 예약된 새로고침 타이머가 있다면 취소합니다. (수십 번 연속으로 신호가 와도 중복 실행 방지)
+                        if (refreshTimer) {
+                            clearTimeout(refreshTimer);
+                        }
+
+                        // 마지막 신호가 들어온 시점으로부터 '1.5초(1500ms)' 뒤에 단 한 번만 데이터를 갱신합니다.
+                        refreshTimer = setTimeout(() => {
+                            const activeMenu = document.querySelector('.menu-item.active').innerText;
+
+                            if (activeMenu.includes('대시보드')) {
+                                fetchDashboardData();
+                            } else if (activeMenu.includes('재고 관리')) {
+                                fetchInventoryData();
+                            } else if (activeMenu.includes('경품 발급')) {
+                                fetchTicketsData();
+                            }
+                        }, 1500); // <- 1500이라는 숫자가 1.5초를 의미합니다.
+                    }
+                } catch (e) {
+                    console.error("브로드캐스팅 메시지 파싱 오류", e);
+                }
+            };
+
+            socket.onclose = () => {
+                console.log("브로드캐스팅 연결 종료, 5초 후 재연결 시도...");
+                setTimeout(initBroadcasting, 5000);
+            };
+        }
     </script>
 </body>
 
