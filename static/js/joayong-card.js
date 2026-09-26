@@ -224,7 +224,7 @@ function initMap() {
   const eventCenterPoint = new naver.maps.LatLng(37.24939945, 127.16539373);
   window.map = new naver.maps.Map("map", {
     center: eventCenterPoint,
-    zoom: 20,
+    zoom: 19,
   });
 
   new naver.maps.Marker({
