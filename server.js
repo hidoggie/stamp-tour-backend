@@ -5,8 +5,12 @@ const { Pool } = require("pg");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const { v4: uuidv4 } = require("uuid");
+const http = require("http"); 
+const { WebSocketServer } = require("ws");
 
 const app = express();
+const server = http.createServer(app); // Express를 HTTP 서버로 래핑
+const wss = new WebSocketServer({ server }); // 웹소켓 서버 연동
 
 // 미들웨어 설정
 app.use(express.json({ limit: "50mb" }));
@@ -32,6 +36,16 @@ const pool = new Pool({
     rejectUnauthorized: false, // 클라우드 DB 외부 접속 시 필요
   },
 });
+
+// 웹소켓 클라이언트 연결 관리 및 브로드캐스트 함수
+function broadcast(messageObj) {
+  wss.clients.forEach((client) => {
+    // readyState 1은 정상 연결(OPEN) 상태를 의미합니다.
+    if (client.readyState === 1) {
+      client.send(JSON.stringify(messageObj));
+    }
+  });
+}
 
 // ═══════════════════════════════════════════════
 //  [DB 자동 초기화 함수]
@@ -465,6 +479,7 @@ app.post("/api/tour/photo_upload", authenticate, async (req, res) => {
           "최종 인증 처리를 진행할 수 없는 상태이거나 이미 완료된 곳입니다.",
       });
     }
+    broadcast({ type: 'DB_UPDATED' });
 
     res.json({
       success: true,
@@ -798,6 +813,9 @@ app.post("/api/tour/spin", authenticate, async (req, res) => {
     );
     await pool.query("COMMIT");
 
+    broadcast({ type: 'DB_UPDATED' }); // 이 줄 추가
+    broadcast({ type: 'INVENTORY_CHANGED' }); // 이 줄 추가    
+
     res.json({
       success: true,
       prizeId: winningPrize.id,
@@ -913,6 +931,8 @@ app.post("/api/admin/inventory/update", authenticateAdmin, verifyStatAccess, asy
                 total_quantity = CASE WHEN $1 > 0 THEN total_quantity + $1 ELSE total_quantity END
             WHERE id = $2
         `, [parsedAmount, prize_id]);
+
+        broadcast({ type: 'INVENTORY_CHANGED' });
 
         res.json({ success: true, message: "재고가 성공적으로 업데이트되었습니다." });
     } catch (err) { 
@@ -1058,6 +1078,6 @@ app.get("/api/admin/inventory", authenticateAdmin, verifyStatAccess, async (req,
 
 // 서버 구동
 const PORT = process.env.PORT || 3002;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`🚀 조아용 AR 스탬프투어 서버 포트 ${PORT}에서 실행 중`);
 });
