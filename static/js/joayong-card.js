@@ -420,7 +420,7 @@ function startScanner(mode = "stamp") {
                 window.location.href = "roulette.html";
               } else {
                 alert(
-                  "올바른 경품 QR 코드가 아닙니다. 행사장에 비치된 QR을 스캔해주세요.",
+                  "올바른 경품 QR 코드가 아닙니다. 경품 수령처에 비치된 QR을 스캔해주세요.",
                 );
                 showScreen("screen-complete");
               }
