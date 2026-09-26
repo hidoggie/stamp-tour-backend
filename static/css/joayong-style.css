@@ -191,11 +191,26 @@
             background: var(--gray-l);
             color: #3D4759
         }
+        @keyframes blink {
+          0% { opacity: 1; }
+          50% { opacity: 0.4; }
+          100% { opacity: 1; }
+        }
+        @keyframes blink-shadow {
+          0% { box-shadow: 0 0 0 0 rgba(0, 179, 255, 0.7); }
+          70% { box-shadow: 0 0 10px 10px rgba(0, 179, 255, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(0, 179, 255, 0); }
+        }
+
         #cardbook-back-btn {
             margin-top: 3vh;
             margin-bottom: 3vh;
-            background: #F0F9FF;
-            color: #3D4759;
+            background: var(--sky);
+            color: white;
+            animation: blink-shadow 1.5s infinite;
+        }
+        #screen-map .btn-ghost {
+          animation: blink-shadow 1.5s infinite; /* 깜빡임 효과 추가 */
         }
 
         .btn-sm {
@@ -305,7 +320,8 @@
             overflow: hidden;
             border: 2px solid #D6E9F7;
             margin-bottom: 15px;
-            height: calc(var(--vh, 1vh) * 65);
+         /*   height: calc(var(--vh, 1vh) * 65); */
+            min-height: 250px;
         }
 
         #map {
