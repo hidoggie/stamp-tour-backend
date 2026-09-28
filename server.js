@@ -735,15 +735,20 @@ app.post("/api/tour/spin", authenticate, async (req, res) => {
   try {
     const { id: userId, passport_id } = req.user;
 
-    // 1. 중복 수령 검증 (이미 경품을 받았는지 확인)
-    const logRes = await pool.query(
-      "SELECT id FROM joa_ticket_logs WHERE passport_id = $1",
-      [passport_id],
-    );
-    if (logRes.rowCount > 0) {
-      return res.status(403).json({ error: "이미 경품을 수령하셨습니다." });
-    }
+  const logRes = await pool.query(
+    "SELECT id, ticket_type, issued_at FROM joa_ticket_logs WHERE passport_id = $1", 
+    [passport_id],
+  );
 
+  if (logRes.rowCount > 0) {
+    return res.status(400).json({ 
+      success: false, 
+      alreadyReceived: true, 
+      prizeName: logRes.rows[0].ticket_type,
+      issuedAtTime: new Date(logRes.rows[0].issued_at).getTime(),
+      error: "이미 경품을 수령하셨습니다." 
+    });
+  }
     // 2. 완주 여부 검증 (스탬프 4개를 모두 모았는지 확인)
     const stampRes = await pool.query(
       "SELECT COUNT(*) FROM joa_stamps WHERE user_id = $1 AND status = 'PHOTO_SUBMITTED'",
@@ -829,12 +834,29 @@ app.post("/api/tour/spin", authenticate, async (req, res) => {
 });
 
 // 룰렛 화면 렌더링용: 현재 재고가 남은 경품 목록만 가져오기
-app.get("/api/tour/available_prizes", async (req, res) => {
+app.get("/api/tour/available_prizes", authenticate, async (req, res) => {
   try {
+    // 1. 접속한 유저가 이미 당첨된 경품이 있는지 확인 (복구용 데이터)
+    const logRes = await pool.query(
+      "SELECT ticket_type FROM joa_ticket_logs WHERE passport_id = $1",
+      [req.user.passport_id]
+    );
+    
+    let alreadyWonPrize = null;
+    if (logRes.rowCount > 0) {
+      alreadyWonPrize = logRes.rows[0].ticket_type;
+    }
+
+    // 2. 남은 경품 목록 조회
     const prizeRes = await pool.query(
       "SELECT id, name FROM joa_prizes WHERE remaining_quantity > 0 ORDER BY id ASC",
     );
-    res.json({ success: true, prizes: prizeRes.rows });
+    
+    res.json({ 
+      success: true, 
+      prizes: prizeRes.rows,
+      alreadyWonPrize: alreadyWonPrize // 프론트엔드로 복구용 경품명 전달
+    });
   } catch (err) {
     res.status(500).json({ error: "경품 목록 조회 실패" });
   }
