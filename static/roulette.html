@@ -556,6 +556,14 @@
                 const res = await fetch('/api/tour/available_prizes');
                 const data = await res.json();
 
+                if (data.alreadyWonPrize) {
+                  finalPrizeName = data.alreadyWonPrize;
+                  localStorage.setItem("my_saved_prize", finalPrizeName);
+                  currentStep = 2; 
+                  showTicketScreen(); 
+                  return;
+                }
+
                 if (data.success && data.prizes.length > 0) {
                     const activePrizes = data.prizes;
                     const colors = ['#FFF6B0', '#05FB73', '#00B3FF', '#FE73F3', '#FF9F40', '#8A2BE2'];
@@ -638,16 +646,27 @@
                         this.innerHTML = '결과를 기다려주세요!';
                     } else {
                         alert(data.error);
+
+                        
                         // 에러 시 버튼 복구
                         this.disabled = false;
                         this.innerHTML = '돌리기!';
                     }
                 } catch (e) {
                     alert("룰렛 통신 중 오류가 발생했습니다.");
-                    // 에러 시 버튼 복구
-                    this.disabled = false;
-                    this.innerHTML = '돌리기!';
-                }
+                    if (data.alreadyReceived && data.prizeName && data.issuedAtTime) {
+                        finalPrizeName = data.prizeName;
+                        localStorage.setItem("my_saved_prize", finalPrizeName);
+        
+                        localStorage.setItem("prize_timestamp", data.issuedAtTime); 
+        
+                        currentStep = 2;
+                        showTicketScreen(); // 화면 이동
+                    } else {
+                        this.disabled = false;
+                        this.innerHTML = '돌리기!';
+                    }
+                }   
             }
             // [STEP 2] 교환권 화면으로 이동
             else if (currentStep === 2) {
