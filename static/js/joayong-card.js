@@ -31,7 +31,6 @@ function showScreen(screenId, isPopState = false) {
 document.addEventListener("DOMContentLoaded", async function () {
   const urlParams = new URLSearchParams(window.location.search);
   const viewParam = urlParams.get("view");
-
   const joaIdParam = urlParams.get("joa_id");
 
   if (viewParam === "map") {
@@ -40,11 +39,16 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   if (joaIdParam) {
-    // 1. URL에서 joa_id 값을 지워줍니다 (새로고침 시 중복 스캔 방지)
     window.history.replaceState({}, document.title, window.location.pathname);
 
-    // 2. QR 스캔 로직만 먼저 단독으로 실행합니다.
-    // (processScannedQR 함수 내부에서 결과 확인 후 loadUserStamps를 알아서 호출합니다)
+    const introBtn = document.querySelector("#screen-intro .btn-primary");
+    if (introBtn) {
+        introBtn.innerText = "스탬프 확인 중..."; // 담당자님 아이디어 적용!
+        introBtn.disabled = true;
+        // 선택 사항: 버튼이 눌리지 않는다는 것을 시각적으로 더 잘 보여주기 위해 회색 처리
+        introBtn.style.background = "#A3B5F7"; 
+        introBtn.style.boxShadow = "none";
+    }
     processScannedQR(joaIdParam);
   } else {
     // 3. QR 진입이 아닌 일반 진입/새로고침일 때만 바로 스탬프를 로드합니다.
@@ -53,6 +57,16 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   }
 });
+
+function resetIntroButton() {
+  const introBtn = document.querySelector("#screen-intro .btn-primary");
+  if (introBtn) {
+    introBtn.innerText = "조아용샷 GO";
+    introBtn.disabled = false;
+    introBtn.style.background = "";
+    introBtn.style.boxShadow = "";
+  }
+}
 
 async function processScannedQR(scannedJoaId) {
   if (!navigator.geolocation) {
@@ -93,16 +107,15 @@ async function processScannedQR(scannedJoaId) {
               : 0;
  
           if (data.prize_completed) {
-            alert(
-              "이미 경품 수령을 완료하셨습니다.\n참여해 주셔서 감사합니다!",
-            );
+            resetIntroButton();
+            alert("이미 경품 수령을 완료하셨습니다.\n참여해 주셔서 감사합니다!");
             openCardbook();
           } else if (acquiredCount >= 4) {
+            resetIntroButton();
             return; 
           } else if (data.status === "PHOTO_SUBMITTED") {
-            alert(
-              "이미 스탬프를 획득한 장소입니다. 다른 곳에 숨어있는 조아용을 찾아주세요!",
-            );
+            resetIntroButton();
+            alert("이미 스탬프를 획득한 장소입니다. 다른 곳에 숨어있는 조아용을 찾아주세요!");
             showScreen("screen-map");
           } else {
 
@@ -118,22 +131,25 @@ async function processScannedQR(scannedJoaId) {
             } catch (e) {
                 console.warn("경품 재고 확인 실패", e);
             }
-
+            resetIntroButton();
             localStorage.setItem("return_joa_id", scannedJoaId);
             shuffleAndPickCard();
           }
         } else {
+          resetIntroButton();
           alert(data.error || "위치 인증에 실패했습니다.");
           if (typeof loadUserStamps === "function") loadUserStamps();
           showScreen("screen-map");
         }
       } catch (error) {
+        resetIntroButton();
         console.error(error);
         alert("서버와 통신하는 중 문제가 발생했습니다.");
         showScreen("screen-map");
       }
     },
     function (error) {
+      resetIntroButton();
       alert("위치 정보(GPS) 접근을 허용해야 이벤트에 참여할 수 있습니다!");
       showScreen("screen-map");
     },
@@ -439,10 +455,12 @@ function startScanner(mode = "stamp") {
             }
             // ★ 분기 처리: 일반 스탬프 스캔 모드일 때
             else {
-              if (
-                decodedText.includes("joa_id=") ||
-                decodedText.includes("m.site.naver.com")
-              ) {
+              if (decodedText.includes("joa_id=")) {
+                const urlObj = new URL(decodedText);
+                const scannedJoaId = urlObj.searchParams.get("joa_id");
+    
+                processScannedQR(scannedJoaId);
+              } else if (decodedText.includes("m.site.naver.com")) {
                 window.location.href = decodedText;
               } else {
                 alert(
