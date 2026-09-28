@@ -564,6 +564,11 @@
                   return;
                 }
 
+                if (localStorage.getItem("my_saved_prize")) {
+                  localStorage.removeItem("my_saved_prize");
+                  localStorage.removeItem("prize_timestamp");
+                }            
+
                 if (data.success && data.prizes.length > 0) {
                     const activePrizes = data.prizes;
                     const colors = ['#FFF6B0', '#05FB73', '#00B3FF', '#FE73F3', '#FF9F40', '#8A2BE2'];
