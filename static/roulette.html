@@ -544,14 +544,6 @@
         let finalPrizeName = "";
 
         document.addEventListener("DOMContentLoaded", async () => {
-            const savedPrize = localStorage.getItem("my_saved_prize");
-            if (savedPrize) {
-                finalPrizeName = savedPrize;
-                currentStep = 2; // 바로 교환권 발급 단계로 설정
-                showTicketScreen(); // 룰렛 숨기고 티켓 화면 띄우기
-                return; // 아래의 룰렛 세팅 로직은 실행하지 않고 종료
-            }
-
             try {
                 const res = await fetch('/api/tour/available_prizes');
                 const data = await res.json();
@@ -652,25 +644,21 @@
                     } else {
                         alert(data.error);
 
-                        
-                        // 에러 시 버튼 복구
-                        this.disabled = false;
-                        this.innerHTML = '돌리기!';
+                        if (data.alreadyReceived && data.prizeName && data.issuedAtTime) {
+                          finalPrizeName = data.prizeName;
+                          localStorage.setItem("my_saved_prize", finalPrizeName);
+                          localStorage.setItem("prize_timestamp", data.issuedAtTime); 
+                          currentStep = 2;
+                          showTicketScreen(); // 화면 이동
+                        } else {
+                          this.disabled = false;
+                          this.innerHTML = '돌리기!';
+                        }                       
                     }
                 } catch (e) {
                     alert("룰렛 통신 중 오류가 발생했습니다.");
-                    if (data.alreadyReceived && data.prizeName && data.issuedAtTime) {
-                        finalPrizeName = data.prizeName;
-                        localStorage.setItem("my_saved_prize", finalPrizeName);
-        
-                        localStorage.setItem("prize_timestamp", data.issuedAtTime); 
-        
-                        currentStep = 2;
-                        showTicketScreen(); // 화면 이동
-                    } else {
-                        this.disabled = false;
-                        this.innerHTML = '돌리기!';
-                    }
+                    this.disabled = false;
+                    this.innerHTML = '돌리기!';
                 }   
             }
             // [STEP 2] 교환권 화면으로 이동
