@@ -130,24 +130,24 @@ function closePrizeModal() {
 document.addEventListener("DOMContentLoaded", () => {
     if (typeof showScreen === 'function') {
         const originalShowScreen = showScreen;
-        window.showScreen = function(screenId) {
-            const acquiredCount = userStamps.filter(s => s.status === 'PHOTO_SUBMITTED').length;
+        // isPopState 파라미터를 추가로 받아줍니다.
+        window.showScreen = function(screenId, isPopState = false) {
+            // userStamps 배열이 없을 때를 대비한 방어 코드 포함
+            const acquiredCount = typeof userStamps !== 'undefined' ? userStamps.filter(s => s.status === 'PHOTO_SUBMITTED').length : 0;
             
             // 4개를 다 모은 유저가 에러 등의 이유로 지도(screen-map)로 튕기려 할 때
             if (acquiredCount >= 4 && screenId === 'screen-map') {
                 if (window.hasClaimedPrize) {
                     alert("이미 경품 수령을 완료하셨습니다.\n참여해 주셔서 감사합니다!");
-                    originalShowScreen('screen-map'); // 지도로 정상 이동 허용
+                    // isPopState 값을 원본 함수에 그대로 전달!
+                    originalShowScreen('screen-map', isPopState); 
                 } else {
-                    // 경품 미수령자만 완주 화면으로 고정
-      //              console.log("완주 유저는 지도 화면으로 갈 수 없습니다. 완주 화면으로 고정합니다.");
-                    originalShowScreen('screen-complete');
+                    originalShowScreen('screen-complete', isPopState);
                 }
                 return;
             }
             
-            // 그 외의 정상적인 상황은 원래대로 실행
-            originalShowScreen(screenId);
+            originalShowScreen(screenId, isPopState);
         };
     }
 });
