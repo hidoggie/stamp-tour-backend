@@ -659,7 +659,7 @@
         function formatKST(dateString) {
             let d = new Date(dateString);
 
-            //      d.setHours(d.getHours() - 9);
+            d.setHours(d.getHours() - 9);
 
             const year = d.getFullYear();
             const month = String(d.getMonth() + 1).padStart(2, '0');
